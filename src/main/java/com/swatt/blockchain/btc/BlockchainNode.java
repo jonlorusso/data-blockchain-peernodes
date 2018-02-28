@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,14 +16,13 @@ import java.util.Properties;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
-
 import com.thetransactioncompany.jsonrpc2.*;
 import com.thetransactioncompany.jsonrpc2.client.*;
-
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 	private URL uri;
@@ -36,6 +37,15 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 	        prop.load(input);
 
 	        uri = new URL(prop.getProperty("url"));
+	        
+			final String rpcuser = prop.getProperty("rpcuser");
+			final String rpcpassword = prop.getProperty("rpcpassword");
+ 
+			Authenticator.setDefault(new Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication (rpcuser, rpcpassword.toCharArray());
+				}
+			});
 		} catch (FileNotFoundException e) {
 			// TODO error to developer if no props file
 			e.printStackTrace();
@@ -89,7 +99,12 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 		// Create new JSON-RPC 2.0 client session
 		JSONRPC2Session rpcSession = new JSONRPC2Session(uri);
 		rpcSession.getOptions().setRequestContentType("text/plain");
-		rpcSession.setRawResponseInspector(new MyInspector());
+		rpcSession.getOptions().trustAllCerts(true);
+		rpcSession.getOptions().ignoreVersion(true);
+		rpcSession.getOptions().parseNonStdAttributes(true);
+		RPCInspector inspector = new RPCInspector();
+		
+		rpcSession.setRawResponseInspector(inspector);
 		
 		List<Object> params = Arrays.asList(input, true);
 
@@ -103,18 +118,24 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 		System.out.println(jsonString);
 
 		JSONRPC2Response response = null;
+		String contents = null;
 
         try {
             response = rpcSession.send(reqOut);
         } catch (JSONRPC2SessionException e) {
-
-            System.err.println(e.getMessage());
-            throw new IOException("JSONRPC request failed");
-            // handle exception...
+        		contents = inspector.contents;
+        		//throw new IOException("JSONRPC request failed");
         }
 
-		JSONObject j = new JSONObject();
-		return j;
+		JSONObject json = null;
+        try {
+        		JSONParser parser = new JSONParser();
+        		json = (JSONObject) parser.parse(contents);
+        } catch (Exception e) {
+        		//
+        }
+        
+		return json;
 	}
 	
 	public BlockchainTransaction findTransactionByAddress(String address) {
@@ -125,4 +146,8 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 		// TODO Auto-generated method stub
 		return null;
 	}
+}
+
+class LocalParser extends com.thetransactioncompany.jsonrpc2.JSONRPC2Parser{
+	
 }
