@@ -7,147 +7,165 @@ import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
-import com.thetransactioncompany.jsonrpc2.*;
-import com.thetransactioncompany.jsonrpc2.client.*;
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
-	private URL uri;
-	
-	public BlockchainNode(){
-		try {
-		    Properties prop = new Properties();
-		    InputStream input = null;
+    private URL uri;
 
-	        input = new FileInputStream("config.properties");
+    public BlockchainNode() {
+        try {
+            Properties prop = new Properties();
+            InputStream input = null;
 
-	        prop.load(input);
+            input = new FileInputStream("config.properties");
 
-	        uri = new URL(prop.getProperty("url"));
-	        
-			final String rpcuser = prop.getProperty("rpcuser");
-			final String rpcpassword = prop.getProperty("rpcpassword");
- 
-			Authenticator.setDefault(new Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication (rpcuser, rpcpassword.toCharArray());
-				}
-			});
-		} catch (FileNotFoundException e) {
-			// TODO error to developer if no props file
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO error to developer if props file doesn't load
-			e.printStackTrace();
-		}	
-	}
-	
-    public BlockchainNodeInfo getInfo() {
-		String ticker = "BTC";
-		String name = "Bitcoin";
-    		String description = "Full blockchain node for Bitcoin";
-    		BlockchainNodeInfo info = new BlockchainNodeInfo(ticker, name, description);
-    		
-    		return info;
+            prop.load(input);
+
+            uri = new URL(prop.getProperty("url"));
+
+            final String rpcuser = prop.getProperty("rpcuser");
+            final String rpcpassword = prop.getProperty("rpcpassword");
+
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(rpcuser, rpcpassword.toCharArray());
+                }
+            });
+        } catch (FileNotFoundException e) {
+            // TODO error to developer if no props file
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO error to developer if props file doesn't load
+            e.printStackTrace();
+        }
     }
 
-	public BlockchainTransaction findTransactionByHash(String hash) {
-		JSONObject blockchainTransaction;
-		String blockHash = null;
-		String[] inputs = null;
-		String[] outputs = null;
-		double[] outputValues = null;
-		
-		try {
-			blockchainTransaction = makeRequest(BTCMethods.GET_RAW_TRANSACTION, hash);
-			
-			JSONArray vin = (JSONArray) blockchainTransaction.get("vin");
-			JSONArray vout = (JSONArray) blockchainTransaction.get("vout");
-			
-			inputs = new String[vin.size()];
-			outputs = new String[vout.size()];
-			outputValues = new double[2];
-			
-			@SuppressWarnings("unchecked")
-			Iterator<String> it = vin.iterator();
-			while (it.hasNext()) {
-				System.out.println("leg = " + it.next());
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		BlockchainTransaction rtn = new BlockchainTransaction(hash, blockHash, inputs, outputValues);
-		return rtn;
-   }
+    @Override
+    public BlockchainNodeInfo getInfo() {
+        String ticker = "BTC";
+        String name = "Bitcoin";
+        String description = "Full blockchain node for Bitcoin";
+        BlockchainNodeInfo info = new BlockchainNodeInfo(ticker, name, description);
 
-	private JSONObject makeRequest(String method, String input) throws IOException {			
-		// Create new JSON-RPC 2.0 client session
-		JSONRPC2Session rpcSession = new JSONRPC2Session(uri);
-		rpcSession.getOptions().setRequestContentType("text/plain");
-		rpcSession.getOptions().trustAllCerts(true);
-		rpcSession.getOptions().ignoreVersion(true);
-		rpcSession.getOptions().parseNonStdAttributes(true);
-		RPCInspector inspector = new RPCInspector();
-		
-		rpcSession.setRawResponseInspector(inspector);
-		
-		List<Object> params = Arrays.asList(input, true);
+        return info;
+    }
 
-		String id = "req-001";
-
-		// Create a new JSON-RPC 2.0 request
-		JSONRPC2Request reqOut = new JSONRPC2Request(method, params, id);
-
-		// Serialize the request to a JSON-encoded string
-		String jsonString = reqOut.toString();
-		System.out.println(jsonString);
-
-		JSONRPC2Response response = null;
-		String contents = null;
+    @Override
+    public BlockchainTransaction findTransactionByHash(String hash) {
+        JSONObject blockchainTransaction;
+        String blockHash = null;
+        String[] inputs = null;
+        String[] outputs = null;
+        double[] outputValues = null;
 
         try {
-            response = rpcSession.send(reqOut);
-        } catch (JSONRPC2SessionException e) {
-        		contents = inspector.contents;
-        		//throw new IOException("JSONRPC request failed");
+            String s = fetchT();
+            // blockchainTransaction = makeRequest(BTCMethods.GET_RAW_TRANSACTION, hash);
+
+            /*
+             * JSONArray vin = (JSONArray) blockchainTransaction.get("vin"); JSONArray vout
+             * = (JSONArray) blockchainTransaction.get("vout");
+             * 
+             * inputs = new String[vin.size()]; outputs = new String[vout.size()];
+             * outputValues = new double[2];
+             * 
+             * @SuppressWarnings("unchecked") Iterator<String> it = vin.iterator(); while
+             * (it.hasNext()) { System.out.println("leg = " + it.next()); }
+             */
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
 
-		JSONObject json = null;
+        BlockchainTransaction rtn = new BlockchainTransaction(hash, blockHash, inputs, outputValues);
+        return rtn;
+    }
+
+    private JSONObject makeRequest(String method, String input) throws IOException {
+        JsonRpcHttpClient client = new JsonRpcHttpClient(uri);
+        Long res = null;
+
         try {
-        		JSONParser parser = new JSONParser();
-        		json = (JSONObject) parser.parse(contents);
+            res = client.invoke(BTCMethods.GET_BLOCK_COUNT, new Object[] {}, Long.class);
+        } catch (Throwable e) {
+            // TODO error to developer if props file doesn't load
+            e.printStackTrace();
+        }
+
+        System.out.println(res);
+
+        JSONObject json = null;
+        try {
+            JSONParser parser = new JSONParser();
+            json = (JSONObject) parser.parse("contents");
         } catch (Exception e) {
-        		//
+            //
         }
-        
-		return json;
-	}
-	
-	public BlockchainTransaction findTransactionByAddress(String address) {
-		return null;
-	}
 
-	public BlockchainNodeData getDataForInterval(long fromTime, long toTime) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-}
+        return json;
+    }
 
-class LocalParser extends com.thetransactioncompany.jsonrpc2.JSONRPC2Parser{
-	
+    private String fetchT() throws IOException {
+        JsonRpcHttpClient client = new JsonRpcHttpClient(uri);
+        Long latestBlockCount = null;
+        String latestBlockHash = null;
+        RPCBlock latestBlock = null;
+
+        try {
+            latestBlockCount = client.invoke(BTCMethods.GET_BLOCK_COUNT, new Object[] {}, Long.class);
+            latestBlockHash = client.invoke(BTCMethods.GET_BLOCK_HASH, new Object[] { latestBlockCount }, String.class);
+            latestBlock = client.invoke(BTCMethods.GET_BLOCK, new Object[] { latestBlockHash }, RPCBlock.class);
+        } catch (Throwable e) {
+            // TODO error to developer if props file doesn't load
+            e.printStackTrace();
+        }
+
+        System.out.println(latestBlockHash);
+
+        return "json";
+    }
+
+    @Override
+    public BlockchainTransaction findTransactionByAddress(String address) {
+        return null;
+    }
+
+    @Override
+    public BlockchainNodeData getDataForInterval(long fromTime, long toTime) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getLatestBlockTransactions() {
+        BlockchainBlock block = new BlockchainBlock();
+        String transactions = block.getTransactionHashes();
+
+        return transactions;
+    }
+
+    @Override
+    public String getBlockTransactionsById(Long blockId) {
+        BlockchainBlock block = new BlockchainBlock(blockId);
+        String transactions = block.getTransactionHashes();
+
+        return transactions;
+    }
+
+    @Override
+    public String getBlockTransactionsByHash(String blockHash) {
+        BlockchainBlock block = new BlockchainBlock(blockHash);
+        String transactions = block.getTransactionHashes();
+
+        return transactions;
+    }
 }
