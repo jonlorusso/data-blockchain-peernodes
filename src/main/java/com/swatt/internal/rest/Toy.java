@@ -1,33 +1,29 @@
 package com.swatt.internal.rest;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Toy {
     public Toy() {
     }
 
-    public String getTrades() {
-        File file = new File("src/main/resources/trades.json");
-        BufferedReader reader = null;
-        String trades = "";
+    public String getMessages() {
+        TradeMessages tradesMessage = new TradeMessages("test message");
 
+        tradesMessage.messages.add(new TradeMessage("SELL", "BTC", new Long(10), new Double(124)));
+        tradesMessage.messages.add(new TradeMessage("BUY", "BTC", new Long(12), new Double(120)));
+        tradesMessage.messages.add(new TradeMessage("SELL", "ETH", new Long(8), new Double(19)));
+        tradesMessage.messages.add(new TradeMessage("BUY", "ETH", new Long(8), new Double(14)));
+        tradesMessage.messages.add(new TradeMessage("CNCL", "BTC", new Long(0), new Double(129)));
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = null;
         try {
-            reader = new BufferedReader(new FileReader(file));
-            String text = null;
-
-            while ((text = reader.readLine()) != null) {
-                trades += text;
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tradesMessage);
+        } catch (JsonProcessingException e1) {
+            e1.printStackTrace();
         }
 
-        return trades;
+        return json;
     }
 }

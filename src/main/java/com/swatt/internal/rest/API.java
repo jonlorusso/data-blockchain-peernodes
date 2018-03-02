@@ -61,12 +61,11 @@ public class API {
         });
 
         app.get("/buy/:symbol/:quantity/:price", ctx -> {
-            ctx.result("Buy received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("prices"));
+            ctx.result("Buy received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("price"));
         });
 
-        app.get("/sell/:symbol/:quantity:price", ctx -> {
-            ctx.result(
-                    "Sell received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("prices"));
+        app.get("/sell/:symbol/:quantity/:price", ctx -> {
+            ctx.result("Sell received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("price"));
         });
 
         app.get("/cancel/:symbol", ctx -> {
@@ -75,7 +74,7 @@ public class API {
 
         app.get("/getAll", ctx -> {
             Toy tradesToy = new Toy();
-            String trades = tradesToy.getTrades();
+            String trades = tradesToy.getMessages();
             ctx.result(trades);
         });
     }
