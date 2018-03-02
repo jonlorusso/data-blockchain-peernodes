@@ -4,7 +4,7 @@ import io.javalin.Javalin;
 
 public class API {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7000).enableCorsForOrigin("http://localhost").start();
+        Javalin app = Javalin.create().port(7000).enableCorsForOrigin("*").start();
 
         app.get("/:ticker/transactionHashes/:lookup", ctx -> {
             com.swatt.blockchain.BlockchainNode blockchain = null;
@@ -60,16 +60,23 @@ public class API {
             ctx.result("Transaction: " + transactionHash);
         });
 
-        app.get("/buy/:symbol/:quantity", ctx -> {
-            ctx.result("Buy confirmed " + ctx.param("symbol") + ':' + ctx.param("quantity"));
+        app.get("/buy/:symbol/:quantity/:price", ctx -> {
+            ctx.result("Buy received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("prices"));
         });
 
-        app.get("/sell/:symbol/:quantity", ctx -> {
-            ctx.result("Sell confirmed " + ctx.param("symbol") + ':' + ctx.param("quantity"));
+        app.get("/sell/:symbol/:quantity:price", ctx -> {
+            ctx.result(
+                    "Sell received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("prices"));
         });
 
         app.get("/cancel/:symbol", ctx -> {
-            ctx.result("Cancel confirmed " + ctx.param("symbol"));
+            ctx.result("Cancel received " + ctx.param("symbol"));
+        });
+
+        app.get("/getAll", ctx -> {
+            Toy tradesToy = new Toy();
+            String trades = tradesToy.getTrades();
+            ctx.result(trades);
         });
     }
 }
