@@ -17,6 +17,7 @@ public abstract class BlockchainTransaction {
         this.outputValues = outputs;
     }
 
-    // Fee for transaction, calculated or ...
     public abstract Long getFee();
+
+    public abstract String getHash();
 }

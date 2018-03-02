@@ -1,16 +1,7 @@
 package com.swatt.blockchain.btc;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Authenticator;
-import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.util.Properties;
-
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.swatt.blockchain.Utility;
 
 public class BlockchainBlock {
     JsonRpcHttpClient jsonrpcClient = null;
@@ -18,7 +9,7 @@ public class BlockchainBlock {
 
     public BlockchainBlock(String blockHash) {
         if (jsonrpcClient == null) {
-            initJSONRPC();
+            jsonrpcClient = Utility.initJSONRPC();
         }
 
         findBlockByHash(blockHash);
@@ -26,7 +17,7 @@ public class BlockchainBlock {
 
     public BlockchainBlock(Long blockId) {
         if (jsonrpcClient == null) {
-            initJSONRPC();
+            jsonrpcClient = Utility.initJSONRPC();
         }
 
         findBlockById(blockId);
@@ -34,7 +25,7 @@ public class BlockchainBlock {
 
     public BlockchainBlock() {
         if (jsonrpcClient == null) {
-            initJSONRPC();
+            jsonrpcClient = Utility.initJSONRPC();
         }
 
         findLatestBlock();
@@ -71,36 +62,6 @@ public class BlockchainBlock {
             blockCount = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_COUNT, new Object[] {}, Long.class);
             findBlockById(blockCount);
         } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void initJSONRPC() {
-        Properties prop = new Properties();
-        InputStream input;
-        URL uri;
-
-        try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
-            uri = new URL(prop.getProperty("url"));
-
-            final String rpcuser = prop.getProperty("rpcuser");
-            final String rpcpassword = prop.getProperty("rpcpassword");
-
-            Authenticator.setDefault(new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(rpcuser, rpcpassword.toCharArray());
-                }
-            });
-
-            jsonrpcClient = new JsonRpcHttpClient(uri);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }

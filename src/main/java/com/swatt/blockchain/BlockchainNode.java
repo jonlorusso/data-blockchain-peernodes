@@ -42,4 +42,6 @@ public abstract class BlockchainNode {
     public abstract BlockchainTransaction findTransactionByHash(String hash);
 
     public abstract BlockchainTransaction findTransactionByAddress(String address);
+
+    public abstract String getTransaction(String param);
 }

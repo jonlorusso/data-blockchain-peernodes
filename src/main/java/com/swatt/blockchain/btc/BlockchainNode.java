@@ -59,4 +59,12 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public String getTransaction(String transactionHash) {
+        BlockchainTransaction transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, null,
+                null, null);
+
+        return transaction.getHash();
+    }
 }

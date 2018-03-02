@@ -4,7 +4,8 @@ import io.javalin.Javalin;
 
 public class API {
     public static void main(String[] args) {
-        Javalin app = Javalin.start(7000);
+        Javalin app = Javalin.create().port(7000).enableCorsForOrigin("http://localhost").start();
+
         app.get("/:ticker/transactionHashes/:lookup", ctx -> {
             com.swatt.blockchain.BlockchainNode blockchain = null;
 
@@ -31,7 +32,7 @@ public class API {
             ctx.result("Transactions: " + transactions);
         });
 
-        app.get("/:ticker/block/", ctx -> {
+        app.get("/:ticker/transactionHashes/", ctx -> {
             com.swatt.blockchain.BlockchainNode blockchain = null;
 
             switch (ctx.param("ticker")) {
@@ -43,6 +44,32 @@ public class API {
             String transactions = blockchain.getLatestBlockTransactions();
 
             ctx.result("Transactions: " + transactions);
+        });
+
+        app.get("/:ticker/transaction/:hash", ctx -> {
+            com.swatt.blockchain.BlockchainNode blockchain = null;
+
+            switch (ctx.param("ticker")) {
+            case "btc":
+                blockchain = new com.swatt.blockchain.btc.BlockchainNode();
+                break;
+            }
+
+            String transactionHash = blockchain.getTransaction(ctx.param("hash"));
+
+            ctx.result("Transaction: " + transactionHash);
+        });
+
+        app.get("/buy/:symbol/:quantity", ctx -> {
+            ctx.result("Buy confirmed " + ctx.param("symbol") + ':' + ctx.param("quantity"));
+        });
+
+        app.get("/sell/:symbol/:quantity", ctx -> {
+            ctx.result("Sell confirmed " + ctx.param("symbol") + ':' + ctx.param("quantity"));
+        });
+
+        app.get("/cancel/:symbol", ctx -> {
+            ctx.result("Cancel confirmed " + ctx.param("symbol"));
         });
     }
 }
