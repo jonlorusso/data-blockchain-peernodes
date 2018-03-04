@@ -1,4 +1,4 @@
-package com.swatt.internal.rest;
+package com.swatt.internal.test;
 
 import java.util.ArrayList;
 

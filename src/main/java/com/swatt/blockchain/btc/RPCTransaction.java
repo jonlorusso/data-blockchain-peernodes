@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RPCTransaction {
+
     public String txid;
     public String hash;
     public int version;

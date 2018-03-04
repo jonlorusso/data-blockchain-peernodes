@@ -3,7 +3,7 @@ package com.swatt.blockchain.btc;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.Utility;
 
-public class BlockchainBlock {
+public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     JsonRpcHttpClient jsonrpcClient = null;
     RPCBlock block;
 
@@ -12,71 +12,72 @@ public class BlockchainBlock {
             jsonrpcClient = Utility.initJSONRPC();
         }
 
-        findBlockByHash(blockHash);
-    }
-
-    public BlockchainBlock(Long blockId) {
-        if (jsonrpcClient == null) {
-            jsonrpcClient = Utility.initJSONRPC();
-        }
-
-        findBlockById(blockId);
-    }
-
-    public BlockchainBlock() {
-        if (jsonrpcClient == null) {
-            jsonrpcClient = Utility.initJSONRPC();
-        }
-
-        findLatestBlock();
-    }
-
-    private void findBlockByHash(String blockHash) {
-        try {
-            block = jsonrpcClient.invoke(BTCMethods.GET_BLOCK, new Object[] { blockHash }, RPCBlock.class);
-            System.out.println(block.tx);
-
-        } catch (Throwable e) {
-            e.printStackTrace();
+        if (blockHash == null) {
+            block = findLatestBlock();
+        } else {
+            block = findBlockByHash(blockHash);
         }
     }
 
-    private void findBlockById(Long blockId) {
-        String blockHash;
-
-        try {
-            blockHash = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_HASH, new Object[] { blockId }, String.class);
-
-            // RPCTransaction tx = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION, new
-            // Object[] {"this tx hash"}, RPCTransaction.class);
-            findBlockByHash(blockHash);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void findLatestBlock() {
+    private RPCBlock findLatestBlock() {
+        RPCBlock block = null;
         Long blockCount;
 
         try {
             blockCount = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_COUNT, new Object[] {}, Long.class);
-            findBlockById(blockCount);
+            block = findBlockById(blockCount);
         } catch (Throwable e) {
             e.printStackTrace();
         }
+
+        return block;
     }
 
-    public String getTransactionHashes() {
-        return block.tx.get(1);
-    }
+    private RPCBlock findBlockById(Long blockId) {
+        RPCBlock block = null;
+        String blockHash = null;
 
-    public void processTransactions() {
-        for (int i = 0; i < block.tx.size(); i++) {
-            processTransaction(block.tx.get(i));
+        try {
+            blockHash = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_HASH, new Object[] { blockId }, String.class);
+            block = findBlockByHash(blockHash);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
+
+        return block;
     }
 
-    public void processTransaction(String transactionHash) {
+    private RPCBlock findBlockByHash(String blockHash) {
+        RPCBlock block = null;
 
+        try {
+            block = jsonrpcClient.invoke(BTCMethods.GET_BLOCK, new Object[] { blockHash }, RPCBlock.class);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        return block;
+    }
+
+    @Override
+    public Double getAverageFee() {
+        BlockchainTransaction transaction = null;
+        Double runningSumFee = 0.0;
+        Double fee;
+        int transactionCount = 0;
+        int numTransactions = block.tx.size();
+
+        for (String transactionHash : block.tx) {
+            transaction = new BlockchainTransaction(transactionHash);
+            fee = transaction.getFee();
+            transactionCount++;
+            runningSumFee += fee;
+
+            if (fee < 0) {
+                System.out.println("Transaction: " + transactionHash + "; fee: " + Double.toString(fee));
+            }
+        }
+
+        return runningSumFee / transactionCount;
     }
 }

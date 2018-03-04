@@ -1,10 +1,31 @@
-package com.swatt.internal.rest;
+package com.swatt.internal.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.javalin.Javalin;
+
 public class Toy {
-    public Toy() {
+    public static void main(String[] args) {
+        Javalin app = Javalin.create().port(7000).enableCorsForOrigin("*").start();
+
+        app.get("/buy/:symbol/:quantity/:price", ctx -> {
+            ctx.result("Buy received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("price"));
+        });
+
+        app.get("/sell/:symbol/:quantity/:price", ctx -> {
+            ctx.result("Sell received " + ctx.param("symbol") + ':' + ctx.param("quantity") + ':' + ctx.param("price"));
+        });
+
+        app.get("/cancel/:symbol", ctx -> {
+            ctx.result("Cancel received " + ctx.param("symbol"));
+        });
+
+        app.get("/getAll", ctx -> {
+            Toy tradesToy = new Toy();
+            String trades = tradesToy.getMessages();
+            ctx.result(trades);
+        });
     }
 
     public String getMessages() {

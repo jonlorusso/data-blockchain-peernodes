@@ -1,5 +1,6 @@
-package com.swatt.blockchain.btc;
+package com.swatt.blockchain.eth;
 
+import com.swatt.blockchain.BlockchainBlock;
 import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
@@ -21,21 +22,19 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
     }
 
     @Override
-    public BlockchainTransaction findTransactionByHash(String transactionHash) {
-        BlockchainTransaction transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash);
-
-        return transaction;
-    }
-
-    @Override
-    public BlockchainBlock findBlockByHash(String blockHash) {
-        BlockchainBlock block = new com.swatt.blockchain.btc.BlockchainBlock(blockHash);
-
-        return block;
+    public BlockchainTransaction findTransactionByHash(String hash) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
     public BlockchainTransaction findTransactionByAddress(String address) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public BlockchainBlock findBlockByHash(String blockHash) {
         // TODO Auto-generated method stub
         return null;
     }

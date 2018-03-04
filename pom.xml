@@ -43,5 +43,10 @@
 			<artifactId>jsonrpc4j</artifactId>
 			<version>1.5.3</version>
 		</dependency>
+		<dependency>
+    			<groupId>org.web3j</groupId>
+    			<artifactId>core</artifactId>
+    			<version>3.3.1</version>
+		</dependency>		
 	</dependencies>
 </project>

@@ -8,7 +8,7 @@ public abstract class BlockchainTransaction {
     String blockHash;
     String[] inputs;
     double[] outputValues;
-    Long fee;
+    Double fee;
 
     public BlockchainTransaction(String hash, String blockHash, String[] inputs, double[] outputs) {
         this.hash = hash;
@@ -17,7 +17,7 @@ public abstract class BlockchainTransaction {
         this.outputValues = outputs;
     }
 
-    public abstract Long getFee();
+    public abstract Double getFee();
 
     public abstract String getHash();
 }

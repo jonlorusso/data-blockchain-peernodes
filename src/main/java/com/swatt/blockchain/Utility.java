@@ -8,23 +8,11 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.Properties;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 
 public class Utility {
-    private int ByteArrayToInt(Byte[] Bytes) {
-        byte[] bytes = new byte[Bytes.length];
-        int i = 0;
-        for (Byte b : Bytes) {
-            bytes[i] = b.byteValue();
-            i++;
-        }
-        int Integer = ByteBuffer.wrap(bytes).getInt();
-        return Integer;
-    }
-
     public static JsonRpcHttpClient initJSONRPC() {
         Properties prop = new Properties();
         InputStream input;

@@ -33,15 +33,9 @@ public abstract class BlockchainNode {
     // public final BlockchainNodeData[] getDays(long fromTime, long toTime) { ... }
     // // Assume EPOCH times in millisecs
 
-    public abstract String getLatestBlockTransactions();
-
-    public abstract String getBlockTransactionsById(Long blockId);
-
-    public abstract String getBlockTransactionsByHash(String hash);
-
     public abstract BlockchainTransaction findTransactionByHash(String hash);
 
     public abstract BlockchainTransaction findTransactionByAddress(String address);
 
-    public abstract String getTransaction(String param);
+    public abstract BlockchainBlock findBlockByHash(String blockHash);
 }
