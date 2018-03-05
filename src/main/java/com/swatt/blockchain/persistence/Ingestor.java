@@ -86,14 +86,7 @@ public class Ingestor {
             if (blockFetchCountdown > 0) {
                 fetchBlock(block.getPrevHash());
             } else {
-                if (db.connection != null) {
-                    try {
-                        db.connection.close();
-                    } catch (SQLException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
+                updateProgress(block.getPrevHash());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -146,6 +139,46 @@ public class Ingestor {
             if (preparedStatement != null) {
                 try {
                     preparedStatement.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static void updateProgress(String blockHash) {
+        CallableStatement preparedStatement = null;
+
+        try {
+            preparedStatement = db.connection.prepareCall("{CALL UpdateProgress(?, ?)}");
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        try {
+            preparedStatement.setString(UpdateProgressColumns.BLOCKCHAIN_TICKER.ordinal(), blockchainTicker);
+            preparedStatement.setString(UpdateProgressColumns.BLOCK_HASH.ordinal(), blockHash);
+
+            preparedStatement.executeUpdate();
+
+            System.out.println("Progress updated");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+
+            if (db.connection != null) {
+                try {
+                    db.connection.close();
                 } catch (SQLException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
