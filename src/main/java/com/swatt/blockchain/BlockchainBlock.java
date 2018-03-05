@@ -15,7 +15,9 @@ public abstract class BlockchainBlock {
         this(null, null);
     }
 
-    public abstract String getHash();
+    public String getHash() {
+        return this.hash;
+    }
 
     public abstract Double getAverageFee();
 

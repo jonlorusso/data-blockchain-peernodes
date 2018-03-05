@@ -1,5 +1,6 @@
 package com.swatt.blockchain.btc;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcClientException;
@@ -90,9 +91,9 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
                     new Object[] { transactionHash, true }, RPCTransaction.class);
 
         } catch (JsonRpcClientException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
         } catch (Throwable e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 

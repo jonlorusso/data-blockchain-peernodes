@@ -2,26 +2,26 @@ package com.swatt.blockchain.persistence;
 
 import java.sql.CallableStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import com.swatt.blockchain.BlockchainBlock;
 
 public class Ingestor {
+    static int blockFetchCountdown;
+    static String blockchainTicker;
+    static com.swatt.blockchain.BlockchainNode blockchain;
     private static BlockchainDB db;
     public static final String DEFAULT_BLOCKCHAIN_TICKER = "btc";
 
     public static void main(String[] args) {
-        String ticker = null;
-
         db = new BlockchainDB();
 
         if (args.length == 0)
-            ticker = DEFAULT_BLOCKCHAIN_TICKER;
+            blockchainTicker = DEFAULT_BLOCKCHAIN_TICKER;
         else
-            ticker = args[0];
+            blockchainTicker = args[0];
 
-        com.swatt.blockchain.BlockchainNode blockchain = null;
-
-        switch (ticker) {
+        switch (blockchainTicker) {
         case "btc":
             blockchain = new com.swatt.blockchain.btc.BlockchainNode();
             break;
@@ -30,60 +30,35 @@ public class Ingestor {
             break;
         }
 
-        // BlockchainTransaction tx = null;
-        BlockchainBlock block = null;
-
         try {
-            block = blockchain.findBlockByHash("0000000000000000007962066dcd6675830883516bcf40047d42740a85eb2919");
-
-            persistBlock(ticker, block);
+            startIngestion();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void persistBlock(String ticker, BlockchainBlock block) {
+    private static void startIngestion() {
         CallableStatement preparedStatement = null;
 
         try {
-            preparedStatement = db.connection.prepareCall(
-                    "{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+            preparedStatement = db.connection.prepareCall("{CALL CheckProgress(?, ?, ?)}");
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         try {
-            preparedStatement.setString(1, ticker);
-            preparedStatement.setString(2, block.getHash());
-            preparedStatement.setLong(3, block.getTransactionCount());
-            preparedStatement.setInt(4, block.getHeight());
-            preparedStatement.setDouble(5, block.getDifficulty());
-            preparedStatement.setString(6, block.getMerkleRoot());
-            preparedStatement.setLong(7, block.getTimeStamp());
-            preparedStatement.setString(8, block.getBits());
-            preparedStatement.setLong(9, block.getSize());
-            preparedStatement.setString(10, block.getVersionHex());
-            preparedStatement.setDouble(11, block.getNonce());
-            preparedStatement.setString(12, block.getPrevHash());
-            preparedStatement.setString(13, block.getNextHash());
-            preparedStatement.setDouble(14, block.getAverageFee());
+            preparedStatement.setString(BlockProgressColumns.BLOCKCHAIN_TICKER.ordinal(), blockchainTicker);
+            preparedStatement.registerOutParameter(BlockProgressColumns.START_BLOCK_HASH.ordinal(), Types.VARCHAR);
+            preparedStatement.registerOutParameter(BlockProgressColumns.BLOCK_COUNT.ordinal(), Types.INTEGER);
 
-            preparedStatement.setString(15, block.getLargestTxHash());
-            preparedStatement.setDouble(16, block.getLargestTxValue());
-            preparedStatement.setLong(17, block.getLargestTxTimestamp());
-            preparedStatement.setLong(18, block.getTotalSize());
-            preparedStatement.setDouble(19, block.getTotalFee());
-            preparedStatement.setDouble(20, block.getLargestFee());
-            preparedStatement.setDouble(21, block.getSmallestFee());
-            preparedStatement.setLong(22, block.getFirstTimestamp());
-            preparedStatement.setLong(23, block.getLastTimestamp());
+            preparedStatement.execute();
 
-            preparedStatement.executeUpdate();
+            String startBlockHash = preparedStatement.getString(BlockProgressColumns.START_BLOCK_HASH.ordinal());
+            int blockCount = preparedStatement.getInt(BlockProgressColumns.BLOCK_COUNT.ordinal());
 
-            System.out.println(BlockColumns.HASH);
-
-            System.out.println("Record is inserted into BLOCKS table");
+            blockFetchCountdown = blockCount;
+            fetchBlock(startBlockHash);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -95,10 +70,82 @@ public class Ingestor {
                     e.printStackTrace();
                 }
             }
+        }
+    }
 
-            if (db.connection != null) {
+    private static void fetchBlock(String blockHash) {
+        BlockchainBlock block = null;
+
+        blockFetchCountdown--;
+
+        try {
+            block = blockchain.findBlockByHash(blockHash);
+
+            persistBlock(block);
+
+            if (blockFetchCountdown > 0) {
+                fetchBlock(block.getPrevHash());
+            } else {
+                if (db.connection != null) {
+                    try {
+                        db.connection.close();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void persistBlock(BlockchainBlock block) {
+        CallableStatement preparedStatement = null;
+
+        try {
+            preparedStatement = db.connection.prepareCall(
+                    "{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        try {
+            preparedStatement.setString(BlockColumns.BLOCKCHAIN_TICKER.ordinal(), blockchainTicker);
+            preparedStatement.setString(BlockColumns.HASH.ordinal(), block.getHash());
+            preparedStatement.setLong(BlockColumns.TRANSACTION_COUNT.ordinal(), block.getTransactionCount());
+            preparedStatement.setInt(BlockColumns.HEIGHT.ordinal(), block.getHeight());
+            preparedStatement.setDouble(BlockColumns.DIFFICULTY.ordinal(), block.getDifficulty());
+            preparedStatement.setString(BlockColumns.MERKLE_ROOT.ordinal(), block.getMerkleRoot());
+            preparedStatement.setLong(BlockColumns.TIMESTAMP.ordinal(), block.getTimeStamp());
+            preparedStatement.setString(BlockColumns.BITS.ordinal(), block.getBits());
+            preparedStatement.setLong(BlockColumns.SIZE.ordinal(), block.getSize());
+            preparedStatement.setString(BlockColumns.VERSION_HEX.ordinal(), block.getVersionHex());
+            preparedStatement.setDouble(BlockColumns.NONCE.ordinal(), block.getNonce());
+            preparedStatement.setString(BlockColumns.PREV_HASH.ordinal(), block.getPrevHash());
+            preparedStatement.setString(BlockColumns.NEXT_HASH.ordinal(), block.getNextHash());
+            preparedStatement.setDouble(BlockColumns.AVG_FEE.ordinal(), block.getAverageFee());
+
+            preparedStatement.setString(BlockColumns.LARGEST_TX_HASH.ordinal(), block.getLargestTxHash());
+            preparedStatement.setDouble(BlockColumns.LARGEST_TX_VALUE.ordinal(), block.getLargestTxValue());
+            preparedStatement.setLong(BlockColumns.LARGEST_TX_TIMESTAMP.ordinal(), block.getLargestTxTimestamp());
+            preparedStatement.setLong(BlockColumns.TOTAL_SIZE.ordinal(), block.getTotalSize());
+            preparedStatement.setDouble(BlockColumns.TOTAL_FEE.ordinal(), block.getTotalFee());
+            preparedStatement.setDouble(BlockColumns.LARGEST_FEE.ordinal(), block.getLargestFee());
+            preparedStatement.setDouble(BlockColumns.SMALLEST_FEE.ordinal(), block.getSmallestFee());
+            preparedStatement.setLong(BlockColumns.FIRST_TX_TIMESTAMP.ordinal(), block.getFirstTimestamp());
+            preparedStatement.setLong(BlockColumns.LAST_TX_TIMESTAMP.ordinal(), block.getLastTimestamp());
+
+            preparedStatement.executeUpdate();
+
+            System.out.println("Record is inserted into BLOCKS table");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if (preparedStatement != null) {
                 try {
-                    db.connection.close();
+                    preparedStatement.close();
                 } catch (SQLException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
