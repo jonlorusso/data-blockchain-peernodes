@@ -1,14 +1,20 @@
 package com.swatt.blockchain.btc;
 
+import java.util.logging.Logger;
+
 import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.Utility;
 
 public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransaction {
+    private static final Logger LOGGER = Logger.getLogger(BlockchainTransaction.class.getName());
+
     JsonRpcHttpClient jsonrpcClient = null;
     RPCTransaction rpcTransaction;
 
     private String hash;
+    private Double fee;
+    public Boolean minted = false;
 
     public BlockchainTransaction(String hash) {
         this(hash, null, null, null);
@@ -23,12 +29,11 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
         fetchFromBlockchain(hash);
     }
 
-    @Override
-    public Double getFee() {
-        Double outValue = this.outputValue();
+    public void calculate() {
+        Double outValue = this.getValue();
 
         Double inValue = 0.0;
-        Double fee = 0.0;
+        this.fee = 0.0;
 
         Vin inTransaction = null;
         com.swatt.blockchain.btc.BlockchainTransaction transaction = null;
@@ -43,13 +48,18 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
         }
 
         if (inValue > 0) {
-            fee = inValue - outValue;
+            this.fee = inValue - outValue;
+        } else {
+            this.minted = true;
         }
-
-        return fee;
     }
 
-    public Double outputValue() {
+    @Override
+    public Double getFee() {
+        return this.fee;
+    }
+
+    public Double getValue() {
         Double outValue = 0.0;
         Vout outTransaction = null;
 
@@ -62,8 +72,16 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
         return outValue;
     }
 
+    public Long getTimestamp() {
+        return rpcTransaction.time;
+    }
+
     public Double outputValue(int i) {
         return rpcTransaction.vout.get(i).value;
+    }
+
+    public Long getSize() {
+        return rpcTransaction.vsize;
     }
 
     private void fetchFromBlockchain(String transactionHash) {
@@ -80,6 +98,6 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
     @Override
     public String getHash() {
-        return rpcTransaction.hash;
+        return hash;
     }
 }

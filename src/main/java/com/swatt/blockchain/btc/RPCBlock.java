@@ -15,9 +15,9 @@ public class RPCBlock {
     public String versionHex;
     public String merkleroot;
     public List<String> tx = null;
-    public int time;
+    public Long time;
     public int mediantime;
-    public int nonce;
+    public Long nonce;
     public String bits;
     public double difficulty;
     public String chainwork;

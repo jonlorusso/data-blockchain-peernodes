@@ -3,13 +3,65 @@ package com.swatt.blockchain;
 public abstract class BlockchainBlock {
     private String hash;
 
-    public BlockchainBlock(String blockHash) {
+    public BlockchainBlock(BlockchainNode node, String blockHash) {
         this.hash = blockHash;
     }
 
-    public BlockchainBlock() {
-        this(null);
+    public BlockchainBlock(BlockchainNode node) {
+        this(node, null);
     }
 
+    public BlockchainBlock() {
+        this(null, null);
+    }
+
+    public abstract String getHash();
+
     public abstract Double getAverageFee();
+
+    public abstract Double getLargestFee();
+
+    public abstract Double getSmallestFee();
+
+    public abstract Double getTotalFee();
+
+    public abstract Double getLargestTxValue();
+
+    public abstract String getLargestTxHash();
+
+    public abstract Long getTransactionCount();
+
+    public abstract Long getLargestTxTimestamp();
+
+    public abstract Long getTotalSize();
+
+    public abstract int getHeight();
+
+    public abstract Double getDifficulty();
+
+    public abstract String getMerkleRoot();
+
+    public abstract Long getTimeStamp();
+
+    public abstract String getBits();
+
+    public abstract int getSize();
+
+    public abstract String getVersionHex();
+
+    public abstract Long getNonce();
+
+    public abstract String getPrevHash();
+
+    public abstract String getNextHash();
+
+    public Long getFirstTimestamp() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Long getLastTimestamp() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

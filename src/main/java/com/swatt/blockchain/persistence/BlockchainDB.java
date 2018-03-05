@@ -1,23 +1,34 @@
 package com.swatt.blockchain.persistence;
 
-import java.sql.*;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
 
-/** BlockchainDB is the container for the local DB persistence of the blockchain data
+/**
+ * BlockchainDB is the container for the local DB persistence of the blockchain
+ * data
  */
-public final class BlockchainDB{  
-	public static void main(String arguments[]){  
-		try{ 
-			Class.forName("com.mysql.jdbc.Driver");  
-			Connection connection = DriverManager.getConnection("jdbc:mysql://35.196.100.73:3306/getyfi","root","Getyfi123$");  
-			
-			Statement statement = connection.createStatement();  
-			
-			ResultSet resultSet = statement.executeQuery("select * from dns_history");  
-		
-			while(resultSet.next())  
-				System.out.println(resultSet.getInt(1)+"  "+resultSet.getString(2)+"  "+resultSet.getString(3));
-			
-			connection.close();  
-		}catch(Exception e){ System.out.println(e);}  
-	}
+public final class BlockchainDB {
+    public Connection connection;
+
+    public BlockchainDB() {
+        Properties prop = new Properties();
+        InputStream input;
+
+        try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+            final String dburl = prop.getProperty("dburl");
+            final String dbname = prop.getProperty("dbname");
+            final String dbuser = prop.getProperty("dbuser");
+            final String dbpassword = prop.getProperty("dbpassword");
+
+            Class.forName("com.mysql.jdbc.Driver");
+            this.connection = DriverManager.getConnection("jdbc:mysql://" + dburl + "/" + dbname, dbuser, dbpassword);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
 }

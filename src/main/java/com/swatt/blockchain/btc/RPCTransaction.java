@@ -8,17 +8,17 @@ public class RPCTransaction {
 
     public String txid;
     public String hash;
-    public int version;
-    public int size;
-    public int vsize;
-    public int locktime;
+    public Long version;
+    public Long size;
+    public Long vsize;
+    public Long locktime;
     public List<Vin> vin = null;
     public List<Vout> vout = null;
     public String hex;
     public String blockhash;
-    public int confirmations;
-    public int time;
-    public int blocktime;
+    public Long confirmations;
+    public Long time;
+    public Long blocktime;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {
