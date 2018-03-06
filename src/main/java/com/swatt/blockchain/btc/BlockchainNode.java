@@ -48,6 +48,6 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
             System.out.println("Resued one! " + transactionHash);
         }
 
-        return null;
+        return transaction;
     }
 }

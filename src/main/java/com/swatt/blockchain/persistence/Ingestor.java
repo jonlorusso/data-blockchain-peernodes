@@ -109,7 +109,7 @@ public class Ingestor {
 
         try {
             preparedStatement = db.connection
-                    .prepareCall("{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+                    .prepareCall("{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -122,7 +122,7 @@ public class Ingestor {
             preparedStatement.setInt(BlockColumns.HEIGHT.ordinal(), block.getHeight());
             preparedStatement.setDouble(BlockColumns.DIFFICULTY.ordinal(), block.getDifficulty());
             preparedStatement.setString(BlockColumns.MERKLE_ROOT.ordinal(), block.getMerkleRoot());
-            preparedStatement.setLong(BlockColumns.TIMESTAMP.ordinal(), block.getTimeStamp());
+            preparedStatement.setLong(BlockColumns.TIMESTAMP.ordinal(), block.getTimestamp());
             preparedStatement.setString(BlockColumns.BITS.ordinal(), block.getBits());
             preparedStatement.setLong(BlockColumns.SIZE.ordinal(), block.getSize());
             preparedStatement.setString(BlockColumns.VERSION_HEX.ordinal(), block.getVersionHex());
@@ -130,11 +130,10 @@ public class Ingestor {
             preparedStatement.setString(BlockColumns.PREV_HASH.ordinal(), block.getPrevHash());
             preparedStatement.setString(BlockColumns.NEXT_HASH.ordinal(), block.getNextHash());
             preparedStatement.setDouble(BlockColumns.AVG_FEE.ordinal(), block.getAverageFee());
+            preparedStatement.setDouble(BlockColumns.AVG_FEE_RATE.ordinal(), block.getAverageFeeRate());
 
             preparedStatement.setString(BlockColumns.LARGEST_TX_HASH.ordinal(), block.getLargestTxHash());
             preparedStatement.setDouble(BlockColumns.LARGEST_TX_AMOUNT.ordinal(), block.getLargestTxAmount());
-            preparedStatement.setLong(BlockColumns.TOTAL_SIZE.ordinal(), block.getTotalSize());
-            preparedStatement.setDouble(BlockColumns.TOTAL_FEE.ordinal(), block.getTotalFee());
             preparedStatement.setDouble(BlockColumns.LARGEST_FEE.ordinal(), block.getLargestFee());
             preparedStatement.setDouble(BlockColumns.SMALLEST_FEE.ordinal(), block.getSmallestFee());
             preparedStatement.setLong(BlockColumns.INDEXING_DURATION.ordinal(), duration);

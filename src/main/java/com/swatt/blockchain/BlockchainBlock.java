@@ -21,17 +21,15 @@ public abstract class BlockchainBlock {
 
     public abstract Double getAverageFee();
 
+    public abstract Double getAverageFeeRate();
+
     public abstract Double getLargestFee();
 
     public abstract Double getSmallestFee();
 
-    public abstract Double getTotalFee();
-
     public abstract String getLargestTxHash();
 
     public abstract Long getTransactionCount();
-
-    public abstract Long getTotalSize();
 
     public abstract int getHeight();
 
@@ -39,7 +37,7 @@ public abstract class BlockchainBlock {
 
     public abstract String getMerkleRoot();
 
-    public abstract Long getTimeStamp();
+    public abstract Long getTimestamp();
 
     public abstract String getBits();
 

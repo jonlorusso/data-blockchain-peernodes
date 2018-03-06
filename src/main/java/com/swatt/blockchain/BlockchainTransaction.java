@@ -10,11 +10,11 @@ public abstract class BlockchainTransaction {
         this.hash = hash;
     }
 
-    public abstract Double getTransactionFee();
+    public abstract Double getFee();
 
     public abstract String getHash();
 
     public abstract Long getTimestamp();
 
-    public abstract Double getTransactionAmount();
+    public abstract Double getAmount();
 }

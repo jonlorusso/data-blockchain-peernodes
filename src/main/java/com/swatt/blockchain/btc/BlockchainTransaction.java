@@ -26,8 +26,6 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
         this.hash = hash;
 
-        System.out.println(hash);
-
         jsonrpcClient = Utility.initJSONRPC();
 
         fetchFromBlockchain(hash);
@@ -37,7 +35,7 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     private void calculate() {
-        Double outValue = this.getTransactionAmount();
+        Double outValue = this.getAmount();
 
         inValue = 0.0;
         this.fee = 0.0;
@@ -62,16 +60,12 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     @Override
-    public Double getTransactionFee() {
+    public Double getFee() {
         return this.fee;
     }
 
-    public Double getInValue() {
-        return inValue;
-    }
-
     @Override
-    public Double getTransactionAmount() {
+    public Double getAmount() {
         Double outValue = 0.0;
         Vout outTransaction = null;
 
@@ -95,6 +89,14 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
     public Long getSize() {
         return rpcTransaction.vsize;
+    }
+
+    public double getFeeRate() {
+        return 1000 * (this.getFee() / this.getSize());
+    }
+
+    public String getBlockhash() {
+        return rpcTransaction.blockhash;
     }
 
     private void fetchFromBlockchain(String transactionHash) {

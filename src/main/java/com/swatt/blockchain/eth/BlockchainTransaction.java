@@ -37,7 +37,7 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     private void calculate() {
-        Double outValue = this.getTransactionAmount();
+        Double outValue = this.getAmount();
 
         inValue = 0.0;
         this.fee = 0.0;
@@ -53,7 +53,7 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     @Override
-    public Double getTransactionFee() {
+    public Double getFee() {
         return this.fee;
     }
 
@@ -62,7 +62,7 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     @Override
-    public Double getTransactionAmount() {
+    public Double getAmount() {
         return rpcTransaction.value;
     }
 

@@ -12,13 +12,12 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
 
     private RPCBlock block;
     private Double averageFee;
+    private Double averageFeeRate;
     private Double largestFee;
     private Double smallestFee;
-    private Double totalFee;
     private Double largestTxAmount;
     private String largestTxHash;
     private Long transactionCount;
-    private Long totalSize;
 
     public BlockchainBlock(BlockchainNode node, String blockHash) {
         if (jsonrpcClient == null) {
@@ -74,39 +73,36 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return block;
     }
 
-    @Override
-    public Double getAverageFee() {
-        return this.averageFee;
-    }
-
     private void calculate() {
         BlockchainTransaction transaction = null;
 
         Double transactionFee;
         Double transactionAmount;
+        Long totalSize = 0L;
+        Double totalFee = 0.0;
+        Double totalFeeRate = 0.0;
 
         this.transactionCount = 0L; // block.tx.size();
 
         this.largestTxAmount = 0.0;
-        this.totalSize = 0L;
 
         this.smallestFee = Double.MAX_VALUE;
         this.largestFee = 0.0;
-        this.totalFee = 0.0;
 
         for (String transactionHash : block.tx) {
             transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, true);
 
             if (!transaction.minted) {
-                transactionFee = transaction.getTransactionFee();
-                transactionAmount = transaction.getTransactionAmount();
+                transactionFee = transaction.getFee();
+                transactionAmount = transaction.getAmount();
 
                 this.smallestFee = Math.min(this.smallestFee, transactionFee);
                 this.largestFee = Math.max(this.largestFee, transactionFee);
 
                 this.transactionCount++;
-                this.totalFee += transactionFee;
-                this.totalSize += transaction.getSize();
+                totalFee += transactionFee;
+                totalFeeRate += transaction.getFeeRate();
+                totalSize += transaction.getSize();
 
                 if (transactionAmount > this.largestTxAmount) {
                     this.largestTxAmount = transactionAmount;
@@ -119,7 +115,18 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
             }
         }
 
-        this.averageFee = this.totalFee / this.transactionCount;
+        this.averageFee = totalFee / this.transactionCount;
+        this.averageFeeRate = totalFeeRate / this.transactionCount;
+    }
+
+    @Override
+    public Double getAverageFee() {
+        return this.averageFee;
+    }
+
+    @Override
+    public Double getAverageFeeRate() {
+        return this.averageFeeRate;
     }
 
     @Override
@@ -138,11 +145,6 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     }
 
     @Override
-    public Double getTotalFee() {
-        return this.totalFee;
-    }
-
-    @Override
     public Double getLargestTxAmount() {
         return this.largestTxAmount;
     }
@@ -155,11 +157,6 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     @Override
     public Long getTransactionCount() {
         return this.transactionCount;
-    }
-
-    @Override
-    public Long getTotalSize() {
-        return this.totalSize;
     }
 
     @Override
@@ -178,7 +175,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     }
 
     @Override
-    public Long getTimeStamp() {
+    public Long getTimestamp() {
         return this.block.time;
     }
 
