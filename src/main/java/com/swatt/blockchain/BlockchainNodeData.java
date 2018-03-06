@@ -66,7 +66,7 @@ public class BlockchainNodeData {
         return numBlocks;
     }
 
-    public int getNumTransactions() {
+    public int getTransactionCount() {
         return transactionCount;
     }
 
@@ -86,7 +86,7 @@ public class BlockchainNodeData {
         return averageFeeRate;
     }
 
-    public int getAverageNumTransactionsPerBlock() {
+    public int getAverageTransactionCount() {
         return averageTransactionCount;
     }
 
