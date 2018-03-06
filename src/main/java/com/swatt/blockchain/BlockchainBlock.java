@@ -100,6 +100,7 @@ public abstract class BlockchainBlock {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
         } finally {
             if (preparedStatement != null) {
                 try {
