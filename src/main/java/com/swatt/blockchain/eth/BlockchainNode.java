@@ -13,6 +13,8 @@ import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
+    private String ticker = "eth";
+
     private static final Logger LOGGER = Logger.getLogger(BlockchainNode.class.getName());
 
     public BlockchainNode() {
@@ -57,5 +59,10 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
     public BlockchainTransaction findTransactionByHash(String hash, boolean calculate) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public String getTicker() {
+        return this.ticker;
     }
 }
