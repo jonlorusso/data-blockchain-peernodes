@@ -17,7 +17,9 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     private static final Logger LOGGER = Logger.getLogger(BlockchainNode.class.getName());
 
-    public BlockchainNode() {
+    public BlockchainNode(String ticker) {
+        super(ticker);
+
         Web3j web3j = Web3j.build(new HttpService("https://127.0.0.1:")); // FIXME: Enter your Infura token here;
         try {
             LOGGER.log(Level.INFO,

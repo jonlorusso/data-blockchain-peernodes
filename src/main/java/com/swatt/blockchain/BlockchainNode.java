@@ -5,6 +5,12 @@ package com.swatt.blockchain;
  * (such as Bitcoin, Etherium, etc)
  */
 public abstract class BlockchainNode {
+    private String ticker;
+
+    public BlockchainNode(String ticker) {
+        this.ticker = ticker;
+    }
+
     // abstract void onboardBlockchain() throws BlockchainNodeException; // This is
     // a one time onboarding to seed our timeseries data. If already done it will
     // throw an exception
@@ -13,6 +19,8 @@ public abstract class BlockchainNode {
      * Get the general information about this Blockchain Node
      *
      */
+    public abstract String getTicker();
+
     public abstract BlockchainNodeInfo getInfo();
 
     /*
@@ -22,7 +30,6 @@ public abstract class BlockchainNode {
     public BlockchainNodeData getDataForInterval(long fromTime, long toTime) {
         BlockchainNodeData data = new BlockchainNodeData(this, fromTime, toTime);
         return data;
-
     }
 
     /*
@@ -39,8 +46,6 @@ public abstract class BlockchainNode {
     public abstract BlockchainTransaction findTransactionByHash(String transactionHash);
 
     public abstract BlockchainTransaction findTransactionByHash(String transactionHash, boolean calculate);
-
-    public abstract String getTicker();
 
     public abstract BlockchainBlock findBlockByHash(String blockHash);
 

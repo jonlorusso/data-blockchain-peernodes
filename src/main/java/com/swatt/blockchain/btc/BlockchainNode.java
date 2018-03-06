@@ -11,7 +11,9 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     private Map<String, BlockchainTransaction> transactionMap;
 
-    public BlockchainNode() {
+    public BlockchainNode(String ticker) {
+        super(ticker);
+
         transactionMap = new HashMap<String, BlockchainTransaction>();
     }
 

@@ -6,12 +6,14 @@ import com.swatt.blockchain.BlockchainBlockData;
 import com.swatt.blockchain.BlockchainNode;
 import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainTransaction;
+import com.swatt.blockchain.NodePicker;
 
 import io.javalin.Javalin;
 
 public class API {
     public static void main(String[] args) {
         Javalin app = Javalin.create().port(7000).enableCorsForOrigin("*");
+        new NodePicker();
 
         /*
          * embeddedServer(new EmbeddedJettyFactory(() -> { Server server = new Server();
@@ -25,21 +27,21 @@ public class API {
         app.start();
 
         app.get("/:ticker/transaction/:hash", ctx -> {
-            BlockchainNode blockchain = getBlockchain(ctx.param("ticker"));
+            BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
             BlockchainTransaction transaction = blockchain.findTransactionByHash(ctx.param("hash"), true);
 
             ctx.result(returnObject(transaction));
         });
 
         app.get("/:ticker/block/:hash", ctx -> {
-            BlockchainNode blockchain = getBlockchain(ctx.param("ticker"));
+            BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
             BlockchainBlockData block = blockchain.retrieveBlockByHash(ctx.param("hash"));
 
             ctx.result(returnObject(block));
         });
 
         app.get("/:ticker/data/:from/:to", ctx -> {
-            BlockchainNode blockchain = getBlockchain(ctx.param("ticker"));
+            BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
 
             Long fromTime = Long.parseLong(ctx.param("from"));
             Long toTime = Long.parseLong(ctx.param("to"));
@@ -69,20 +71,5 @@ public class API {
         }
 
         return json;
-    }
-
-    private static com.swatt.blockchain.BlockchainNode getBlockchain(String blockchainTicker) {
-        com.swatt.blockchain.BlockchainNode blockchain = null;
-
-        switch (blockchainTicker) {
-        case "btc":
-            blockchain = new com.swatt.blockchain.btc.BlockchainNode();
-            break;
-        case "eth":
-            blockchain = new com.swatt.blockchain.eth.BlockchainNode();
-            break;
-        }
-
-        return blockchain;
     }
 }
