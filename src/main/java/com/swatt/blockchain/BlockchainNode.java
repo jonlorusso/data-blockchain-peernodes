@@ -5,8 +5,6 @@ package com.swatt.blockchain;
  * (such as Bitcoin, Etherium, etc)
  */
 public abstract class BlockchainNode {
-    private String ticker;
-
     // abstract void onboardBlockchain() throws BlockchainNodeException; // This is
     // a one time onboarding to seed our timeseries data. If already done it will
     // throw an exception
@@ -21,8 +19,12 @@ public abstract class BlockchainNode {
      * Get data about the transactions on this Blockchain over a specified time
      * interval
      */
-    public abstract BlockchainNodeData getDataForInterval(long fromTime, long toTime); // Assume EPOCH times in
-                                                                                       // millisecs
+    public BlockchainNodeData getDataForInterval(long fromTime, long toTime) {
+        System.out.println(fromTime + " " + toTime);
+        BlockchainNodeData data = new BlockchainNodeData(this, fromTime, toTime);
+        return data;
+
+    }
 
     /*
      * NOTE: These are CONCRETE (not abstract) implementations that are getting info

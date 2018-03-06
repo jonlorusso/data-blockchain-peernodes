@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swatt.blockchain.BlockchainBlockData;
 import com.swatt.blockchain.BlockchainNode;
+import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainTransaction;
 
 import io.javalin.Javalin;
@@ -35,6 +36,17 @@ public class API {
             BlockchainBlockData block = blockchain.retrieveBlockByHash(ctx.param("hash"));
 
             ctx.result(returnObject(block));
+        });
+
+        app.get("/:ticker/data/:from/:to", ctx -> {
+            BlockchainNode blockchain = getBlockchain(ctx.param("ticker"));
+
+            Long fromTime = Long.parseLong(ctx.param("from"));
+            Long toTime = Long.parseLong(ctx.param("to"));
+
+            BlockchainNodeData data = blockchain.getDataForInterval(fromTime, toTime);
+
+            ctx.result(returnObject(data));
         });
     }
 
@@ -70,8 +82,6 @@ public class API {
             blockchain = new com.swatt.blockchain.eth.BlockchainNode();
             break;
         }
-
-        System.out.println(blockchain.getTicker());
 
         return blockchain;
     }

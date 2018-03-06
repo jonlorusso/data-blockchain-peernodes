@@ -1,0 +1,5 @@
+package com.swatt.blockchain;
+
+public enum BlockDataColumns {
+    OFFSET, AVG_FEE, AVG_FEE_RATE, LARGEST_FEE, SMALLEST_FEE, TRANSACTION_COUNT, AVG_TRANSACTION_COUNT, NUM_BLOCKS
+}
