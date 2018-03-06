@@ -41,7 +41,6 @@ public class BlockchainNodeData {
 
             while (recordsetBlock.next()) {
                 this.averageFee = recordsetBlock.getDouble(BlockDataColumns.AVG_FEE.toString());
-                System.out.println(this.averageFee);
                 this.averageFeeRate = recordsetBlock.getDouble(BlockDataColumns.AVG_FEE_RATE.toString());
                 this.largestFee = recordsetBlock.getDouble(BlockDataColumns.LARGEST_FEE.toString());
                 this.smallestFee = recordsetBlock.getDouble(BlockDataColumns.SMALLEST_FEE.toString());
@@ -71,19 +70,19 @@ public class BlockchainNodeData {
         return transactionCount;
     }
 
-    public double getLargestTransactionFee() {
+    public double getLargestFee() {
         return largestFee;
     }
 
-    public double getSmallestTransactionFee() {
+    public double getSmallestFee() {
         return smallestFee;
     }
 
-    public double getAverageTransactionFee() {
+    public double getAverageFee() {
         return averageFee;
     }
 
-    public double getAverageTransactionFeeRete() {
+    public double getAverageFeeRate() {
         return averageFeeRate;
     }
 

@@ -20,7 +20,6 @@ public abstract class BlockchainNode {
      * interval
      */
     public BlockchainNodeData getDataForInterval(long fromTime, long toTime) {
-        System.out.println(fromTime + " " + toTime);
         BlockchainNodeData data = new BlockchainNodeData(this, fromTime, toTime);
         return data;
 
