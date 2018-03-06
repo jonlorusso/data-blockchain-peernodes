@@ -5,19 +5,16 @@ package com.swatt.blockchain;
  */
 public abstract class BlockchainTransaction {
     String hash;
-    String blockHash;
-    String[] inputs;
-    double[] outputValues;
-    Double fee;
 
-    public BlockchainTransaction(String hash, String blockHash, String[] inputs, double[] outputs) {
+    public BlockchainTransaction(String hash) {
         this.hash = hash;
-        this.blockHash = blockHash;
-        this.inputs = inputs;
-        this.outputValues = outputs;
     }
 
-    public abstract Double getFee();
+    public abstract Double getTransactionFee();
 
     public abstract String getHash();
+
+    public abstract Long getTimestamp();
+
+    public abstract Double getTransactionAmount();
 }

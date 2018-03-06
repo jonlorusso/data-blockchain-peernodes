@@ -1,12 +1,10 @@
-package com.swatt.blockchain;
+package com.swatt.blockchain.eth;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Authenticator;
 import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.Properties;
 
@@ -22,17 +20,7 @@ public class Utility {
         try {
             input = new FileInputStream("config.properties");
             prop.load(input);
-            uri = new URL(prop.getProperty("url"));
-
-            final String rpcuser = prop.getProperty("rpcuser");
-            final String rpcpassword = prop.getProperty("rpcpassword");
-
-            Authenticator.setDefault(new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(rpcuser, rpcpassword.toCharArray());
-                }
-            });
+            uri = new URL(prop.getProperty("eth_url"));
 
             client = new JsonRpcHttpClient(uri);
         } catch (FileNotFoundException e) {

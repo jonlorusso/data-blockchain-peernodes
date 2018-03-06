@@ -2,6 +2,10 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.swatt.blockchain.internalapi
 </groupId>
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+</properties>
   <artifactId>internal-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>com.swatt.blockchain.internalapi</name>

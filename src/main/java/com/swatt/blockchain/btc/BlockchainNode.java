@@ -28,27 +28,26 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     @Override
     public BlockchainTransaction findTransactionByHash(String transactionHash) {
-        BlockchainTransaction transaction = transactionMap.get(transactionHash);
-
-        if (transaction == null) {
-            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash);
-            transactionMap.put(transactionHash, transaction);
-        } else {
-            System.out.println("Resued one! " + transactionHash);
-        }
-
-        return transaction;
-    }
-
-    @Override
-    public BlockchainTransaction findTransactionByAddress(String address) {
-        // TODO Auto-generated method stub
-        return null;
+        return findTransactionByHash(transactionHash, false);
     }
 
     @Override
     public com.swatt.blockchain.BlockchainBlock findBlockByHash(String blockHash) {
         BlockchainBlock block = new com.swatt.blockchain.btc.BlockchainBlock(this, blockHash);
         return block;
+    }
+
+    @Override
+    public BlockchainTransaction findTransactionByHash(String transactionHash, boolean calculate) {
+        BlockchainTransaction transaction = transactionMap.get(transactionHash);
+
+        if (transaction == null) {
+            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, calculate);
+            transactionMap.put(transactionHash, transaction);
+        } else {
+            System.out.println("Resued one! " + transactionHash);
+        }
+
+        return null;
     }
 }

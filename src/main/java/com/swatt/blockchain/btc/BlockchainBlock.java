@@ -4,7 +4,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.swatt.blockchain.Utility;
 
 public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     private static final Logger LOGGER = Logger.getLogger(BlockchainBlock.class.getName());
@@ -16,13 +15,10 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     private Double largestFee;
     private Double smallestFee;
     private Double totalFee;
-    private Double largestTxValue;
+    private Double largestTxAmount;
     private String largestTxHash;
     private Long transactionCount;
-    private Long largestTxTimestamp;
     private Long totalSize;
-    private Long firstTs;
-    private Long lastTs;
 
     public BlockchainBlock(BlockchainNode node, String blockHash) {
         if (jsonrpcClient == null) {
@@ -87,43 +83,34 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         BlockchainTransaction transaction = null;
 
         Double transactionFee;
-        Double transactionValue;
+        Double transactionAmount;
 
         this.transactionCount = 0L; // block.tx.size();
 
-        this.largestTxValue = 0.0;
+        this.largestTxAmount = 0.0;
         this.totalSize = 0L;
 
         this.smallestFee = Double.MAX_VALUE;
         this.largestFee = 0.0;
         this.totalFee = 0.0;
 
-        this.firstTs = Long.MAX_VALUE;
-        this.lastTs = 0L;
-
         for (String transactionHash : block.tx) {
-            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash);
-
-            transaction.calculate();
+            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, true);
 
             if (!transaction.minted) {
-                transactionFee = transaction.getFee();
-                transactionValue = transaction.getValue();
+                transactionFee = transaction.getTransactionFee();
+                transactionAmount = transaction.getTransactionAmount();
 
                 this.smallestFee = Math.min(this.smallestFee, transactionFee);
                 this.largestFee = Math.max(this.largestFee, transactionFee);
-
-                this.firstTs = Math.min(this.firstTs, transaction.getTimestamp());
-                this.lastTs = Math.max(this.lastTs, transaction.getTimestamp());
 
                 this.transactionCount++;
                 this.totalFee += transactionFee;
                 this.totalSize += transaction.getSize();
 
-                if (transactionValue > this.largestTxValue) {
-                    this.largestTxValue = transactionValue;
+                if (transactionAmount > this.largestTxAmount) {
+                    this.largestTxAmount = transactionAmount;
                     this.largestTxHash = transactionHash;
-                    this.largestTxTimestamp = transaction.getTimestamp();
                 }
 
                 if (transactionFee <= 0.0) {
@@ -151,23 +138,13 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     }
 
     @Override
-    public Long getFirstTimestamp() {
-        return this.firstTs;
-    }
-
-    @Override
-    public Long getLastTimestamp() {
-        return this.lastTs;
-    }
-
-    @Override
     public Double getTotalFee() {
         return this.totalFee;
     }
 
     @Override
-    public Double getLargestTxValue() {
-        return this.largestTxValue;
+    public Double getLargestTxAmount() {
+        return this.largestTxAmount;
     }
 
     @Override
@@ -178,11 +155,6 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     @Override
     public Long getTransactionCount() {
         return this.transactionCount;
-    }
-
-    @Override
-    public Long getLargestTxTimestamp() {
-        return this.largestTxTimestamp;
     }
 
     @Override

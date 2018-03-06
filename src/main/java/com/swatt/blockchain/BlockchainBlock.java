@@ -27,13 +27,9 @@ public abstract class BlockchainBlock {
 
     public abstract Double getTotalFee();
 
-    public abstract Double getLargestTxValue();
-
     public abstract String getLargestTxHash();
 
     public abstract Long getTransactionCount();
-
-    public abstract Long getLargestTxTimestamp();
 
     public abstract Long getTotalSize();
 
@@ -57,12 +53,7 @@ public abstract class BlockchainBlock {
 
     public abstract String getNextHash();
 
-    public Long getFirstTimestamp() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public Long getLastTimestamp() {
+    public Double getLargestTxAmount() {
         // TODO Auto-generated method stub
         return null;
     }

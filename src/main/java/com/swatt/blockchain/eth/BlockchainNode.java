@@ -45,16 +45,16 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
     }
 
     @Override
-    public BlockchainTransaction findTransactionByAddress(String address) {
+    public BlockchainBlock findBlockByHash(String blockHash) {
+        System.out.println(blockHash);
+        // 5,200,698
+
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public BlockchainBlock findBlockByHash(String blockHash) {
-        System.out.println(blockHash);
-        // 5,200,698
-
+    public BlockchainTransaction findTransactionByHash(String hash, boolean calculate) {
         // TODO Auto-generated method stub
         return null;
     }

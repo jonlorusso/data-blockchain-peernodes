@@ -75,30 +75,41 @@ public class Ingestor {
 
     private static void fetchBlock(String blockHash) {
         BlockchainBlock block = null;
+        Long startTime = null;
+        Long duration = null;
 
         blockFetchCountdown--;
 
         try {
+            startTime = System.currentTimeMillis() / 1000;
             block = blockchain.findBlockByHash(blockHash);
+            duration = (System.currentTimeMillis() / 1000) - startTime;
 
-            persistBlock(block);
+            persistBlock(block, duration);
 
             if (blockFetchCountdown > 0) {
                 fetchBlock(block.getPrevHash());
             } else {
-                updateProgress(block.getPrevHash());
+                if (db.connection != null) {
+                    try {
+                        db.connection.close();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void persistBlock(BlockchainBlock block) {
+    private static void persistBlock(BlockchainBlock block, Long duration) {
         CallableStatement preparedStatement = null;
 
         try {
-            preparedStatement = db.connection.prepareCall(
-                    "{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
+            preparedStatement = db.connection
+                    .prepareCall("{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -121,18 +132,18 @@ public class Ingestor {
             preparedStatement.setDouble(BlockColumns.AVG_FEE.ordinal(), block.getAverageFee());
 
             preparedStatement.setString(BlockColumns.LARGEST_TX_HASH.ordinal(), block.getLargestTxHash());
-            preparedStatement.setDouble(BlockColumns.LARGEST_TX_VALUE.ordinal(), block.getLargestTxValue());
-            preparedStatement.setLong(BlockColumns.LARGEST_TX_TIMESTAMP.ordinal(), block.getLargestTxTimestamp());
+            preparedStatement.setDouble(BlockColumns.LARGEST_TX_AMOUNT.ordinal(), block.getLargestTxAmount());
             preparedStatement.setLong(BlockColumns.TOTAL_SIZE.ordinal(), block.getTotalSize());
             preparedStatement.setDouble(BlockColumns.TOTAL_FEE.ordinal(), block.getTotalFee());
             preparedStatement.setDouble(BlockColumns.LARGEST_FEE.ordinal(), block.getLargestFee());
             preparedStatement.setDouble(BlockColumns.SMALLEST_FEE.ordinal(), block.getSmallestFee());
-            preparedStatement.setLong(BlockColumns.FIRST_TX_TIMESTAMP.ordinal(), block.getFirstTimestamp());
-            preparedStatement.setLong(BlockColumns.LAST_TX_TIMESTAMP.ordinal(), block.getLastTimestamp());
+            preparedStatement.setLong(BlockColumns.INDEXING_DURATION.ordinal(), duration);
 
             preparedStatement.executeUpdate();
 
-            System.out.println("Record is inserted into BLOCKS table");
+            updateProgress(block.getPrevHash());
+
+            System.out.println(block.getHash() + " block inserted into DB");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -151,19 +162,18 @@ public class Ingestor {
         CallableStatement preparedStatement = null;
 
         try {
-            preparedStatement = db.connection.prepareCall("{CALL UpdateProgress(?, ?)}");
+            preparedStatement = db.connection.prepareCall("{CALL UpdateProgress(?, ?, ?)}");
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         try {
-            preparedStatement.setString(UpdateProgressColumns.BLOCKCHAIN_TICKER.ordinal(), blockchainTicker);
-            preparedStatement.setString(UpdateProgressColumns.BLOCK_HASH.ordinal(), blockHash);
+            preparedStatement.setString(BlockProgressColumns.BLOCKCHAIN_TICKER.ordinal(), blockchainTicker);
+            preparedStatement.setString(BlockProgressColumns.START_BLOCK_HASH.ordinal(), blockHash);
+            preparedStatement.setInt(BlockProgressColumns.BLOCK_COUNT.ordinal(), blockFetchCountdown);
 
             preparedStatement.executeUpdate();
-
-            System.out.println("Progress updated");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -176,14 +186,6 @@ public class Ingestor {
                 }
             }
 
-            if (db.connection != null) {
-                try {
-                    db.connection.close();
-                } catch (SQLException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
         }
     }
 }
