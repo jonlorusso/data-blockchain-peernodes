@@ -26,27 +26,24 @@ public class API {
 
         app.start();
 
-        app.get("/:ticker/transaction/:hash", ctx -> {
+        app.get("/:ticker/txn/:hash", ctx -> {
             BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
             BlockchainTransaction transaction = blockchain.findTransactionByHash(ctx.param("hash"), true);
 
             ctx.result(returnObject(transaction));
         });
 
-        app.get("/:ticker/block/:hash", ctx -> {
+        app.get("/:ticker/blk/:hash", ctx -> {
             BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
             BlockchainBlockData block = blockchain.retrieveBlockByHash(ctx.param("hash"));
 
             ctx.result(returnObject(block));
         });
 
-        app.get("/:ticker/data/:from/:to", ctx -> {
+        app.get("/:ticker/chn/:from/:to", ctx -> {
             BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
-
-            Long fromTime = Long.parseLong(ctx.param("from"));
-            Long toTime = Long.parseLong(ctx.param("to"));
-
-            BlockchainNodeData data = blockchain.getDataForInterval(fromTime, toTime);
+            BlockchainNodeData data = blockchain.getDataForInterval(Long.parseLong(ctx.param("from")),
+                    Long.parseLong(ctx.param("to")));
 
             ctx.result(returnObject(data));
         });
