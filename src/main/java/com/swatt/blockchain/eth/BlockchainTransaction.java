@@ -5,13 +5,13 @@ import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.swatt.blockchain.btc.Utility;
 import com.swatt.blockchain.btc.Vin;
 
 public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransaction {
     private static final Logger LOGGER = Logger.getLogger(BlockchainTransaction.class.getName());
 
     JsonRpcHttpClient jsonrpcClient = null;
+
     RPCTransaction rpcTransaction;
 
     private String hash;
@@ -24,13 +24,12 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
         this.hash = hash;
 
-        jsonrpcClient = Utility.initJSONRPC();
-
         fetchFromBlockchain(hash);
     }
 
-    public BlockchainTransaction(String hash, boolean calculate) {
+    public BlockchainTransaction(JsonRpcHttpClient jsonrpcClient, String hash, boolean calculate) {
         this(hash);
+        this.jsonrpcClient = jsonrpcClient;
 
         if (calculate)
             calculate();
@@ -75,6 +74,7 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
         try {
             rpcTransaction = jsonrpcClient.invoke(ETHMethods.GET_TRANSACTION_BYHASH, new Object[] { transactionHash },
                     RPCTransaction.class);
+            System.out.println(rpcTransaction.hash);
 
         } catch (JsonRpcClientException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);

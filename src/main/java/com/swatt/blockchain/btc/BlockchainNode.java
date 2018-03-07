@@ -1,26 +1,22 @@
 package com.swatt.blockchain.btc;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
     private String blockchainTicker;
-
-    private Map<String, BlockchainTransaction> transactionMap;
+    private JsonRpcHttpClient jsonrpcClient = null;
 
     public BlockchainNode() {
-        this(null);
+        this(null, null);
     }
 
-    public BlockchainNode(String blockchainTicker) {
+    public BlockchainNode(JsonRpcHttpClient jsonrpcClient, String blockchainTicker) {
         super(blockchainTicker);
+        this.jsonrpcClient = jsonrpcClient;
 
         this.blockchainTicker = blockchainTicker;
-
-        transactionMap = new HashMap<String, BlockchainTransaction>();
     }
 
     @Override
@@ -36,20 +32,14 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     @Override
     public com.swatt.blockchain.BlockchainBlock findBlockByHash(String blockHash) {
-        BlockchainBlock block = new com.swatt.blockchain.btc.BlockchainBlock(this, blockHash);
+        BlockchainBlock block = new com.swatt.blockchain.btc.BlockchainBlock(jsonrpcClient, this, blockHash);
         return block;
     }
 
     @Override
     public BlockchainTransaction findTransactionByHash(String transactionHash, boolean calculate) {
-        BlockchainTransaction transaction = transactionMap.get(transactionHash);
-
-        if (transaction == null) {
-            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, calculate);
-            transactionMap.put(transactionHash, transaction);
-        } else {
-            System.out.println("Resued one! " + transactionHash);
-        }
+        BlockchainTransaction transaction = new com.swatt.blockchain.btc.BlockchainTransaction(jsonrpcClient,
+                transactionHash, calculate);
 
         return transaction;
     }

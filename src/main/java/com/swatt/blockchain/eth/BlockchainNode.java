@@ -7,18 +7,18 @@ import java.util.logging.Logger;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
 
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.BlockchainBlock;
 import com.swatt.blockchain.BlockchainNodeData;
 import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
-    private String ticker = "eth";
-
+    private String blockchainTicker;
     private static final Logger LOGGER = Logger.getLogger(BlockchainNode.class.getName());
 
-    public BlockchainNode(String ticker) {
-        super(ticker);
+    public BlockchainNode(JsonRpcHttpClient jsonrpcClient, String blockchainTicker) {
+        super(blockchainTicker);
 
         Web3j web3j = Web3j.build(new HttpService("https://127.0.0.1:")); // FIXME: Enter your Infura token here;
         try {
@@ -65,6 +65,6 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     @Override
     public String getTicker() {
-        return this.ticker;
+        return this.blockchainTicker;
     }
 }

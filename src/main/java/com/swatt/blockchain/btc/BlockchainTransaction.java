@@ -9,7 +9,6 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransaction {
     private static final Logger LOGGER = Logger.getLogger(BlockchainTransaction.class.getName());
 
-    JsonRpcHttpClient jsonrpcClient = null;
     RPCTransaction rpcTransaction;
 
     private String hash;
@@ -18,23 +17,21 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     public Boolean minted = false;
 
     public BlockchainTransaction(String hash) {
-        this(hash, false);
+        this(null, hash, false);
     }
 
-    public BlockchainTransaction(String hash, boolean calculate) {
+    public BlockchainTransaction(JsonRpcHttpClient jsonrpcClient, String hash, boolean calculate) {
         super(hash);
 
         this.hash = hash;
 
-        jsonrpcClient = Utility.initJSONRPC();
-
-        fetchFromBlockchain(hash);
+        fetchFromBlockchain(jsonrpcClient, hash);
 
         if (calculate)
-            calculate();
+            calculate(jsonrpcClient);
     }
 
-    private void calculate() {
+    private void calculate(JsonRpcHttpClient jsonrpcClient) {
         Double outValue = this.getAmount();
 
         inValue = 0.0;
@@ -47,7 +44,8 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
             inTransaction = rpcTransaction.vin.get(i);
 
             if (inTransaction.txid != null) {
-                transaction = new com.swatt.blockchain.btc.BlockchainTransaction(inTransaction.txid, false);
+                transaction = new com.swatt.blockchain.btc.BlockchainTransaction(jsonrpcClient, inTransaction.txid,
+                        false);
                 inValue += transaction.outputValue(inTransaction.vout);
             }
         }
@@ -99,12 +97,14 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
         return rpcTransaction.blockhash;
     }
 
-    private void fetchFromBlockchain(String transactionHash) {
+    private void fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash) {
         try {
+            System.out.println(BTCMethods.GET_RAW_TRANSACTION + transactionHash);
             rpcTransaction = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION,
                     new Object[] { transactionHash, true }, RPCTransaction.class);
 
         } catch (JsonRpcClientException e) {
+            e.printStackTrace();
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         } catch (Throwable e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);

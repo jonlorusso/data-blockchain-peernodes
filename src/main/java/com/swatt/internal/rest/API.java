@@ -30,6 +30,8 @@ public class API {
             BlockchainNode blockchain = NodePicker.getBlockchain(ctx.param("ticker"));
             BlockchainTransaction transaction = blockchain.findTransactionByHash(ctx.param("hash"), true);
 
+            System.out.println(transaction.getFee());
+
             ctx.result(returnObject(transaction));
         });
 

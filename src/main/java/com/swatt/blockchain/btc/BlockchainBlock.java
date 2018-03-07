@@ -8,8 +8,6 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     private static final Logger LOGGER = Logger.getLogger(BlockchainBlock.class.getName());
 
-    private JsonRpcHttpClient jsonrpcClient = null;
-
     private RPCBlock block;
     private Double averageFee;
     private Double averageFeeRate;
@@ -19,29 +17,25 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     private String largestTxHash;
     private Long transactionCount;
 
-    public BlockchainBlock(BlockchainNode node, String blockHash) {
+    public BlockchainBlock(JsonRpcHttpClient jsonrpcClient, BlockchainNode node, String blockHash) {
         super(node, blockHash);
 
-        if (jsonrpcClient == null) {
-            jsonrpcClient = Utility.initJSONRPC();
-        }
-
         if (blockHash == null) {
-            this.block = findLatestBlock();
+            this.block = findLatestBlock(jsonrpcClient);
         } else {
-            this.block = findBlockByHash(blockHash);
+            this.block = findBlockByHash(jsonrpcClient, blockHash);
         }
 
-        this.calculate();
+        this.calculate(jsonrpcClient);
     }
 
-    private RPCBlock findLatestBlock() {
+    private RPCBlock findLatestBlock(JsonRpcHttpClient jsonrpcClient) {
         RPCBlock block = null;
         Long blockCount;
 
         try {
             blockCount = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_COUNT, new Object[] {}, Long.class);
-            block = findBlockById(blockCount);
+            block = findBlockById(jsonrpcClient, blockCount);
         } catch (Throwable e) {
             LOGGER.log(Level.SEVERE, e.toString(), e);
         }
@@ -49,13 +43,13 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return block;
     }
 
-    private RPCBlock findBlockById(Long blockId) {
+    private RPCBlock findBlockById(JsonRpcHttpClient jsonrpcClient, Long blockId) {
         RPCBlock block = null;
         String blockHash = null;
 
         try {
             blockHash = jsonrpcClient.invoke(BTCMethods.GET_BLOCK_HASH, new Object[] { blockId }, String.class);
-            block = findBlockByHash(blockHash);
+            block = findBlockByHash(jsonrpcClient, blockHash);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -63,7 +57,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return block;
     }
 
-    private RPCBlock findBlockByHash(String blockHash) {
+    private RPCBlock findBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash) {
         RPCBlock block = null;
 
         try {
@@ -75,7 +69,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return block;
     }
 
-    private void calculate() {
+    private void calculate(JsonRpcHttpClient jsonrpcClient) {
         BlockchainTransaction transaction = null;
 
         Double transactionFee;
@@ -92,7 +86,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         this.largestFee = 0.0;
 
         for (String transactionHash : block.tx) {
-            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(transactionHash, true);
+            transaction = new com.swatt.blockchain.btc.BlockchainTransaction(jsonrpcClient, transactionHash, true);
 
             if (!transaction.minted) {
                 transactionFee = transaction.getFee();
