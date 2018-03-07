@@ -86,11 +86,26 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
     }
 
     public Long getSize() {
-        return rpcTransaction.vsize;
+        Long size = null;
+
+        if (rpcTransaction.vsize != null) {
+            size = rpcTransaction.vsize;
+        } else {
+            size = rpcTransaction.size;
+        }
+
+        return size;
     }
 
-    public double getFeeRate() {
-        return 1000 * (this.getFee() / this.getSize());
+    public Double getFeeRate() {
+        Double fee = null;
+        try {
+            fee = 1000 * (this.getFee() / this.getSize());
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        return fee;
     }
 
     public String getBlockhash() {
@@ -99,7 +114,6 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
     private void fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash) {
         try {
-            System.out.println(BTCMethods.GET_RAW_TRANSACTION + transactionHash);
             rpcTransaction = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION,
                     new Object[] { transactionHash, true }, RPCTransaction.class);
 

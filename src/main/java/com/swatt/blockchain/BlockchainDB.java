@@ -28,7 +28,7 @@ public final class BlockchainDB {
             Class.forName("com.mysql.jdbc.Driver");
             this.connection = DriverManager.getConnection("jdbc:mysql://" + dburl + "/" + dbname, dbuser, dbpassword);
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 }
