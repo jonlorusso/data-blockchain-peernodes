@@ -70,7 +70,6 @@ public abstract class BlockchainBlock {
             preparedStatement = db.connection
                     .prepareCall("{CALL AddBlock(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

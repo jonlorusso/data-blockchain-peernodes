@@ -7,6 +7,10 @@ package com.swatt.blockchain;
 public abstract class BlockchainNode {
     private String ticker;
 
+    public BlockchainNode() {
+        this(null);
+    }
+
     public BlockchainNode(String ticker) {
         this.ticker = ticker;
     }

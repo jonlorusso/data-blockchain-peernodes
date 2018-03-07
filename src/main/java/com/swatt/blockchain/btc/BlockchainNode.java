@@ -7,12 +7,18 @@ import com.swatt.blockchain.BlockchainNodeInfo;
 import com.swatt.blockchain.BlockchainTransaction;
 
 public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
-    private String ticker = "btc";
+    private String blockchainTicker;
 
     private Map<String, BlockchainTransaction> transactionMap;
 
-    public BlockchainNode(String ticker) {
-        super(ticker);
+    public BlockchainNode() {
+        this(null);
+    }
+
+    public BlockchainNode(String blockchainTicker) {
+        super(blockchainTicker);
+
+        this.blockchainTicker = blockchainTicker;
 
         transactionMap = new HashMap<String, BlockchainTransaction>();
     }
@@ -50,6 +56,6 @@ public class BlockchainNode extends com.swatt.blockchain.BlockchainNode {
 
     @Override
     public String getTicker() {
-        return this.ticker;
+        return this.blockchainTicker;
     }
 }

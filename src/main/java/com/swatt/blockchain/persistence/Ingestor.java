@@ -38,7 +38,6 @@ public class Ingestor {
         try {
             preparedStatement = db.connection.prepareCall("{CALL CheckProgress(?, ?, ?)}");
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -81,6 +80,7 @@ public class Ingestor {
             duration = (System.currentTimeMillis() / 1000) - startTime;
 
             block.persist(db, duration);
+            updateProgress(blockHash);
 
             if (blockFetchCountdown > 0) {
                 fetchBlock(block.getPrevHash());

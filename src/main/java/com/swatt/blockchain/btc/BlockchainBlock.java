@@ -20,6 +20,8 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
     private Long transactionCount;
 
     public BlockchainBlock(BlockchainNode node, String blockHash) {
+        super(node, blockHash);
+
         if (jsonrpcClient == null) {
             jsonrpcClient = Utility.initJSONRPC();
         }
@@ -169,6 +171,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return this.block.difficulty;
     }
 
+    @Override
     public String getMerkleRoot() {
         return this.block.merkleroot;
     }
@@ -178,6 +181,7 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return this.block.time;
     }
 
+    @Override
     public String getBits() {
         return this.block.bits;
     }
@@ -187,10 +191,12 @@ public class BlockchainBlock extends com.swatt.blockchain.BlockchainBlock {
         return this.block.size;
     }
 
+    @Override
     public String getVersionHex() {
         return this.block.versionHex;
     }
 
+    @Override
     public Long getNonce() {
         return this.block.nonce;
     }
