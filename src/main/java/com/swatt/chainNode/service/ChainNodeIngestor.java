@@ -18,13 +18,17 @@ public class ChainNodeIngestor {
 		this.connection = connection;
 	}
 	
-	public void startIngestingBackwardInChain(final String blockHash) {
+	public void startIngestingBackwardInChain( final String firstBlockHash) {
 		
 		ingestorThread = new Thread(() -> {
 			try {
+				String blockHash = firstBlockHash;
+				
 				for (;;) {																// TODO:  This should have boundaries and/or timeouts
 					BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
 					BlockData.createBlockData(connection, blockData);
+					
+					blockHash = blockData.getPrevHash();
 					
 					Thread.sleep(10);													// This will allow the Interrupt to break
 				}
@@ -72,5 +76,4 @@ public class ChainNodeIngestor {
     		t.printStackTrace();
     	}
     }
-
 }
