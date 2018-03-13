@@ -54,8 +54,6 @@ public class BitcoinTransaction extends Transaction {
 
             Object parameters[] = new Object[] { transactionHash, true };
 
-            System.out.println(jsonrpcClient.getServiceUrl());
-
             RPCTransaction rtn;
             rtn = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION, parameters, RPCTransaction.class);
 
@@ -67,12 +65,7 @@ public class BitcoinTransaction extends Transaction {
                 e1.printStackTrace();
             }
 
-            System.out.println(json);
-
-            System.out.println(jsonrpcClient.getServiceUrl());
-
             return rtn;
-
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException(
                     "Error fetching transaction from Blockchain: " + transactionHash, t);

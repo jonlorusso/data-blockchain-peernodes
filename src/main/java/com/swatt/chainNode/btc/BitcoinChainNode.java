@@ -11,7 +11,6 @@ import com.swatt.util.JsonRpcHttpClientPool;
 import com.swatt.util.OperationFailedException;
 
 public class BitcoinChainNode extends ChainNode {
-    private static final String CODE = "btc";
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
 
     public static final String DEFAULT_BLOCKCHAIN_URL = "http://127.0.0.1"; // TODO: Should get from chainNodeConfig
@@ -23,23 +22,12 @@ public class BitcoinChainNode extends ChainNode {
 
     @Override
     public void init() {
-        // String url = chainNodeConfig.getAttribute("xxx", null); // TODO: Should get
-        // from chainNodeConfig
-        // String user = chainNodeConfig.getAttribute("xxx", null); // TODO: Should get
-        // from chainNodeConfig
-        // String password = chainNodeConfig.getAttribute("xxx", null); // TODO: Should
-        // get from chainNodeConfig
-        // int maxSize = chainNodeConfig.getAttribute("xxx", null); // TODO: Should get
-        // from chainNodeConfig
-
-        String url = "http://127.0.0.1:8332"; // TODO: Should get from chainNodeConfig
-        String user = "hello"; // TODO: Should get from chainNodeConfig
-        String password = "letstest"; // TODO: Should get from chainNodeConfig
+        String url = DEFAULT_BLOCKCHAIN_URL + ":" + chainNodeConfig.getForwardedPort();
+        String user = chainNodeConfig.getRpcUser();
+        String password = chainNodeConfig.getRpcPassword();
         int maxSize = 10; // TODO: Should get from chainNodeConfig
 
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, user, password, maxSize);
-
-        System.out.println("In BitcoinChainNode.init: " + jsonRpcHttpClientPool);
     }
 
     @Override
@@ -128,14 +116,6 @@ public class BitcoinChainNode extends ChainNode {
             blockData.setDifficulty(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
-
-            // FIXME: I see the following fields Are NOT used from the RpcBlock
-            // int confirmations;
-            // int strippedsize;
-            // int weight;
-            // int version;
-            // int mediantime;
-            // String chainwork;
 
             blockData.setChainName(chainName);
 
