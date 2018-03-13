@@ -55,31 +55,31 @@ public class ChainNodeService {
             ctx.result(result);
         });
 
-        app.get("/:blockchainCode/fetch/:blockHash", ctx -> { // TODO: This is just for debugging, this is not meant to
-                                                              // be part of the Service API.
-            String blockchainCode = ctx.param("blockchainCode");
-            String blockHash = ctx.param("blockHash");
-
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
-
-            ChainNode chainNode = null;
-            try {
-                chainNode = chainNodeManager.getChainNode(blockchainCode);
-                BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
-
-                String result = JsonUtilities.objectToJsonString(blockData);
-                ctx.result(result);
-            } catch (Throwable t) {
-                connectionPool.returnConnection(conn);
-            }
-
-            BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
-
-            String result = JsonUtilities.objectToJsonString(blockData);
-            ctx.result(result);
-
-        });
+        /*
+         * 
+         * app.get("/:blockchainCode/fetch/:blockHash", ctx -> { // TODO: This is just
+         * for debugging, this is not meant to // be part of the Service API. String
+         * blockchainCode = ctx.param("blockchainCode"); String blockHash =
+         * ctx.param("blockHash");
+         * 
+         * Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+
+         * try with resource as we do NOT // want to close the pooled connections
+         * 
+         * ChainNode chainNode = null; try { chainNode =
+         * chainNodeManager.getChainNode(blockchainCode); BlockData blockData =
+         * chainNode.getBlockDataByHash(conn, blockHash);
+         * 
+         * String result = JsonUtilities.objectToJsonString(blockData);
+         * ctx.result(result); } catch (Throwable t) {
+         * connectionPool.returnConnection(conn); }
+         * 
+         * BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
+         * 
+         * String result = JsonUtilities.objectToJsonString(blockData);
+         * ctx.result(result);
+         * 
+         * });
+         */
 
         app.get("/:blockchainCode/blk/:blockHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
@@ -105,12 +105,15 @@ public class ChainNodeService {
             String sFrom = ctx.param("from");
             String sTo = ctx.param("to");
 
-            // ChainNode chainNode = chainNodeManager.getChainNode(chainName);
-            // BlockchainNodeData data =
-            // blockchain.getDataForInterval(Long.parseLong(ctx.param("from")),
-            // Long.parseLong(ctx.param("to")));
-            //
-            // ctx.result(returnObject(data));
+            /*
+             * ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+             * BlockchainNodeData data =
+             * chainNode.getDataForInterval(Long.parseLong(ctx.param("from")),
+             * Long.parseLong(ctx.param("to"))); String result =
+             * JsonUtilities.objectToJsonString(data);
+             * 
+             * ctx.result(result);
+             */
         });
     }
 
@@ -125,11 +128,15 @@ public class ChainNodeService {
     public static void main(String[] args) {
         try {
             String propertiesFileName = "config.properties";
+
             Properties properties = CollectionsUtilities.loadProperties(propertiesFileName);
 
             int port = Integer.parseInt(properties.getProperty("servicePort"));
 
-            ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig();
+            ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
+
+            String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
+
             ChainNodeManager chainNodeManager = new ChainNodeManager(chainNodeManagerConfig);
 
             if (port > 0) {

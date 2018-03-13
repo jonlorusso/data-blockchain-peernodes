@@ -47,6 +47,8 @@ public abstract class ChainNode {
 
         String where = "CHAIN_NAME = '" + getCode() + "' AND HASH = '" + blockHash + "'";
 
+        System.out.println(where);
+
         ArrayList<BlockData> results = (ArrayList<BlockData>) BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
                                                                                                     // Autogenerator to
                                                                                                     // add single return

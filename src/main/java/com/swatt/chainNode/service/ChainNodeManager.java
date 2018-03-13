@@ -43,20 +43,20 @@ public class ChainNodeManager {
     }
 
     public Connection getConnection() throws SQLException {
-        String jdbcUrl = chainNodeManagerConfig.getAttribute("jdbcURL", null);
-        String user = chainNodeManagerConfig.getAttribute("dbuser", null);
-        String password = chainNodeManagerConfig.getAttribute("dbpassword", null);
+        String jdbcUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
+        String user = chainNodeManagerConfig.getAttribute("dbUser", null);
+        String password = chainNodeManagerConfig.getAttribute("dbPassword", null);
 
         return SqlUtilities.getConnection(jdbcUrl, user, password);
     }
 
     public ConnectionPool getConnectionPool() {
-        String jdbcUrl = chainNodeManagerConfig.getAttribute("jdbcURL", null);
-        String user = chainNodeManagerConfig.getAttribute("dbuser", null);
-        String password = chainNodeManagerConfig.getAttribute("dbpassword", null);
-        int maxPoolSize = chainNodeManagerConfig.getIntAttribute("maxDbPoolSize", 1);
+        String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
+        String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
+        String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
+        int dbMaxPoolSize = chainNodeManagerConfig.getIntAttribute("dbMaxPoolSize ", 1);
 
-        ConnectionPool connectionPool = new ConnectionPool(jdbcUrl, user, password, maxPoolSize);
+        ConnectionPool connectionPool = new ConnectionPool(dbUrl, dbUser, dbPassword, dbMaxPoolSize);
         return connectionPool;
     }
 }
