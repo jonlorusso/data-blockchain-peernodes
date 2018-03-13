@@ -9,54 +9,72 @@ import com.swatt.chainNode.service.ChainNodeConfig;
 import com.swatt.util.OperationFailedException;
 
 public abstract class ChainNode {
-	protected ChainNodeConfig chainNodeConfig;
-	protected String chainName;
-	private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
-	
-	public ChainNode() { } 
-	
-	public void setChainNodeConfig(ChainNodeConfig chainNodeConfig) {
-		if (this.chainNodeConfig == null)
-			this.chainNodeConfig = chainNodeConfig;
-		else
-			throw new RuntimeException("ChainNodeConfig may not be reset for a ChainNode");
-	}
-	
-	public void init() { }
-	public void destroy() { }
+    protected ChainNodeConfig chainNodeConfig;
+    protected String chainName;
+    private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
 
-   public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException;   	// Fetches directly the Blockchain Node itself (not via DB)
-   public abstract Transaction fetchTransactionByHash(String transactionHash, boolean calculateFee) throws OperationFailedException; 	// Fetches directly from the Blockchain Node
-
-	
-
-    public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException {		// This will only return items that are already in the DB
-    	// TODO:  Add Some Caching for a proscribed number of blocks.
-    	
-    	String where = "CHAIN_NAME = '" + getName() + "' AND HASH = '" + blockHash + "'";
-    	
-    	ArrayList<BlockData> results = (ArrayList<BlockData>) BlockData.getBlockDatas(conn, where);		// TODO: Augment SQL Autogenerator to add single return where
-    	
-    	if (results.size() > 0)
-    		return results.get(0);
-    	else
-    		return null;
+    public ChainNode() {
     }
-    
-	public final String getName() {  return chainNodeConfig.getName(); }
-	
-	public void startMonitoringNewActivity() {
-		System.out.println("NIY: Start monitoring new Activity (Blocks, pendingTransactions");
-	}
-	
-	public void stopMonitoringNewActivity() {
-		System.out.println("NIY: Stop monitoring new Activity (Blocks, pendingTransactions");
-	}
-     
-	
-    public void addChainNodeListener(ChainNodeListener chainNodeListener) { chainNodeListeners.add(chainNodeListener); }
-    
+
+    public void setChainNodeConfig(ChainNodeConfig chainNodeConfig) {
+        if (this.chainNodeConfig == null)
+            this.chainNodeConfig = chainNodeConfig;
+        else
+            throw new RuntimeException("ChainNodeConfig may not be reset for a ChainNode");
+    }
+
+    public void init() {
+    }
+
+    public void destroy() {
+    }
+
+    public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException; // Fetches
+                                                                                                      // directly the
+                                                                                                      // Blockchain Node
+                                                                                                      // itself (not via
+                                                                                                      // DB)
+
+    public abstract Transaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+            throws OperationFailedException; // Fetches directly from the Blockchain Node
+
+    public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will only
+                                                                                                       // return items
+                                                                                                       // that are
+                                                                                                       // already in the
+                                                                                                       // DB
+        // TODO: Add Some Caching for a proscribed number of blocks.
+
+        String where = "CHAIN_NAME = '" + getCode() + "' AND HASH = '" + blockHash + "'";
+
+        ArrayList<BlockData> results = (ArrayList<BlockData>) BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
+                                                                                                    // Autogenerator to
+                                                                                                    // add single return
+                                                                                                    // where
+
+        if (results.size() > 0)
+            return results.get(0);
+        else
+            return null;
+    }
+
+    public final String getCode() {
+        return chainNodeConfig.getCode();
+    }
+
+    public void startMonitoringNewActivity() {
+        System.out.println("NIY: Start monitoring new Activity (Blocks, pendingTransactions");
+    }
+
+    public void stopMonitoringNewActivity() {
+        System.out.println("NIY: Stop monitoring new Activity (Blocks, pendingTransactions");
+    }
+
+    public void addChainNodeListener(ChainNodeListener chainNodeListener) {
+        chainNodeListeners.add(chainNodeListener);
+    }
+
     public ChainNodeSummaryData getChainNodePeriodSummary(long from, long to) {
-    	return null;
+        return null;
     }
 }

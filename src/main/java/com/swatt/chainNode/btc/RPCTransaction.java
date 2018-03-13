@@ -4,28 +4,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class RPCTransaction {
-
-    String txid;
-    String hash;
-    Long version;
-    Long size;
-    Long vsize;
-    Long locktime;
-    List<Vin> vin = null;
-    List<Vout> vout = null;
-    String hex;
-    String blockhash;
-    Long confirmations;
-    Long time;
-    Long blocktime;
+public final class RPCTransaction {
+    // Simple container object to receive results of JSONRPC call - public
+    // properties poulated using introspection by jsonrpcClient
+    // All fields in feed must be defined, even if not needed
+    public String txid;
+    public String hash;
+    public Long version;
+    public Long size;
+    public Long vsize;
+    public Long locktime;
+    public List<RPCVin> vin = null;
+    public List<RPCVout> vout = null;
+    public String hex;
+    public String blockhash;
+    public Long confirmations;
+    public Long time;
+    public Long blocktime;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    Map<String, Object> getAdditionalProperties() {
+    public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }
 
-    void setAdditionalProperty(String name, Object value) {
+    public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
 

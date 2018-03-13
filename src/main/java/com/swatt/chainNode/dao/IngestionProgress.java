@@ -3,205 +3,328 @@ package com.swatt.chainNode.dao;
 /*  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  * 
  *     THIS IS AUTO-GENERATED CODE WAS CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
+ *
+ *     Based on Excel File: /Users/gloverwilson/Dropbox/Documents/Projects/Swatt Exchange/Blockchain Node Schema.xls
  * 
  *  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  */
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
-import java.sql.*;
-import java.util.*;
-import java.io.*;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
-import javax.naming.*;
 
-public class IngestionProgress  {
-	private int id;
-	private String chainName;
-	private String blockHashStart;
-	private int blocksLimit;
+public class IngestionProgress {
+    private int id;
+    private String blockchainTicker;
+    private String blockHashStart;
+    private int blocksLimit;
 
-	public IngestionProgress() { }
+    public IngestionProgress() {
+    }
 
-	public IngestionProgress(int id, String chainName, String blockHashStart, int blocksLimit) {
-		this.id = id;
-		this.chainName = chainName;
-		this.blockHashStart = blockHashStart;
-		this.blocksLimit = blocksLimit;
-	}
+    public IngestionProgress(int id, String blockchainTicker, String blockHashStart, int blocksLimit) {
+        this.id = id;
+        this.blockchainTicker = blockchainTicker;
+        this.blockHashStart = blockHashStart;
+        this.blocksLimit = blocksLimit;
+    }
 
-	public final int getId() { return id; }
-	public final String getChainName() { return chainName; }
-	public final String getBlockHashStart() { return blockHashStart; }
-	public final int getBlocksLimit() { return blocksLimit; }
+    public final int getId() {
+        return id;
+    }
 
-	public final void setId(int id) { this.id = id; }
-	public final void setChainName(String chainName) { this.chainName = chainName; }
-	public final void setBlockHashStart(String blockHashStart) { this.blockHashStart = blockHashStart; }
-	public final void setBlocksLimit(int blocksLimit) { this.blocksLimit = blocksLimit; }
+    public final String getBlockchainTicker() {
+        return blockchainTicker;
+    }
 
-	public static String getSqlColumnList() { return "ID, CHAIN_NAME, BLOCK_HASH_START, BLOCKS_LIMIT"; }
-	private final static String primaryKeySelect = "SELECT ID, CHAIN_NAME, BLOCK_HASH_START, BLOCKS_LIMIT FROM INGESTION_PROGRESS WHERE ID = ?";
+    public final String getBlockHashStart() {
+        return blockHashStart;
+    }
 
-	public static String getStandardTableName() { return "INGESTION_PROGRESS"; } 
+    public final int getBlocksLimit() {
+        return blocksLimit;
+    }
 
-	public IngestionProgress(ResultSet rs) throws SQLException { 
-		id = rs.getInt(1);
-		chainName = rs.getString(2);
-		blockHashStart = rs.getString(3);
-		blocksLimit = rs.getInt(4);
-	}
+    public final void setId(int id) {
+        this.id = id;
+    }
 
-	 public static Collection getIngestionProgresss(PreparedStatement ps) throws SQLException {
-		ResultSet rs = ps.executeQuery();
+    public final void setBlockchainTicker(String blockchainTicker) {
+        this.blockchainTicker = blockchainTicker;
+    }
 
-		return getIngestionProgresss(rs);
-	}
+    public final void setBlockHashStart(String blockHashStart) {
+        this.blockHashStart = blockHashStart;
+    }
 
-	 public static Collection getIngestionProgresss(ResultSet rs) throws SQLException {
-		ArrayList results = new ArrayList(100);
+    public final void setBlocksLimit(int blocksLimit) {
+        this.blocksLimit = blocksLimit;
+    }
 
-		while(rs.next())
-			results.add(new IngestionProgress(rs));
+    public static String getSqlColumnList() {
+        return "ID, BLOCKCHAIN_CODE, BLOCK_HASH_START, BLOCKS_LIMIT";
+    }
 
-		return results;
-	}
+    private final static String primaryKeySelect = "SELECT ID, BLOCKCHAIN_CODE, BLOCK_HASH_START, BLOCKS_LIMIT FROM INGESTION_PROGRESS WHERE ID = ?";
 
-	private static String SELECT_ALL_QUERY = "SELECT " + getSqlColumnList() + " FROM " + getStandardTableName();
+    public static String getStandardTableName() {
+        return "INGESTION_PROGRESS";
+    }
 
-	public static Collection getIngestionProgresss(Connection connection) throws SQLException {
-		return getIngestionProgresss(connection, null);
-	}
+    public IngestionProgress(ResultSet rs) throws SQLException {
+        id = rs.getInt(1);
+        blockchainTicker = rs.getString(2);
+        blockHashStart = rs.getString(3);
+        blocksLimit = rs.getInt(4);
+    }
 
-	public static Collection getIngestionProgresss(Connection connection, String where) throws SQLException {
-		String query = SELECT_ALL_QUERY;
+    public static ArrayList<IngestionProgress> getIngestionProgresss(PreparedStatement ps) throws SQLException {
+        ResultSet rs = ps.executeQuery();
 
-		if (where != null)
-			query += " WHERE " + where;
+        return getIngestionProgresss(rs);
+    }
 
-		PreparedStatement ps = connection.prepareStatement(query);
-		ResultSet rs = ps.executeQuery();
+    public static IngestionProgress getNextIngestionProgress(ResultSet rs) throws SQLException {
+        if (rs.next())
+            return new IngestionProgress(rs);
 
-		return getIngestionProgresss(rs);
-	}
+        else
+            return null;
+    }
 
-	public static Collection getIngestionProgresss(DataSource dataSource, String where) throws SQLException {
-		Connection connection = dataSource.getConnection();
-		Collection results = getIngestionProgresss(connection, where);
-		connection.close();
-		return results;
-	}
+    public static ArrayList<IngestionProgress> getIngestionProgresss(ResultSet rs) throws SQLException {
+        ArrayList<IngestionProgress> results = new ArrayList<IngestionProgress>(100);
 
-	public static Collection getIngestionProgresss(String jndiName, String where) throws SQLException, NamingException {
-		InitialContext ctx = new InitialContext();
-		DataSource dataSource = (DataSource) ctx.lookup(jndiName);
-		return getIngestionProgresss(dataSource, where);
-	}
+        while (rs.next())
+            results.add(new IngestionProgress(rs));
 
-	public static Collection getIngestionProgresss(String jndiName) throws SQLException, NamingException {
-		return getIngestionProgresss(jndiName, null);
-	}
+        return results;
+    }
 
-	public static Collection getIngestionProgresss(DataSource dataSource) throws SQLException {
-		return getIngestionProgresss(dataSource, null);
-	}
+    public static ArrayList<IngestionProgress> getIngestionProgresss(ResultSet rs, int max) throws SQLException {
+        ArrayList<IngestionProgress> results = new ArrayList<IngestionProgress>(100);
 
-	public static IngestionProgress createIngestionProgress(Connection connection, String chainName, String blockHashStart, int blocksLimit) throws SQLException {
-		boolean storedAutoCommitValue = connection.getAutoCommit();
+        for (int i = 0; (i < max) && rs.next(); i++)
+            results.add(new IngestionProgress(rs));
 
-		if(storedAutoCommitValue)
-			connection.setAutoCommit(false);
+        return results;
+    }
 
-		PreparedStatement ps = connection.prepareStatement("INSERT INTO INGESTION_PROGRESS (CHAIN_NAME, BLOCK_HASH_START, BLOCKS_LIMIT) VALUES (?, ?, ?)");
+    private static String SELECT_ALL_QUERY = "SELECT " + getSqlColumnList() + " FROM " + getStandardTableName();
 
-		ps.setString(1, chainName);
-		ps.setString(2, blockHashStart);
-		ps.setInt(3, blocksLimit);
-		ps.executeUpdate();
+    public static ArrayList<IngestionProgress> getAllIngestionProgresss(Connection connection) throws SQLException {
+        return getIngestionProgresss(connection, null);
+    }
 
-		int autoGeneratedKey = 0;
+    public static ArrayList<IngestionProgress> getAllIngestionProgresss(Connection connection, int max)
+            throws SQLException {
+        return getIngestionProgresss(connection, null, max);
+    }
 
-		ps = connection.prepareStatement("Select MAX(ID) FROM INGESTION_PROGRESS");
-		ResultSet rs = ps.executeQuery();
+    public static ArrayList<IngestionProgress> getIngestionProgresss(Connection connection, String where)
+            throws SQLException {
+        String query = SELECT_ALL_QUERY;
 
-		if (rs.next())
-			autoGeneratedKey = rs.getInt(1);
+        if (where != null)
+            query += " WHERE " + where;
 
-		if(storedAutoCommitValue) {
-			connection.commit();
-			connection.setAutoCommit(true);
-		}
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
 
-		return new IngestionProgress(autoGeneratedKey, chainName, blockHashStart, blocksLimit);
-	}
+        return getIngestionProgresss(rs);
+    }
 
-	public static IngestionProgress updateIngestionProgress(Connection connection, int id, String chainName, String blockHashStart, int blocksLimit) throws SQLException {
-		PreparedStatement ps = connection.prepareStatement("UPDATE INGESTION_PROGRESS SET CHAIN_NAME = ?, BLOCK_HASH_START = ?, BLOCKS_LIMIT = ? WHERE ID = ?");
+    public static ArrayList<IngestionProgress> getIngestionProgresss(Connection connection, String where, int max)
+            throws SQLException {
+        String query = SELECT_ALL_QUERY;
 
-		ps.setString(1, chainName);
-		ps.setString(2, blockHashStart);
-		ps.setInt(3, blocksLimit);
-		ps.executeUpdate();
+        if (where != null)
+            query += " WHERE " + where;
 
-		return new IngestionProgress(id, chainName, blockHashStart, blocksLimit);
-	}
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
 
-	public static IngestionProgress createIngestionProgress(Connection connection, IngestionProgress ingestionProgress) throws SQLException {
-		boolean storedAutoCommitValue = connection.getAutoCommit();
+        return getIngestionProgresss(rs, max);
+    }
 
-		if(storedAutoCommitValue)
-			connection.setAutoCommit(false);
+    public static IngestionProgress getFirstIngestionProgress(Connection connection, String where) throws SQLException {
+        String query = SELECT_ALL_QUERY;
 
-		PreparedStatement ps = connection.prepareStatement("INSERT INTO INGESTION_PROGRESS (CHAIN_NAME, BLOCK_HASH_START, BLOCKS_LIMIT) VALUES (?, ?, ?)");
+        if (where != null)
+            query += " WHERE " + where;
 
-		ps.setString(1, ingestionProgress.chainName);
-		ps.setString(2, ingestionProgress.blockHashStart);
-		ps.setInt(3, ingestionProgress.blocksLimit);
-		ps.executeUpdate();
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
 
-		int autoGeneratedKey = 0;
+        return getNextIngestionProgress(rs);
+    }
 
-		ps = connection.prepareStatement("Select MAX(ID) FROM INGESTION_PROGRESS");
-		ResultSet rs = ps.executeQuery();
+    public static ArrayList<IngestionProgress> getIngestionProgresss(DataSource dataSource, String where)
+            throws SQLException {
+        Connection connection = dataSource.getConnection();
+        ArrayList<IngestionProgress> results = getIngestionProgresss(connection, where);
+        connection.close();
+        return results;
+    }
 
-		if (rs.next())
-			autoGeneratedKey = rs.getInt(1);
+    public static ArrayList<IngestionProgress> getIngestionProgresss(String jndiName, String where)
+            throws SQLException, NamingException {
+        InitialContext ctx = new InitialContext();
+        DataSource dataSource = (DataSource) ctx.lookup(jndiName);
+        return getIngestionProgresss(dataSource, where);
+    }
 
-		if(storedAutoCommitValue) {
-			connection.commit();
-			connection.setAutoCommit(true);
-		}
+    public static ArrayList<IngestionProgress> getIngestionProgresss(String jndiName)
+            throws SQLException, NamingException {
+        return getIngestionProgresss(jndiName, null);
+    }
 
-		ingestionProgress.id = autoGeneratedKey;
-		return ingestionProgress;
-	}
+    public static ArrayList<IngestionProgress> getIngestionProgresss(DataSource dataSource) throws SQLException {
+        return getIngestionProgresss(dataSource, null);
+    }
 
-	public static IngestionProgress updateIngestionProgress(Connection connection, IngestionProgress ingestionProgress) throws SQLException {
-		PreparedStatement ps = connection.prepareStatement("UPDATE INGESTION_PROGRESS SET CHAIN_NAME = ?, BLOCK_HASH_START = ?, BLOCKS_LIMIT = ? WHERE ID = ?");
+    public static IngestionProgress insertIngestionProgress(Connection connection, String blockchainTicker,
+            String blockHashStart, int blocksLimit) throws SQLException {
+        boolean storedAutoCommitValue = connection.getAutoCommit();
 
-		ps.setString(1, ingestionProgress.chainName);
-		ps.setString(2, ingestionProgress.blockHashStart);
-		ps.setInt(3, ingestionProgress.blocksLimit);
-		ps.setInt(4, ingestionProgress.id);
-		ps.executeUpdate();
+        if (storedAutoCommitValue)
+            connection.setAutoCommit(false);
 
-		return ingestionProgress;
-	}
+        PreparedStatement ps = connection.prepareStatement(
+                "INSERT INTO INGESTION_PROGRESS (BLOCKCHAIN_CODE, BLOCK_HASH_START, BLOCKS_LIMIT) VALUES (?, ?, ?)");
 
-	public static void deleteAll(Connection connection) throws SQLException {
-		PreparedStatement ps = connection.prepareStatement("TRUNCATE TABLE INGESTION_PROGRESS");
-		ps.executeUpdate();
-	}
+        ps.setString(1, blockchainTicker);
+        ps.setString(2, blockHashStart);
+        ps.setInt(3, blocksLimit);
+        ps.executeUpdate();
 
-	public static IngestionProgress getIngestionProgress(Connection connection, int id) throws SQLException {
-		PreparedStatement ps = connection.prepareStatement(primaryKeySelect);
+        int autoGeneratedKey = 0;
 
-		ps.setInt(1, id);
-		ResultSet rs = ps.executeQuery();
+        ps = connection.prepareStatement("Select MAX(ID) FROM INGESTION_PROGRESS");
+        ResultSet rs = ps.executeQuery();
 
-		if (rs.next())
-			return new IngestionProgress(rs);
-		else
-			return null;
-	}
+        if (rs.next())
+            autoGeneratedKey = rs.getInt(1);
 
+        if (storedAutoCommitValue) {
+            connection.commit();
+            connection.setAutoCommit(true);
+        }
+
+        return new IngestionProgress(autoGeneratedKey, blockchainTicker, blockHashStart, blocksLimit);
+    }
+
+    public static IngestionProgress updateIngestionProgress(Connection connection, int id, String blockchainTicker,
+            String blockHashStart, int blocksLimit) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(
+                "UPDATE INGESTION_PROGRESS SET BLOCKCHAIN_CODE = ?, BLOCK_HASH_START = ?, BLOCKS_LIMIT = ? WHERE ID = ?");
+
+        ps.setString(1, blockchainTicker);
+        ps.setString(2, blockHashStart);
+        ps.setInt(3, blocksLimit);
+        ps.executeUpdate();
+
+        return new IngestionProgress(id, blockchainTicker, blockHashStart, blocksLimit);
+    }
+
+    public static IngestionProgress insertIngestionProgress(Connection connection, IngestionProgress ingestionProgress)
+            throws SQLException {
+        boolean storedAutoCommitValue = connection.getAutoCommit();
+
+        if (storedAutoCommitValue)
+            connection.setAutoCommit(false);
+
+        PreparedStatement ps = connection.prepareStatement(
+                "INSERT INTO INGESTION_PROGRESS (BLOCKCHAIN_CODE, BLOCK_HASH_START, BLOCKS_LIMIT) VALUES (?, ?, ?)");
+
+        ps.setString(1, ingestionProgress.blockchainTicker);
+        ps.setString(2, ingestionProgress.blockHashStart);
+        ps.setInt(3, ingestionProgress.blocksLimit);
+        ps.executeUpdate();
+
+        int autoGeneratedKey = 0;
+
+        ps = connection.prepareStatement("Select MAX(ID) FROM INGESTION_PROGRESS");
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next())
+            autoGeneratedKey = rs.getInt(1);
+
+        if (storedAutoCommitValue) {
+            connection.commit();
+            connection.setAutoCommit(true);
+        }
+
+        ingestionProgress.id = autoGeneratedKey;
+        return ingestionProgress;
+    }
+
+    public static IngestionProgress replaceIngestionProgress(Connection connection, IngestionProgress ingestionProgress)
+            throws SQLException {
+        boolean storedAutoCommitValue = connection.getAutoCommit();
+
+        if (storedAutoCommitValue)
+            connection.setAutoCommit(false);
+
+        PreparedStatement ps = connection.prepareStatement(
+                "REPLACE INTO INGESTION_PROGRESS (BLOCKCHAIN_CODE, BLOCK_HASH_START, BLOCKS_LIMIT) VALUES (?, ?, ?)");
+
+        ps.setString(1, ingestionProgress.blockchainTicker);
+        ps.setString(2, ingestionProgress.blockHashStart);
+        ps.setInt(3, ingestionProgress.blocksLimit);
+        ps.executeUpdate();
+
+        int autoGeneratedKey = 0;
+
+        ps = connection.prepareStatement("Select MAX(ID) FROM INGESTION_PROGRESS");
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next())
+            autoGeneratedKey = rs.getInt(1);
+
+        if (storedAutoCommitValue) {
+            connection.commit();
+            connection.setAutoCommit(true);
+        }
+
+        ingestionProgress.id = autoGeneratedKey;
+        return ingestionProgress;
+    }
+
+    public static IngestionProgress updateIngestionProgress(Connection connection, IngestionProgress ingestionProgress)
+            throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(
+                "UPDATE INGESTION_PROGRESS SET BLOCKCHAIN_CODE = ?, BLOCK_HASH_START = ?, BLOCKS_LIMIT = ? WHERE ID = ?");
+
+        ps.setString(1, ingestionProgress.blockchainTicker);
+        ps.setString(2, ingestionProgress.blockHashStart);
+        ps.setInt(3, ingestionProgress.blocksLimit);
+        ps.setInt(4, ingestionProgress.id);
+        ps.executeUpdate();
+
+        return ingestionProgress;
+    }
+
+    public static void deleteAll(Connection connection) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("TRUNCATE TABLE INGESTION_PROGRESS");
+        ps.executeUpdate();
+    }
+
+    public static IngestionProgress getIngestionProgress(Connection connection, int id) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(primaryKeySelect);
+
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next())
+            return new IngestionProgress(rs);
+        else
+            return null;
+    }
 
 }

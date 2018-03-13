@@ -9,8 +9,6 @@
   <artifactId>internal-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>com.swatt.blockchain.internalapi</name>
-  
- 
 	<dependencies>
 	    <dependency>
 	        <groupId>io.javalin</groupId>
@@ -51,6 +49,6 @@
     			<groupId>org.web3j</groupId>
     			<artifactId>core</artifactId>
     			<version>3.3.1</version>
-		</dependency>		
+		</dependency>	
 	</dependencies>
 </project>

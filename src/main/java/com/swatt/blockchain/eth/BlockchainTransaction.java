@@ -67,13 +67,14 @@ public class BlockchainTransaction extends com.swatt.blockchain.BlockchainTransa
 
     private void fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash) {
         try {
-            rpcTransaction = jsonrpcClient.invoke(ETHMethods.GET_TRANSACTION_BYHASH,
-                    new Object[] { transactionHash, true }, RPCTransaction.class);
+            rpcTransaction = jsonrpcClient.invoke(ETHMethods.GET_TRANSACTION_BYHASH, new Object[] { transactionHash },
+                    RPCTransaction.class);
 
         } catch (JsonRpcClientException e) {
             e.printStackTrace();
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         } catch (Throwable e) {
+            e.printStackTrace();
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
     }

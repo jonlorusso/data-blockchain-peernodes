@@ -10,16 +10,31 @@
         "http",
         "https"
     ],
-    "basePath": "/btc",
+    "basePath": "/",
     "produces": [
         "application/json"
     ],
     "paths": {
-        "/txn/{hash}": {
+        "/{code}/txn/{hash}": {
             "get": {
                 "summary": "Transaction details",
                 "description": "Details of a transaction on the blockchain\n",
                 "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Code of Blockchain of the transaction",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
                     {
                         "name": "hash",
                         "in": "path",
@@ -48,11 +63,26 @@
                 }
             }
         },
-        "/blk/{hash}": {
+        "/{code}/blk/{hash}": {
             "get": {
                 "summary": "Block details",
                 "description": "Details of a block on the blockchain\n",
                 "parameters": [
+                    {
+                        "name": "ticker",
+                        "in": "path",
+                        "description": "Blockchain ticker of ticker",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
                     {
                         "name": "hash",
                         "in": "path",
@@ -81,11 +111,26 @@
                 }
             }
         },
-        "/chn/{from}/{to}": {
+        "/{ticker}/chn/{from}/{to}": {
             "get": {
                 "summary": "Aggregate data from a blockchain",
                 "description": "Details of a block on the blockchain\n",
                 "parameters": [
+                    {
+                        "name": "ticker",
+                        "in": "path",
+                        "description": "Blockchain ticker of ticker",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
                     {
                         "name": "from",
                         "in": "path",
@@ -278,22 +323,6 @@
                     "type": "number",
                     "format": "Double",
                     "description": "Smallest fee paid in native coin"
-                }
-            }
-        },
-        "Transactions": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer",
-                    "format": "int32",
-                    "description": "Total number of transactions"
-                },
-                "transactions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Transaction"
-                    }
                 }
             }
         },
