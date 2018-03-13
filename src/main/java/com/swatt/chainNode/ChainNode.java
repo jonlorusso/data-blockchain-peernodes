@@ -45,14 +45,14 @@ public abstract class ChainNode {
                                                                                                        // DB
         // TODO: Add Some Caching for a proscribed number of blocks.
 
-        String where = "CHAIN_NAME = '" + getCode() + "' AND HASH = '" + blockHash + "'";
-
-        System.out.println(where);
+        String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" + blockHash + "'";
 
         ArrayList<BlockData> results = (ArrayList<BlockData>) BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
                                                                                                     // Autogenerator to
                                                                                                     // add single return
                                                                                                     // where
+
+        System.out.println(results.size());
 
         if (results.size() > 0)
             return results.get(0);

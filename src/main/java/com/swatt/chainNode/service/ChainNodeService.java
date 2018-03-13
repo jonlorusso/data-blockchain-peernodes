@@ -65,9 +65,6 @@ public class ChainNodeService {
          * Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+
          * try with resource as we do NOT // want to close the pooled connections
          * 
-         * ChainNode chainNode = null; try { chainNode =
-         * chainNodeManager.getChainNode(blockchainCode); BlockData blockData =
-         * chainNode.getBlockDataByHash(conn, blockHash);
          * 
          * String result = JsonUtilities.objectToJsonString(blockData);
          * ctx.result(result); } catch (Throwable t) {

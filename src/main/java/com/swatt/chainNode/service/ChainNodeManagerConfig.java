@@ -19,6 +19,12 @@ public class ChainNodeManagerConfig extends Attributable {
 
     public ChainNodeManagerConfig(Properties properties) {
         super(properties);
+
+        String dbUrl = this.getAttribute("dbURL", null);
+        String dbUser = this.getAttribute("dbUser", null);
+        String dbPassword = this.getAttribute("dbPassword", null);
+
+        createConnection(dbUrl, dbUser, dbPassword);
     }
 
     public ChainNodeManagerConfig() throws IOException {
@@ -32,6 +38,10 @@ public class ChainNodeManagerConfig extends Attributable {
         String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
         String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
 
+        createConnection(dbUrl, dbUser, dbPassword);
+    }
+
+    private void createConnection(String dbUrl, String dbUser, String dbPassword) {
         try {
             conn = SqlUtilities.getConnection(dbUrl, dbUser, dbPassword);
 
@@ -46,6 +56,7 @@ public class ChainNodeManagerConfig extends Attributable {
     }
 
     private final void getBlockchainInfo() throws SQLException {
+
         ArrayList<BlockchainNodeInfo> results = BlockchainNodeInfo.getAllBlockchainNodeInfos(conn);
 
         Iterator<BlockchainNodeInfo> iterator = results.iterator();
