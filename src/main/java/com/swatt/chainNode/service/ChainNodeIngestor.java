@@ -15,7 +15,7 @@ public class ChainNodeIngestor {
     private ChainNode chainNode;
     private Connection connection;
     private Thread ingestorThread;
-    private int blockCount;
+    private int blockCount = 0;
 
     public ChainNodeIngestor(ChainNode chainNode, Connection connection) {
         this.chainNode = chainNode;
@@ -28,6 +28,7 @@ public class ChainNodeIngestor {
                 String blockHash = firstBlockHash;
 
                 while (blockCount < limitBlockCount) {
+                    System.out.println("BLOCK INGESTION, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
                     System.out.println(blockData.getAvgFee());
                     BlockData.createBlockData(connection, blockData);

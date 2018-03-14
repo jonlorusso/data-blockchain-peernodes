@@ -16,6 +16,7 @@ import com.swatt.util.SqlUtilities;
 public class ChainNodeManagerConfig extends Attributable {
     HashMap<String, ChainNodeConfig> chainNodeConfigs = new HashMap<>();
     private static Connection conn = null;
+    private static String rootURL = null;
 
     public ChainNodeManagerConfig(Properties properties) {
         super(properties);
@@ -23,6 +24,8 @@ public class ChainNodeManagerConfig extends Attributable {
         String dbUrl = this.getAttribute("dbURL", null);
         String dbUser = this.getAttribute("dbUser", null);
         String dbPassword = this.getAttribute("dbPassword", null);
+
+        rootURL = this.getAttribute("rootURL", null);
 
         createConnection(dbUrl, dbUser, dbPassword);
     }
@@ -37,6 +40,8 @@ public class ChainNodeManagerConfig extends Attributable {
         String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
         String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
         String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
+
+        rootURL = chainNodeManagerConfig.getAttribute("rootURL", null);
 
         createConnection(dbUrl, dbUser, dbPassword);
     }
@@ -56,7 +61,6 @@ public class ChainNodeManagerConfig extends Attributable {
     }
 
     private final void getBlockchainInfo() throws SQLException {
-
         ArrayList<BlockchainNodeInfo> results = BlockchainNodeInfo.getAllBlockchainNodeInfos(conn);
 
         Iterator<BlockchainNodeInfo> iterator = results.iterator();
@@ -64,10 +68,10 @@ public class ChainNodeManagerConfig extends Attributable {
             BlockchainNodeInfo blockchainNodeInfo = iterator.next();
             String blockchainCode = blockchainNodeInfo.getCode();
 
-            addChainNodeConfig(blockchainCode,
-                    new ChainNodeConfig(blockchainCode, blockchainNodeInfo.getClassName(),
-                            blockchainNodeInfo.getForwardedPort(), blockchainNodeInfo.getRpcUn(),
-                            blockchainNodeInfo.getRpcPw()));
+            String url = rootURL + ":" + blockchainNodeInfo.getForwardedPort();
+
+            addChainNodeConfig(blockchainCode, new ChainNodeConfig(blockchainCode, blockchainNodeInfo.getClassName(),
+                    url, blockchainNodeInfo.getRpcUn(), blockchainNodeInfo.getRpcPw()));
         }
     }
 

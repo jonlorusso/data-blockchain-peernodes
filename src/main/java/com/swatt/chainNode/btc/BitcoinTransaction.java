@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.Transaction;
 import com.swatt.util.OperationFailedException;
@@ -57,14 +55,6 @@ public class BitcoinTransaction extends Transaction {
             RPCTransaction rtn;
             rtn = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION, parameters, RPCTransaction.class);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String json = null;
-            try {
-                json = mapper.writeValueAsString(rtn);
-            } catch (JsonProcessingException e1) {
-                e1.printStackTrace();
-            }
-
             return rtn;
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException(
@@ -106,9 +96,9 @@ public class BitcoinTransaction extends Transaction {
 
             setFee(fee);
             setFeeRate(feeRate);
-            setMinted(false);
+            setNewlyMinted(false);
         } else {
-            setMinted(true);
+            setNewlyMinted(true);
         }
     }
 

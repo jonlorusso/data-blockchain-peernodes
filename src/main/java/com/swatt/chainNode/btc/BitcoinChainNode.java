@@ -1,5 +1,6 @@
 package com.swatt.chainNode.btc;
 
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,8 +14,6 @@ import com.swatt.util.OperationFailedException;
 public class BitcoinChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
 
-    public static final String DEFAULT_BLOCKCHAIN_URL = "http://127.0.0.1"; // TODO: Should get from chainNodeConfig
-
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
     public BitcoinChainNode() {
@@ -22,10 +21,12 @@ public class BitcoinChainNode extends ChainNode {
 
     @Override
     public void init() {
-        String url = DEFAULT_BLOCKCHAIN_URL + ":" + chainNodeConfig.getForwardedPort();
+        String url = chainNodeConfig.getURL();
         String user = chainNodeConfig.getRpcUser();
         String password = chainNodeConfig.getRpcPassword();
         int maxSize = 10; // TODO: Should get from chainNodeConfig
+
+        System.out.println(url + ", " + user + ", " + password);
 
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, user, password, maxSize);
     }
@@ -101,6 +102,8 @@ public class BitcoinChainNode extends ChainNode {
             throws OperationFailedException {
 
         try {
+            long start = Instant.now().getEpochSecond();
+
             Object parameters[] = new Object[] { blockHash };
             RPCBlock rpcBlock = jsonrpcClient.invoke(BTCMethods.GET_BLOCK, parameters, RPCBlock.class);
 
@@ -119,7 +122,15 @@ public class BitcoinChainNode extends ChainNode {
 
             blockData.setBlockchainCode(blockchainCode);
 
+            System.out.println("CALCULATING BLOCK: " + rpcBlock.hash);
+
             calculate(jsonrpcClient, blockData, rpcBlock);
+
+            long indexingDuration = Instant.now().getEpochSecond() - start;
+            long now = Instant.now().toEpochMilli();
+
+            blockData.setIndexed(now);
+            blockData.setIndexingDuration(indexingDuration);
 
             return blockData;
 
@@ -152,7 +163,7 @@ public class BitcoinChainNode extends ChainNode {
         for (String transactionHash : rpcBlock.tx) {
             BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
 
-            if (!transaction.isMinted()) {
+            if (!transaction.isNewlyMinted()) {
                 double transactionFee = transaction.getFee();
                 double transactionAmount = transaction.getAmount();
 
