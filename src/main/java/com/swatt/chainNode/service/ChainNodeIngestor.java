@@ -15,23 +15,25 @@ public class ChainNodeIngestor {
     private ChainNode chainNode;
     private Connection connection;
     private Thread ingestorThread;
+    private int blockCount;
 
     public ChainNodeIngestor(ChainNode chainNode, Connection connection) {
         this.chainNode = chainNode;
         this.connection = connection;
     }
 
-    public void startIngestingBackwardInChain(final String firstBlockHash) {
-
+    public void startIngestingBackwardInChain(final String firstBlockHash, final int limitBlockCount) {
         ingestorThread = new Thread(() -> {
             try {
                 String blockHash = firstBlockHash;
 
-                for (;;) { // TODO: This should have boundaries and/or timeouts
+                while (blockCount < limitBlockCount) {
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
+                    System.out.println(blockData.getAvgFee());
                     BlockData.createBlockData(connection, blockData);
 
                     blockHash = blockData.getPrevHash();
+                    blockCount++;
 
                     Thread.sleep(10); // This will allow the Interrupt to break
                 }
@@ -66,15 +68,15 @@ public class ChainNodeIngestor {
 
             ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
 
-            CheckProgress progressStart = chainNode.getCheckProgress(connection, blockchainCode);
-
-            String firstBlockHash = progressStart.getBlockHash();
-            int blockCount = progressStart.getBlockCount();
-
             if (chainNode != null) {
+                CheckProgress progressStart = chainNode.getCheckProgress(connection, blockchainCode);
+
+                String firstBlockHash = progressStart.getBlockHash();
+                int limitBlockCount = progressStart.getBlockCount();
+
                 ChainNodeIngestor chainNodeIngestor = new ChainNodeIngestor(chainNode, connection);
 
-                chainNodeIngestor.startIngestingBackwardInChain(firstBlockHash);
+                chainNodeIngestor.startIngestingBackwardInChain(firstBlockHash, limitBlockCount);
                 ConcurrencyUtilities.sleep(runTimeMillis);
                 chainNodeIngestor.stopIngesting();
             } else {

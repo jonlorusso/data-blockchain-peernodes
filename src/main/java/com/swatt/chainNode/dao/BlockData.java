@@ -436,6 +436,9 @@ public class BlockData {
         PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO BLOCK_DATA (CHAIN_NAME, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_VALUE, LARGEST_TX_TIMESTAMP, TOTAL_SIZE, TOTAL_FEE, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION, FIRST_TX_TIMESTAMP, LAST_TX_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
+        System.out.println(
+                "INSERT INTO BLOCK_DATA (CHAIN_NAME, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_VALUE, LARGEST_TX_TIMESTAMP, TOTAL_SIZE, TOTAL_FEE, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION, FIRST_TX_TIMESTAMP, LAST_TX_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
