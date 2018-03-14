@@ -5,12 +5,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.chainNode.service.ChainNodeConfig;
 import com.swatt.util.OperationFailedException;
 
 public abstract class ChainNode {
     protected ChainNodeConfig chainNodeConfig;
-    protected String chainName;
+    protected String blockchainCode;
     private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
 
     public ChainNode() {
@@ -52,12 +53,18 @@ public abstract class ChainNode {
                                                                                                     // add single return
                                                                                                     // where
 
-        System.out.println(results.size());
-
         if (results.size() > 0)
             return results.get(0);
         else
             return null;
+    }
+
+    public final BlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
+            long toTimestamp) throws SQLException {
+
+        BlockDataByInterval results = BlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+
+        return results;
     }
 
     public final String getCode() {

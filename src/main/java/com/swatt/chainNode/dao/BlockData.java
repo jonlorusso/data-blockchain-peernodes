@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 
 public class BlockData {
     private int id;
-    private String chainName;
+    private String blockchainCode;
     private String hash;
     private int transactionCount;
     private int height;
@@ -37,26 +37,19 @@ public class BlockData {
     private int indexed;
     private String largestTxHash;
     private double largestTxAmount;
-    private double largestTxValue;
-    private long largestTxTimestamp;
-    private long totalSize;
-    private double totalFee;
     private double largestFee;
     private double smallestFee;
     private int indexingDuration;
-    private int firstTxTimestamp;
-    private int lastTxTimestamp;
 
     public BlockData() {
     }
 
-    public BlockData(int id, String chainName, String hash, int transactionCount, int height, double difficulty,
+    public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, double difficulty,
             String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash,
             String nextHash, double avgFee, double avgFeeRate, int indexed, String largestTxHash,
-            double largestTxAmount, double largestTxValue, long largestTxTimestamp, long totalSize, double totalFee,
-            double largestFee, double smallestFee, int indexingDuration, int firstTxTimestamp, int lastTxTimestamp) {
+            double largestTxAmount, double largestFee, double smallestFee, int indexingDuration) {
         this.id = id;
-        this.chainName = chainName;
+        this.blockchainCode = blockchainCode;
         this.hash = hash;
         this.transactionCount = transactionCount;
         this.height = height;
@@ -74,23 +67,17 @@ public class BlockData {
         this.indexed = indexed;
         this.largestTxHash = largestTxHash;
         this.largestTxAmount = largestTxAmount;
-        this.largestTxValue = largestTxValue;
-        this.largestTxTimestamp = largestTxTimestamp;
-        this.totalSize = totalSize;
-        this.totalFee = totalFee;
         this.largestFee = largestFee;
         this.smallestFee = smallestFee;
         this.indexingDuration = indexingDuration;
-        this.firstTxTimestamp = firstTxTimestamp;
-        this.lastTxTimestamp = lastTxTimestamp;
     }
 
     public final int getId() {
         return id;
     }
 
-    public final String getChainName() {
-        return chainName;
+    public final String getBlockchainCode() {
+        return blockchainCode;
     }
 
     public final String getHash() {
@@ -161,22 +148,6 @@ public class BlockData {
         return largestTxAmount;
     }
 
-    public final double getLargestTxValue() {
-        return largestTxValue;
-    }
-
-    public final long getLargestTxTimestamp() {
-        return largestTxTimestamp;
-    }
-
-    public final long getTotalSize() {
-        return totalSize;
-    }
-
-    public final double getTotalFee() {
-        return totalFee;
-    }
-
     public final double getLargestFee() {
         return largestFee;
     }
@@ -189,20 +160,12 @@ public class BlockData {
         return indexingDuration;
     }
 
-    public final int getFirstTxTimestamp() {
-        return firstTxTimestamp;
-    }
-
-    public final int getLastTxTimestamp() {
-        return lastTxTimestamp;
-    }
-
     public final void setId(int id) {
         this.id = id;
     }
 
-    public final void setChainName(String chainName) {
-        this.chainName = chainName;
+    public final void setBlockchainCode(String blockchainCode) {
+        this.blockchainCode = blockchainCode;
     }
 
     public final void setHash(String hash) {
@@ -273,22 +236,6 @@ public class BlockData {
         this.largestTxAmount = largestTxAmount;
     }
 
-    public final void setLargestTxValue(double largestTxValue) {
-        this.largestTxValue = largestTxValue;
-    }
-
-    public final void setLargestTxTimestamp(long largestTxTimestamp) {
-        this.largestTxTimestamp = largestTxTimestamp;
-    }
-
-    public final void setTotalSize(long totalSize) {
-        this.totalSize = totalSize;
-    }
-
-    public final void setTotalFee(double totalFee) {
-        this.totalFee = totalFee;
-    }
-
     public final void setLargestFee(double largestFee) {
         this.largestFee = largestFee;
     }
@@ -299,14 +246,6 @@ public class BlockData {
 
     public final void setIndexingDuration(int indexingDuration) {
         this.indexingDuration = indexingDuration;
-    }
-
-    public final void setFirstTxTimestamp(int firstTxTimestamp) {
-        this.firstTxTimestamp = firstTxTimestamp;
-    }
-
-    public final void setLastTxTimestamp(int lastTxTimestamp) {
-        this.lastTxTimestamp = lastTxTimestamp;
     }
 
     public static String getSqlColumnList() {
@@ -321,7 +260,7 @@ public class BlockData {
 
     public BlockData(ResultSet rs) throws SQLException {
         id = rs.getInt(1);
-        chainName = rs.getString(2);
+        blockchainCode = rs.getString(2);
         hash = rs.getString(3);
         transactionCount = rs.getInt(4);
         height = rs.getInt(5);
@@ -339,15 +278,9 @@ public class BlockData {
         indexed = rs.getInt(17);
         largestTxHash = rs.getString(18);
         largestTxAmount = rs.getDouble(19);
-        largestTxValue = rs.getDouble(20);
-        largestTxTimestamp = rs.getLong(21);
-        totalSize = rs.getLong(22);
-        totalFee = rs.getDouble(23);
-        largestFee = rs.getDouble(24);
-        smallestFee = rs.getDouble(25);
-        indexingDuration = rs.getInt(26);
-        firstTxTimestamp = rs.getInt(27);
-        lastTxTimestamp = rs.getInt(28);
+        largestFee = rs.getDouble(20);
+        smallestFee = rs.getDouble(21);
+        indexingDuration = rs.getInt(21);
     }
 
     public static Collection getBlockDatas(PreparedStatement ps) throws SQLException {
@@ -377,8 +310,6 @@ public class BlockData {
         if (where != null)
             query += " WHERE " + where;
 
-        System.out.println(query);
-
         PreparedStatement ps = connection.prepareStatement(query);
         ResultSet rs = ps.executeQuery();
 
@@ -406,12 +337,11 @@ public class BlockData {
         return getBlockDatas(dataSource, null);
     }
 
-    public static BlockData createBlockData(Connection connection, String chainName, String hash, int transactionCount,
-            int height, double difficulty, String merkleRoot, long timestamp, String bits, int size, String versionHex,
-            long nonce, String prevHash, String nextHash, double avgFee, double avgFeeRate, int indexed,
-            String largestTxHash, double largestTxAmount, double largestTxValue, long largestTxTimestamp,
-            long totalSize, double totalFee, double largestFee, double smallestFee, int indexingDuration,
-            int firstTxTimestamp, int lastTxTimestamp) throws SQLException {
+    public static BlockData createBlockData(Connection connection, String blockchainCode, String hash,
+            int transactionCount, int height, double difficulty, String merkleRoot, long timestamp, String bits,
+            int size, String versionHex, long nonce, String prevHash, String nextHash, double avgFee, double avgFeeRate,
+            int indexed, String largestTxHash, double largestTxAmount, double largestFee, double smallestFee,
+            int indexingDuration) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
@@ -420,7 +350,7 @@ public class BlockData {
         PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO BLOCK_DATA (CHAIN_NAME, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_VALUE, LARGEST_TX_TIMESTAMP, TOTAL_SIZE, TOTAL_FEE, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION, FIRST_TX_TIMESTAMP, LAST_TX_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        ps.setString(1, chainName);
+        ps.setString(1, blockchainCode);
         ps.setString(2, hash);
         ps.setInt(3, transactionCount);
         ps.setInt(4, height);
@@ -438,15 +368,9 @@ public class BlockData {
         ps.setInt(16, indexed);
         ps.setString(17, largestTxHash);
         ps.setDouble(18, largestTxAmount);
-        ps.setDouble(19, largestTxValue);
-        ps.setLong(20, largestTxTimestamp);
-        ps.setLong(21, totalSize);
-        ps.setDouble(22, totalFee);
-        ps.setDouble(23, largestFee);
-        ps.setDouble(24, smallestFee);
-        ps.setInt(25, indexingDuration);
-        ps.setInt(26, firstTxTimestamp);
-        ps.setInt(27, lastTxTimestamp);
+        ps.setDouble(19, largestFee);
+        ps.setDouble(20, smallestFee);
+        ps.setInt(21, indexingDuration);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
@@ -462,22 +386,20 @@ public class BlockData {
             connection.setAutoCommit(true);
         }
 
-        return new BlockData(autoGeneratedKey, chainName, hash, transactionCount, height, difficulty, merkleRoot,
+        return new BlockData(autoGeneratedKey, blockchainCode, hash, transactionCount, height, difficulty, merkleRoot,
                 timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeRate, indexed,
-                largestTxHash, largestTxAmount, largestTxValue, largestTxTimestamp, totalSize, totalFee, largestFee,
-                smallestFee, indexingDuration, firstTxTimestamp, lastTxTimestamp);
+                largestTxHash, largestTxAmount, largestFee, smallestFee, indexingDuration);
     }
 
-    public static BlockData updateBlockData(Connection connection, int id, String chainName, String hash,
+    public static BlockData updateBlockData(Connection connection, int id, String blockchainCode, String hash,
             int transactionCount, int height, double difficulty, String merkleRoot, long timestamp, String bits,
             int size, String versionHex, long nonce, String prevHash, String nextHash, double avgFee, double avgFeeRate,
-            int indexed, String largestTxHash, double largestTxAmount, double largestTxValue, long largestTxTimestamp,
-            long totalSize, double totalFee, double largestFee, double smallestFee, int indexingDuration,
-            int firstTxTimestamp, int lastTxTimestamp) throws SQLException {
+            int indexed, String largestTxHash, double largestTxAmount, double largestFee, double smallestFee,
+            int indexingDuration) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
                 "UPDATE BLOCK_DATA SET CHAIN_NAME = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_VALUE = ?, LARGEST_TX_TIMESTAMP = ?, TOTAL_SIZE = ?, TOTAL_FEE = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ?, FIRST_TX_TIMESTAMP = ?, LAST_TX_TIMESTAMP = ? WHERE ID = ?");
 
-        ps.setString(1, chainName);
+        ps.setString(1, blockchainCode);
         ps.setString(2, hash);
         ps.setInt(3, transactionCount);
         ps.setInt(4, height);
@@ -495,21 +417,14 @@ public class BlockData {
         ps.setInt(16, indexed);
         ps.setString(17, largestTxHash);
         ps.setDouble(18, largestTxAmount);
-        ps.setDouble(19, largestTxValue);
-        ps.setLong(20, largestTxTimestamp);
-        ps.setLong(21, totalSize);
-        ps.setDouble(22, totalFee);
-        ps.setDouble(23, largestFee);
-        ps.setDouble(24, smallestFee);
-        ps.setInt(25, indexingDuration);
-        ps.setInt(26, firstTxTimestamp);
-        ps.setInt(27, lastTxTimestamp);
+        ps.setDouble(19, largestFee);
+        ps.setDouble(20, smallestFee);
+        ps.setInt(21, indexingDuration);
         ps.executeUpdate();
 
-        return new BlockData(id, chainName, hash, transactionCount, height, difficulty, merkleRoot, timestamp, bits,
-                size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeRate, indexed, largestTxHash,
-                largestTxAmount, largestTxValue, largestTxTimestamp, totalSize, totalFee, largestFee, smallestFee,
-                indexingDuration, firstTxTimestamp, lastTxTimestamp);
+        return new BlockData(id, blockchainCode, hash, transactionCount, height, difficulty, merkleRoot, timestamp,
+                bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeRate, indexed, largestTxHash,
+                largestTxAmount, largestFee, smallestFee, indexingDuration);
     }
 
     public static BlockData createBlockData(Connection connection, BlockData blockData) throws SQLException {
@@ -521,7 +436,7 @@ public class BlockData {
         PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO BLOCK_DATA (CHAIN_NAME, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_VALUE, LARGEST_TX_TIMESTAMP, TOTAL_SIZE, TOTAL_FEE, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION, FIRST_TX_TIMESTAMP, LAST_TX_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        ps.setString(1, blockData.chainName);
+        ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setInt(4, blockData.height);
@@ -539,15 +454,9 @@ public class BlockData {
         ps.setInt(16, blockData.indexed);
         ps.setString(17, blockData.largestTxHash);
         ps.setDouble(18, blockData.largestTxAmount);
-        ps.setDouble(19, blockData.largestTxValue);
-        ps.setLong(20, blockData.largestTxTimestamp);
-        ps.setLong(21, blockData.totalSize);
-        ps.setDouble(22, blockData.totalFee);
-        ps.setDouble(23, blockData.largestFee);
-        ps.setDouble(24, blockData.smallestFee);
-        ps.setInt(25, blockData.indexingDuration);
-        ps.setInt(26, blockData.firstTxTimestamp);
-        ps.setInt(27, blockData.lastTxTimestamp);
+        ps.setDouble(19, blockData.largestFee);
+        ps.setDouble(20, blockData.smallestFee);
+        ps.setInt(21, blockData.indexingDuration);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
@@ -571,7 +480,7 @@ public class BlockData {
         PreparedStatement ps = connection.prepareStatement(
                 "UPDATE BLOCK_DATA SET CHAIN_NAME = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_VALUE = ?, LARGEST_TX_TIMESTAMP = ?, TOTAL_SIZE = ?, TOTAL_FEE = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ?, FIRST_TX_TIMESTAMP = ?, LAST_TX_TIMESTAMP = ? WHERE ID = ?");
 
-        ps.setString(1, blockData.chainName);
+        ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setInt(4, blockData.height);
@@ -589,16 +498,10 @@ public class BlockData {
         ps.setInt(16, blockData.indexed);
         ps.setString(17, blockData.largestTxHash);
         ps.setDouble(18, blockData.largestTxAmount);
-        ps.setDouble(19, blockData.largestTxValue);
-        ps.setLong(20, blockData.largestTxTimestamp);
-        ps.setLong(21, blockData.totalSize);
-        ps.setDouble(22, blockData.totalFee);
-        ps.setDouble(23, blockData.largestFee);
-        ps.setDouble(24, blockData.smallestFee);
-        ps.setInt(25, blockData.indexingDuration);
-        ps.setInt(26, blockData.firstTxTimestamp);
-        ps.setInt(27, blockData.lastTxTimestamp);
-        ps.setInt(28, blockData.id);
+        ps.setDouble(19, blockData.largestFee);
+        ps.setDouble(20, blockData.smallestFee);
+        ps.setInt(21, blockData.indexingDuration);
+        ps.setInt(22, blockData.id);
         ps.executeUpdate();
 
         return blockData;

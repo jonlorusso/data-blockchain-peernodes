@@ -6,6 +6,7 @@ import java.util.Properties;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.Transaction;
 import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.util.CollectionsUtilities;
 import com.swatt.util.ConcurrencyUtilities;
 import com.swatt.util.ConnectionPool;
@@ -94,23 +95,28 @@ public class ChainNodeService {
             } catch (Throwable t) {
                 connectionPool.returnConnection(conn);
             }
-
         });
 
         app.get("/:blockchainCode/chn/:from/:to", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
-            String sFrom = ctx.param("from");
-            String sTo = ctx.param("to");
+            String From = ctx.param("from");
+            String To = ctx.param("to");
 
-            /*
-             * ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-             * BlockchainNodeData data =
-             * chainNode.getDataForInterval(Long.parseLong(ctx.param("from")),
-             * Long.parseLong(ctx.param("to"))); String result =
-             * JsonUtilities.objectToJsonString(data);
-             * 
-             * ctx.result(result);
-             */
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+
+                BlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, blockchainCode,
+                        Long.parseLong(From), Long.parseLong(To));
+
+                String result = JsonUtilities.objectToJsonString(aggregateData);
+                ctx.result(result);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                connectionPool.returnConnection(conn);
+            }
         });
     }
 

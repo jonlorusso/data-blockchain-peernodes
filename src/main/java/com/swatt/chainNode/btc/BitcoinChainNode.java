@@ -117,7 +117,7 @@ public class BitcoinChainNode extends ChainNode {
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
 
-            blockData.setChainName(chainName);
+            blockData.setBlockchainCode(blockchainCode);
 
             calculate(jsonrpcClient, blockData, rpcBlock);
 
@@ -181,9 +181,6 @@ public class BitcoinChainNode extends ChainNode {
         blockData.setTransactionCount(transactionCount);
         blockData.setAvgFee(averageFee);
         blockData.setAvgFeeRate(averageFeeRate);
-        blockData.setTotalSize(totalSize);
-
-        blockData.setTotalFee(totalFee);
 
         blockData.setLargestFee(largestFee);
         blockData.setLargestTxAmount(largestTxAmount);
