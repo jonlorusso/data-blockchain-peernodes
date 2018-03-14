@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.BlockDataByInterval;
+import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
 import com.swatt.util.OperationFailedException;
 
@@ -63,6 +64,12 @@ public abstract class ChainNode {
             long toTimestamp) throws SQLException {
 
         BlockDataByInterval results = BlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+
+        return results;
+    }
+
+    public final CheckProgress getCheckProgress(Connection conn, String blockchainCode) throws SQLException {
+        CheckProgress results = CheckProgress.call(conn, blockchainCode);
 
         return results;
     }

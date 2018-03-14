@@ -2,9 +2,12 @@ package com.swatt.chainNode.service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.CheckProgress;
+import com.swatt.util.CollectionsUtilities;
 import com.swatt.util.ConcurrencyUtilities;
 import com.swatt.util.OperationFailedException;
 
@@ -48,25 +51,30 @@ public class ChainNodeIngestor {
 
     public static void main(String[] args) {
         try {
-            String blockchainCode = (args.length > 0) ? args[0] : "BTC";
-            String firstBlockHash = (args.length > 1) ? args[1] : null;
-            boolean ingestBlocksViaPreviousHash = true;
-
             long runTimeMillis = 5 * 60 * 1000;
 
-            ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig();
+            String propertiesFileName = "config.properties";
+
+            Properties properties = CollectionsUtilities.loadProperties(propertiesFileName);
+
+            String blockchainCode = (args.length > 0) ? args[0] : properties.getProperty("ingestionStartCode");
+
+            ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
 
             ChainNodeManager chainNodeManager = new ChainNodeManager(chainNodeManagerConfig);
             Connection connection = chainNodeManager.getConnection();
 
             ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
 
+            CheckProgress progressStart = chainNode.getCheckProgress(connection, blockchainCode);
+
+            String firstBlockHash = progressStart.getBlockHash();
+            int blockCount = progressStart.getBlockCount();
+
             if (chainNode != null) {
                 ChainNodeIngestor chainNodeIngestor = new ChainNodeIngestor(chainNode, connection);
 
-                if (ingestBlocksViaPreviousHash)
-                    chainNodeIngestor.startIngestingBackwardInChain(firstBlockHash);
-
+                chainNodeIngestor.startIngestingBackwardInChain(firstBlockHash);
                 ConcurrencyUtilities.sleep(runTimeMillis);
                 chainNodeIngestor.stopIngesting();
             } else {

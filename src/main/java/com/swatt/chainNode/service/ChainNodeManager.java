@@ -43,11 +43,11 @@ public class ChainNodeManager {
     }
 
     public Connection getConnection() throws SQLException {
-        String jdbcUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
-        String user = chainNodeManagerConfig.getAttribute("dbUser", null);
-        String password = chainNodeManagerConfig.getAttribute("dbPassword", null);
+        String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
+        String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
+        String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
 
-        return SqlUtilities.getConnection(jdbcUrl, user, password);
+        return SqlUtilities.getConnection(dbUrl, dbUser, dbPassword);
     }
 
     public ConnectionPool getConnectionPool() {

@@ -137,9 +137,6 @@ public class ChainNodeService {
             int port = Integer.parseInt(properties.getProperty("servicePort"));
 
             ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
-
-            String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
-
             ChainNodeManager chainNodeManager = new ChainNodeManager(chainNodeManagerConfig);
 
             if (port > 0) {
