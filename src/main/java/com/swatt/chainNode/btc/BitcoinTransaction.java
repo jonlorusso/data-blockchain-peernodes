@@ -5,11 +5,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.swatt.chainNode.Transaction;
+import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.util.OperationFailedException;
 
-public class BitcoinTransaction extends Transaction {
+public class BitcoinTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(BitcoinTransaction.class.getName());
+    private double inValue;
 
     private List<RPCVout> vout;
 
@@ -65,6 +66,14 @@ public class BitcoinTransaction extends Transaction {
 
     private double outputValue(int i) {
         return vout.get(i).value;
+    }
+
+    public final double getInValue() {
+        return inValue;
+    }
+
+    public final void setInValue(double inValue) {
+        this.inValue = inValue;
     }
 
     private void calculateFee(JsonRpcHttpClient jsonrpcClient, RPCTransaction rpcTransaction)

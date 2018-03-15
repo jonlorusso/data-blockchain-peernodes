@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNode;
-import com.swatt.chainNode.Transaction;
+import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.util.JsonRpcHttpClientPool;
 import com.swatt.util.OperationFailedException;
@@ -45,7 +45,7 @@ public class BitcoinChainNode extends ChainNode {
     }
 
     @Override
-    public Transaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
             throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
@@ -183,6 +183,9 @@ public class BitcoinChainNode extends ChainNode {
                 }
             }
         }
+
+        if (smallestFee == Double.MAX_VALUE)
+            smallestFee = 0;
 
         double averageFee = totalFee / transactionCount;
         double averageFeeRate = totalFeeRate / transactionCount;

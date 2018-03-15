@@ -35,6 +35,7 @@ public class ChainNodeManager {
                 chainNode.setChainNodeConfig(chainNodeConfig);
                 chainNode.init();
             } catch (Throwable t) {
+                t.printStackTrace();
                 throw new OperationFailedException("Unable to create ChainNode: " + blockchainCode, t);
             }
         }

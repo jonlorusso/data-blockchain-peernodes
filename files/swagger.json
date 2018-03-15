@@ -1,0 +1,345 @@
+{
+    "swagger": 2.0,
+    "info": {
+        "title": "SWATT Internal API",
+        "description": "Connect to internal data and systems",
+        "version": "1.0.0"
+    },
+    "host": "localhost:7000",
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "basePath": "/",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/{ticker}/txn/{hash}": {
+            "get": {
+                "summary": "Transaction details",
+                "description": "Details of a transaction on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "ticker",
+                        "in": "path",
+                        "description": "Blockchain ticker of ticker",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Blockchain hash of the transaction",
+                        "required": true,
+                        "type": "string",
+                        "format": "hash"
+                    }
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A representation of the transaction",
+                        "schema": {
+                            "$ref": "#/definitions/Transaction"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/{ticker}/blk/{hash}": {
+            "get": {
+                "summary": "Block details",
+                "description": "Details of a block on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "ticker",
+                        "in": "path",
+                        "description": "Blockchain ticker of ticker",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Blockchain hash of the block",
+                        "required": true,
+                        "type": "string",
+                        "format": "hash"
+                    }
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A representation of the block",
+                        "schema": {
+                            "$ref": "#/definitions/Block"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/{ticker}/chn/{from}/{to}": {
+            "get": {
+                "summary": "Aggregate data from a blockchain",
+                "description": "Details of a block on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "ticker",
+                        "in": "path",
+                        "description": "Blockchain ticker of ticker",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
+                    {
+                        "name": "from",
+                        "in": "path",
+                        "description": "From time, UTC secondss",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "to",
+                        "in": "path",
+                        "description": "To time, UTC secondss",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    }
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aggregate data from a blockchain",
+                        "schema": {
+                            "$ref": "#/definitions/NodeData"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Block": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string",
+                    "description": "Blockchain hash of the block"
+                },
+                "averageFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Average fee paid per transaction in native coin"
+                },
+                "averageFeeRate": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Average fee per transaction size in native coin per kilobyte"
+                },
+                "largestFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Largest fee paid in native coin"
+                },
+                "smallestFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Smallest fee paid in native coin"
+                },
+                "largestTxAmount": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Largest transaction on the block in native coin"
+                },
+                "largestTxHash": {
+                    "type": "string",
+                    "description": "Blockchain hash of the Largest transaction on the block"
+                },
+                "transactionCount": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Number of transactions in the block"
+                },
+                "size": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Total size of the block in bytes"
+                },
+                "height": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Block ID in the chain"
+                },
+                "difficulty": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "A measure of how difficult it is to find a hash below a given target."
+                },
+                "merkleRoot": {
+                    "type": "string",
+                    "description": "Merkle root is not used to verify the integrity of transactions in block"
+                },
+                "prevHash": {
+                    "type": "string",
+                    "description": "Blockchain hash of previous block in the chain"
+                },
+                "nextHash": {
+                    "type": "string",
+                    "description": "Blockchain hash of next block in the chain"
+                },
+                "timestamp": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Time the block was written to the blockchain in UTC seconds"
+                }
+            }
+        },
+        "Transaction": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string",
+                    "description": "Blockchain hash of the transaction"
+                },
+                "fee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Fee paid in native coin"
+                },
+                "minted": {
+                    "type": "boolean",
+                    "description": "Whether transaction was new minting of coins"
+                },
+                "size": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Size of the transaction on the blockchain in bytes"
+                },
+                "amount": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Transaction amount net of fees paid"
+                },
+                "feeRate": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Fee as a function of transaction size in coin per kilobyte"
+                },
+                "blockhash": {
+                    "type": "string",
+                    "description": "Blockchain hash of the writte block if any"
+                },
+                "timestamp": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Time the transaction was written to the blockchain in UTC seconds"
+                }
+            }
+        },
+        "NodeData": {
+            "type": "object",
+            "properties": {
+                "numBlocks": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Number of blocks in the range"
+                },
+                "transactionCount": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Number of transactions in the range"
+                },
+                "averageTransactionCount": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "Number of transactions per block in the range"
+                },
+                "averageFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Average fee paid per transaction in native coin"
+                },
+                "averageFeeRate": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Average fee per transaction size in native coin per kilobyte"
+                },
+                "largestFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Largest fee paid in native coin"
+                },
+                "smallestFee": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Smallest fee paid in native coin"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

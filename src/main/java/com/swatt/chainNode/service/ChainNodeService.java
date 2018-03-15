@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.util.Properties;
 
 import com.swatt.chainNode.ChainNode;
-import com.swatt.chainNode.Transaction;
+import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.util.CollectionsUtilities;
@@ -45,7 +45,7 @@ public class ChainNodeService {
             ChainNode chainNode = chainNodeManager.getChainNode(chainName);
             boolean calculateFees = true;
 
-            Transaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, calculateFees); // Fetch
+            ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, calculateFees); // Fetch
                                                                                                              // the
                                                                                                              // transactions
                                                                                                              // and
@@ -55,29 +55,6 @@ public class ChainNodeService {
             String result = JsonUtilities.objectToJsonString(chainTransaction);
             ctx.result(result);
         });
-
-        /*
-         * 
-         * app.get("/:blockchainCode/fetch/:blockHash", ctx -> { // TODO: This is just
-         * for debugging, this is not meant to // be part of the Service API. String
-         * blockchainCode = ctx.param("blockchainCode"); String blockHash =
-         * ctx.param("blockHash");
-         * 
-         * Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+
-         * try with resource as we do NOT // want to close the pooled connections
-         * 
-         * 
-         * String result = JsonUtilities.objectToJsonString(blockData);
-         * ctx.result(result); } catch (Throwable t) {
-         * connectionPool.returnConnection(conn); }
-         * 
-         * BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
-         * 
-         * String result = JsonUtilities.objectToJsonString(blockData);
-         * ctx.result(result);
-         * 
-         * });
-         */
 
         app.get("/:blockchainCode/blk/:blockHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");

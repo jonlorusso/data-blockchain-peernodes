@@ -3,6 +3,8 @@ package com.swatt.chainNode.dao;
 /*  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  * 
  *     THIS IS AUTO-GENERATED CODE WAS CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
+ *
+ *     Based on Excel File: /Users/gloverwilson/eclipse-workspace/internal-blockchain-access/files/Blockchain Node Schema.xls
  * 
  *  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  */
@@ -11,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -275,21 +276,29 @@ public class BlockData {
         nextHash = rs.getString(14);
         avgFee = rs.getDouble(15);
         avgFeeRate = rs.getDouble(16);
-        indexed = rs.getInt(17);
+        indexed = rs.getLong(17);
         largestTxHash = rs.getString(18);
         largestTxAmount = rs.getDouble(19);
         largestFee = rs.getDouble(20);
         smallestFee = rs.getDouble(21);
-        indexingDuration = rs.getInt(21);
+        indexingDuration = rs.getLong(22);
     }
 
-    public static Collection getBlockDatas(PreparedStatement ps) throws SQLException {
+    public static ArrayList<BlockData> getBlockDatas(PreparedStatement ps) throws SQLException {
         ResultSet rs = ps.executeQuery();
 
         return getBlockDatas(rs);
     }
 
-    public static Collection getBlockDatas(ResultSet rs) throws SQLException {
+    public static BlockData getNextBlockData(ResultSet rs) throws SQLException {
+        if (rs.next())
+            return new BlockData(rs);
+
+        else
+            return null;
+    }
+
+    public static ArrayList<BlockData> getBlockDatas(ResultSet rs) throws SQLException {
         ArrayList<BlockData> results = new ArrayList<BlockData>(100);
 
         while (rs.next())
@@ -298,13 +307,26 @@ public class BlockData {
         return results;
     }
 
+    public static ArrayList<BlockData> getBlockDatas(ResultSet rs, int max) throws SQLException {
+        ArrayList<BlockData> results = new ArrayList<BlockData>(100);
+
+        for (int i = 0; (i < max) && rs.next(); i++)
+            results.add(new BlockData(rs));
+
+        return results;
+    }
+
     private static String SELECT_ALL_QUERY = "SELECT " + getSqlColumnList() + " FROM " + getStandardTableName();
 
-    public static Collection getBlockDatas(Connection connection) throws SQLException {
+    public static ArrayList<BlockData> getAllBlockDatas(Connection connection) throws SQLException {
         return getBlockDatas(connection, null);
     }
 
-    public static Collection getBlockDatas(Connection connection, String where) throws SQLException {
+    public static ArrayList<BlockData> getAllBlockDatas(Connection connection, int max) throws SQLException {
+        return getBlockDatas(connection, null, max);
+    }
+
+    public static ArrayList<BlockData> getBlockDatas(Connection connection, String where) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -316,28 +338,53 @@ public class BlockData {
         return getBlockDatas(rs);
     }
 
-    public static Collection getBlockDatas(DataSource dataSource, String where) throws SQLException {
+    public static ArrayList<BlockData> getBlockDatas(Connection connection, String where, int max) throws SQLException {
+        String query = SELECT_ALL_QUERY;
+
+        if (where != null)
+            query += " WHERE " + where;
+
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
+
+        return getBlockDatas(rs, max);
+    }
+
+    public static BlockData getFirstBlockData(Connection connection, String where) throws SQLException {
+        String query = SELECT_ALL_QUERY;
+
+        if (where != null)
+            query += " WHERE " + where;
+
+        PreparedStatement ps = connection.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
+
+        return getNextBlockData(rs);
+    }
+
+    public static ArrayList<BlockData> getBlockDatas(DataSource dataSource, String where) throws SQLException {
         Connection connection = dataSource.getConnection();
-        Collection results = getBlockDatas(connection, where);
+        ArrayList<BlockData> results = getBlockDatas(connection, where);
         connection.close();
         return results;
     }
 
-    public static Collection getBlockDatas(String jndiName, String where) throws SQLException, NamingException {
+    public static ArrayList<BlockData> getBlockDatas(String jndiName, String where)
+            throws SQLException, NamingException {
         InitialContext ctx = new InitialContext();
         DataSource dataSource = (DataSource) ctx.lookup(jndiName);
         return getBlockDatas(dataSource, where);
     }
 
-    public static Collection getBlockDatas(String jndiName) throws SQLException, NamingException {
+    public static ArrayList<BlockData> getBlockDatas(String jndiName) throws SQLException, NamingException {
         return getBlockDatas(jndiName, null);
     }
 
-    public static Collection getBlockDatas(DataSource dataSource) throws SQLException {
+    public static ArrayList<BlockData> getBlockDatas(DataSource dataSource) throws SQLException {
         return getBlockDatas(dataSource, null);
     }
 
-    public static BlockData createBlockData(Connection connection, String blockchainCode, String hash,
+    public static BlockData insertBlockData(Connection connection, String blockchainCode, String hash,
             int transactionCount, int height, double difficulty, String merkleRoot, long timestamp, String bits,
             int size, String versionHex, long nonce, String prevHash, String nextHash, double avgFee, double avgFeeRate,
             long indexed, String largestTxHash, double largestTxAmount, double largestFee, double smallestFee,
@@ -348,7 +395,7 @@ public class BlockData {
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_VALUE, LARGEST_TX_TIMESTAMP, TOTAL_SIZE, TOTAL_FEE, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION, FIRST_TX_TIMESTAMP, LAST_TX_TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
@@ -397,7 +444,7 @@ public class BlockData {
             long indexed, String largestTxHash, double largestTxAmount, double largestFee, double smallestFee,
             long indexingDuration) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET CHAIN_NAME = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_VALUE = ?, LARGEST_TX_TIMESTAMP = ?, TOTAL_SIZE = ?, TOTAL_FEE = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ?, FIRST_TX_TIMESTAMP = ?, LAST_TX_TIMESTAMP = ? WHERE ID = ?");
+                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
@@ -427,7 +474,7 @@ public class BlockData {
                 largestTxAmount, largestFee, smallestFee, indexingDuration);
     }
 
-    public static BlockData createBlockData(Connection connection, BlockData blockData) throws SQLException {
+    public static BlockData insertBlockData(Connection connection, BlockData blockData) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
@@ -476,9 +523,58 @@ public class BlockData {
         return blockData;
     }
 
+    public static BlockData replaceBlockData(Connection connection, BlockData blockData) throws SQLException {
+        boolean storedAutoCommitValue = connection.getAutoCommit();
+
+        if (storedAutoCommitValue)
+            connection.setAutoCommit(false);
+
+        PreparedStatement ps = connection.prepareStatement(
+                "REPLACE INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        ps.setString(1, blockData.blockchainCode);
+        ps.setString(2, blockData.hash);
+        ps.setInt(3, blockData.transactionCount);
+        ps.setInt(4, blockData.height);
+        ps.setDouble(5, blockData.difficulty);
+        ps.setString(6, blockData.merkleRoot);
+        ps.setLong(7, blockData.timestamp);
+        ps.setString(8, blockData.bits);
+        ps.setInt(9, blockData.size);
+        ps.setString(10, blockData.versionHex);
+        ps.setLong(11, blockData.nonce);
+        ps.setString(12, blockData.prevHash);
+        ps.setString(13, blockData.nextHash);
+        ps.setDouble(14, blockData.avgFee);
+        ps.setDouble(15, blockData.avgFeeRate);
+        ps.setLong(16, blockData.indexed);
+        ps.setString(17, blockData.largestTxHash);
+        ps.setDouble(18, blockData.largestTxAmount);
+        ps.setDouble(19, blockData.largestFee);
+        ps.setDouble(20, blockData.smallestFee);
+        ps.setLong(21, blockData.indexingDuration);
+        ps.executeUpdate();
+
+        int autoGeneratedKey = 0;
+
+        ps = connection.prepareStatement("Select MAX(ID) FROM BLOCK_DATA");
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next())
+            autoGeneratedKey = rs.getInt(1);
+
+        if (storedAutoCommitValue) {
+            connection.commit();
+            connection.setAutoCommit(true);
+        }
+
+        blockData.id = autoGeneratedKey;
+        return blockData;
+    }
+
     public static BlockData updateBlockData(Connection connection, BlockData blockData) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET CHAIN_NAME = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_VALUE = ?, LARGEST_TX_TIMESTAMP = ?, TOTAL_SIZE = ?, TOTAL_FEE = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ?, FIRST_TX_TIMESTAMP = ?, LAST_TX_TIMESTAMP = ? WHERE ID = ?");
+                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);

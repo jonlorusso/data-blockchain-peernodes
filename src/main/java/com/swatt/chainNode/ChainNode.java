@@ -38,7 +38,7 @@ public abstract class ChainNode {
                                                                                                       // itself (not via
                                                                                                       // DB)
 
-    public abstract Transaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
             throws OperationFailedException; // Fetches directly from the Blockchain Node
 
     public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will only

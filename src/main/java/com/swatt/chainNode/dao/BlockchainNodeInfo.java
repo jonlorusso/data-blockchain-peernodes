@@ -4,7 +4,7 @@ package com.swatt.chainNode.dao;
  * 
  *     THIS IS AUTO-GENERATED CODE WAS CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
  *
- *     Based on Excel File: /Users/gloverwilson/Dropbox/Documents/Projects/Swatt Exchange/Blockchain Node Schema.xls
+ *     Based on Excel File: /Users/gloverwilson/eclipse-workspace/internal-blockchain-access/files/Blockchain Node Schema.xls
  * 
  *  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  */
