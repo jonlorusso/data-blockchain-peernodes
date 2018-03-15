@@ -16,6 +16,7 @@ public class ChainNodeIngestor {
     private Connection connection;
     private Thread ingestorThread;
     private int blockCount = 0;
+    private static String blockchainCode;
 
     public ChainNodeIngestor(ChainNode chainNode, Connection connection) {
         this.chainNode = chainNode;
@@ -28,20 +29,23 @@ public class ChainNodeIngestor {
                 String blockHash = firstBlockHash;
 
                 while (blockCount < limitBlockCount) {
-                    System.out.println("BLOCK INGESTION, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
+                    System.out.println("BLOCK INGESTING, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
-                    System.out.println(blockData.getAvgFee());
+                    blockData.setBlockchainCode(blockchainCode);
                     BlockData.createBlockData(connection, blockData);
 
                     blockHash = blockData.getPrevHash();
                     blockCount++;
 
-                    Thread.sleep(10); // This will allow the Interrupt to break
+                    chainNode.setUpdateProgress(connection, blockchainCode, blockHash, limitBlockCount - blockCount);
+                    System.out.println("BLOCK INGESTED, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
+
+                    // Thread.sleep(10); // This will allow the Interrupt to break
                 }
             } catch (OperationFailedException | SQLException e) {
                 e.printStackTrace();
-            } catch (InterruptedException e) { // Stop Ingesting was requested
-                return;
+                // } catch (InterruptedException e) { // Stop Ingesting was requested
+                // return;
             }
         }, "IngestorThread-" + chainNode.getCode());
 
@@ -60,7 +64,7 @@ public class ChainNodeIngestor {
 
             Properties properties = CollectionsUtilities.loadProperties(propertiesFileName);
 
-            String blockchainCode = (args.length > 0) ? args[0] : properties.getProperty("ingestionStartCode");
+            blockchainCode = (args.length > 0) ? args[0] : properties.getProperty("ingestionStartCode");
 
             ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
 

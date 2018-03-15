@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.chainNode.dao.CheckProgress;
+import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
 import com.swatt.util.OperationFailedException;
 
@@ -72,6 +73,12 @@ public abstract class ChainNode {
         CheckProgress results = CheckProgress.call(conn, blockchainCode);
 
         return results;
+    }
+
+    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
+            throws SQLException {
+
+        UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);
     }
 
     public final String getCode() {

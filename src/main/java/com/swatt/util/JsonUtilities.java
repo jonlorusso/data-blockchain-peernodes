@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 
 public class JsonUtilities {
-	
+
     public static String objectToJsonString(Object obj) {
         ObjectMapper mapper = new ObjectMapper();
         String json = null;
@@ -22,8 +22,7 @@ public class JsonUtilities {
 
         return json;
     }
-    
-    
+
     public static JsonRpcHttpClient createJsonRpcHttpClient(String url, String rpcUser, String rpcPassword) {
         URL uri;
         JsonRpcHttpClient client = null;

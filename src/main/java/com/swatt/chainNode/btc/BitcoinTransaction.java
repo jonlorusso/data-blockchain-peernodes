@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.Transaction;
+import com.swatt.util.Benchmark;
 import com.swatt.util.OperationFailedException;
 
 public class BitcoinTransaction extends Transaction {
@@ -22,7 +23,6 @@ public class BitcoinTransaction extends Transaction {
         this.vout = rpcTransaction.vout;
 
         // Compute amount
-
         double amount = 0.0;
 
         // TODO clean up vout array once values read, no further need
@@ -53,6 +53,7 @@ public class BitcoinTransaction extends Transaction {
             Object parameters[] = new Object[] { transactionHash, true };
 
             RPCTransaction rtn;
+            Benchmark bm = new Benchmark();
             rtn = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION, parameters, RPCTransaction.class);
 
             return rtn;

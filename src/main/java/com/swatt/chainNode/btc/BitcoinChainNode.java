@@ -26,8 +26,6 @@ public class BitcoinChainNode extends ChainNode {
         String password = chainNodeConfig.getRpcPassword();
         int maxSize = 10; // TODO: Should get from chainNodeConfig
 
-        System.out.println(url + ", " + user + ", " + password);
-
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, user, password, maxSize);
     }
 
@@ -149,7 +147,6 @@ public class BitcoinChainNode extends ChainNode {
     private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RPCBlock rpcBlock)
             throws OperationFailedException {
 
-        long totalSize = 0; // Will this ever exceed a 32 bit int?
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -158,22 +155,23 @@ public class BitcoinChainNode extends ChainNode {
         double largestTxAmount = 0.0;
         String largestTxHash = null;
 
-        int transactionCount = 0; // block.tx.size();
+        int transactionCount = 1; // rpcBlock.tx.size();
 
         for (String transactionHash : rpcBlock.tx) {
             BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
+            // System.out.println(transactionHash + " " + ((double) transactionCount /
+            // (double) rpcBlock.tx.size()));
 
             if (!transaction.isNewlyMinted()) {
                 double transactionFee = transaction.getFee();
                 double transactionAmount = transaction.getAmount();
 
-                smallestFee = Math.min(smallestFee, transactionFee);
                 largestFee = Math.max(largestFee, transactionFee);
+                smallestFee = Math.min(smallestFee, transactionFee);
 
                 transactionCount++;
                 totalFee += transactionFee;
                 totalFeeRate += transaction.getFeeRate();
-                totalSize += transaction.getSize();
 
                 if (transactionAmount > largestTxAmount) {
                     largestTxAmount = transactionAmount;
@@ -193,7 +191,9 @@ public class BitcoinChainNode extends ChainNode {
         blockData.setAvgFee(averageFee);
         blockData.setAvgFeeRate(averageFeeRate);
 
+        blockData.setSmallestFee(smallestFee);
         blockData.setLargestFee(largestFee);
+
         blockData.setLargestTxAmount(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
