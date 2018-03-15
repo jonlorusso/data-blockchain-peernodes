@@ -29,7 +29,6 @@ public class ChainNodeIngestor {
                 String blockHash = firstBlockHash;
 
                 while (blockCount < limitBlockCount) {
-                    System.out.println("BLOCK INGESTING, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
                     blockData.setBlockchainCode(blockchainCode);
                     BlockData.createBlockData(connection, blockData);
