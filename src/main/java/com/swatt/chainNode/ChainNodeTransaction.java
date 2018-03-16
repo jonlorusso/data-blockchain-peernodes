@@ -9,10 +9,10 @@ public class ChainNodeTransaction {
     private long timestamp;
 
     private double fee; // All
-    private boolean minted = false; // All
     private double feeRate; // Bitcoin?
-    private long size; // All
     private double amount; // ?? Christian had this be lazily synthetic
+
+    private String blockHash;
 
     public ChainNodeTransaction(String hash) {
         this.hash = hash;
@@ -34,14 +34,6 @@ public class ChainNodeTransaction {
         this.fee = fee;
     }
 
-    public final boolean isNewlyMinted() {
-        return minted;
-    }
-
-    public final void setNewlyMinted(boolean minted) {
-        this.minted = minted;
-    }
-
     public final double getFeeRate() {
         return feeRate;
     }
@@ -58,12 +50,12 @@ public class ChainNodeTransaction {
         this.timestamp = timestamp;
     }
 
-    public final long getSize() {
-        return size;
+    public final String getBlockHash() {
+        return blockHash;
     }
 
-    public final void setSize(long size) {
-        this.size = size;
+    public final void setBlockHash(String blockHash) {
+        this.blockHash = blockHash;
     }
 
     public final double getAmount() {

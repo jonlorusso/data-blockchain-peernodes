@@ -46,11 +46,11 @@ public class ChainNodeService {
             boolean calculateFees = true;
 
             ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, calculateFees); // Fetch
-                                                                                                             // the
-                                                                                                             // transactions
-                                                                                                             // and
-                                                                                                             // calculate
-                                                                                                             // fees
+            // the
+            // transactions
+            // and
+            // calculate
+            // fees
 
             String result = JsonUtilities.objectToJsonString(chainTransaction);
             ctx.result(result);
@@ -66,6 +66,8 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
                 BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
+
+                connectionPool.returnConnection(conn);
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 ctx.result(result);
@@ -89,6 +91,8 @@ public class ChainNodeService {
                         Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(aggregateData);
+                connectionPool.returnConnection(conn);
+
                 ctx.result(result);
             } catch (Throwable t) {
                 t.printStackTrace();

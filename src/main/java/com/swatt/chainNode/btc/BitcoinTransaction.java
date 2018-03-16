@@ -11,6 +11,8 @@ import com.swatt.util.OperationFailedException;
 public class BitcoinTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(BitcoinTransaction.class.getName());
     private double inValue;
+    private boolean minted = false;
+    private long size;
 
     private List<RPCVout> vout;
 
@@ -41,6 +43,8 @@ public class BitcoinTransaction extends ChainNodeTransaction {
         } else {
             setSize(rpcTransaction.size);
         }
+
+        super.setBlockHash(rpcTransaction.blockhash);
 
         if (calculateFee)
             calculateFee(jsonrpcClient, rpcTransaction);
@@ -74,6 +78,22 @@ public class BitcoinTransaction extends ChainNodeTransaction {
 
     public final void setInValue(double inValue) {
         this.inValue = inValue;
+    }
+
+    public final long getSize() {
+        return size;
+    }
+
+    public final void setSize(long size) {
+        this.size = size;
+    }
+
+    public final boolean isNewlyMinted() {
+        return minted;
+    }
+
+    public final void setNewlyMinted(boolean minted) {
+        this.minted = minted;
     }
 
     private void calculateFee(JsonRpcHttpClient jsonrpcClient, RPCTransaction rpcTransaction)

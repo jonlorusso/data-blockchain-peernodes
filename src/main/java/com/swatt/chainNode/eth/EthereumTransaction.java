@@ -5,8 +5,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.btc.RPCTransaction;
@@ -30,18 +34,27 @@ public class EthereumTransaction extends ChainNodeTransaction {
         try {
 
             EthTransaction ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
+            EthGetTransactionReceipt ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
             Transaction transaction = ethTransaction.getTransaction().get();
+            TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
 
-            /*
-             * { hash: "0x953c1aff91f44a3489e3c562ba09d05d38c4c4e002f39709239f0d735f41a417",
-             * fee: 0, inValue: 0, feeRate: 0, timestamp: 0, size: 0, amount: 0,
-             * outputValue: 0, newlyMinted: false }
-             */
+            EthBlock ethBlock = web3j.ethGetBlockByHash(transaction.getBlockHash(), false).send();
+            Block block = ethBlock.getBlock();
 
-            // System.out.println("Math.pow(2, 8) : " + result);
+            super.setBlockHash(transaction.getBlockHash());
+
+            super.setTimestamp(block.getTimestamp().longValue());
+
+            super.setFee(transactionReceipt.getGasUsed().doubleValue());
+
+            BigInteger priceWei = transaction.getGasPrice();
+            double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+            double feeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
+            super.setFeeRate(feeRate);
+
             BigInteger valueWei = transaction.getValue();
-
-            super.setAmount(valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI)));
+            double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+            super.setAmount(valueEther);
 
             return null;
         } catch (Throwable t) {

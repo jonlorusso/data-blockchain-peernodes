@@ -140,26 +140,6 @@ public class EthereumChainNode extends ChainNode {
             // System.out.println(transactionHash + " " + ((double) transactionCount /
             // (double) rpcBlock.tx.size()));
 
-            if (!transaction.isNewlyMinted()) {
-                double transactionFee = transaction.getFee();
-                double transactionAmount = transaction.getAmount();
-
-                largestFee = Math.max(largestFee, transactionFee);
-                smallestFee = Math.min(smallestFee, transactionFee);
-
-                transactionCount++;
-                totalFee += transactionFee;
-                totalFeeRate += transaction.getFeeRate();
-
-                if (transactionAmount > largestTxAmount) {
-                    largestTxAmount = transactionAmount;
-                    largestTxHash = transactionHash;
-                }
-
-                if (transactionFee <= 0.0) {
-                    System.out.println("Initial transaction: " + transactionHash);
-                }
-            }
         }
 
         if (smallestFee == Double.MAX_VALUE)

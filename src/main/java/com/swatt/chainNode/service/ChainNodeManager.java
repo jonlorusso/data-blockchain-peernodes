@@ -10,6 +10,7 @@ import com.swatt.util.OperationFailedException;
 import com.swatt.util.SqlUtilities;
 
 public class ChainNodeManager {
+    private ConnectionPool connectionPool;
     private ChainNodeManagerConfig chainNodeManagerConfig;
     private HashMap<String, ChainNode> chainNodes = new HashMap<String, ChainNode>();
 
@@ -52,12 +53,15 @@ public class ChainNodeManager {
     }
 
     public ConnectionPool getConnectionPool() {
-        String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
-        String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
-        String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
-        int dbMaxPoolSize = chainNodeManagerConfig.getIntAttribute("dbMaxPoolSize ", 1);
+        if (connectionPool == null) {
+            String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
+            String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
+            String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
+            int dbMaxPoolSize = chainNodeManagerConfig.getIntAttribute("dbMaxPoolSize ", 1);
 
-        ConnectionPool connectionPool = new ConnectionPool(dbUrl, dbUser, dbPassword, dbMaxPoolSize);
+            connectionPool = new ConnectionPool(dbUrl, dbUser, dbPassword, dbMaxPoolSize);
+        }
+
         return connectionPool;
     }
 }
