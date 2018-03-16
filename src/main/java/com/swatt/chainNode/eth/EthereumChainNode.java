@@ -50,7 +50,6 @@ public class EthereumChainNode extends ChainNode {
             System.out.println(
                     "Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -108,8 +107,6 @@ public class EthereumChainNode extends ChainNode {
             System.out.println("CALCULATING BLOCK: " + blockHash);
 
             calculate(blockData, block);
-
-            System.out.println(blockData.getLargestFee());
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -177,9 +174,6 @@ public class EthereumChainNode extends ChainNode {
                 largestTxHash = transactionHash;
             }
         }
-
-        System.out.println(ETHEREUM_BASE_BLOCK_REWARD_BTC + "+" + totalFeeRate + "+ (" + ETHEREUM_BASE_BLOCK_REWARD_BTC
-                + "*" + block.getUncles().size() + "/32)");
 
         double reward = ETHEREUM_BASE_BLOCK_REWARD_BTC + totalFeeRate
                 + (ETHEREUM_BASE_BLOCK_REWARD_BTC * block.getUncles().size() / 32);

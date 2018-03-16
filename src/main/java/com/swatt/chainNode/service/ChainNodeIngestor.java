@@ -31,9 +31,6 @@ public class ChainNodeIngestor {
                 while (blockCount < limitBlockCount) {
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
 
-                    System.out.println("# " + blockData.getPrevHash());
-                    System.out.println("~ " + blockData.getAvgFee());
-
                     blockData.setBlockchainCode(blockchainCode);
                     BlockData.insertBlockData(connection, blockData);
 

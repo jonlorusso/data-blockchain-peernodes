@@ -495,16 +495,21 @@ public class BlockData {
 
         PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-        String sql = "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES ("
-                + "'" + blockData.blockchainCode + "'," + "'" + blockData.hash + "'," + blockData.transactionCount + ","
-                + blockData.height + "," + blockData.difficulty + "," + blockData.reward + "," + "'"
-                + blockData.merkleRoot + "'," + blockData.timestamp + "," + blockData.bits + "," + blockData.size + ","
-                + "'" + blockData.versionHex + "'," + blockData.nonce + "," + "'" + blockData.prevHash + "'," + "'"
-                + blockData.nextHash + "'," + blockData.avgFee + "," + blockData.avgFeeRate + "," + blockData.indexed
-                + "," + "'" + blockData.largestTxHash + "'," + blockData.largestTxAmount + "," + blockData.largestFee
-                + "," + blockData.smallestFee + "," + blockData.indexingDuration + ")";
-        System.out.println(sql);
+        /*
+         * String sql =
+         * "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES ("
+         * + "'" + blockData.blockchainCode + "'," + "'" + blockData.hash + "'," +
+         * blockData.transactionCount + "," + blockData.height + "," +
+         * blockData.difficulty + "," + blockData.reward + "," + "'" +
+         * blockData.merkleRoot + "'," + blockData.timestamp + "," + blockData.bits +
+         * "," + blockData.size + "," + "'" + blockData.versionHex + "'," +
+         * blockData.nonce + "," + "'" + blockData.prevHash + "'," + "'" +
+         * blockData.nextHash + "'," + blockData.avgFee + "," + blockData.avgFeeRate +
+         * "," + blockData.indexed + "," + "'" + blockData.largestTxHash + "'," +
+         * blockData.largestTxAmount + "," + blockData.largestFee + "," +
+         * blockData.smallestFee + "," + blockData.indexingDuration + ")";
+         * System.out.println(sql);
+         */
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
