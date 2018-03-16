@@ -1,11 +1,19 @@
 package com.swatt.chainNode.eth;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.EthBlock.Block;
+import org.web3j.protocol.core.methods.response.EthBlock.TransactionResult;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthTransaction;
+import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 
 import com.swatt.chainNode.ChainNode;
@@ -15,6 +23,7 @@ import com.swatt.util.OperationFailedException;
 
 public class EthereumChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(EthereumChainNode.class.getName());
+    private static final double ETHEREUM_BASE_BLOCK_REWARD_BTC = 3.0;
     private static Web3j web3j;
 
     public static final int POWX_ETHER_WEI = 18;
@@ -66,7 +75,7 @@ public class EthereumChainNode extends ChainNode {
             throws OperationFailedException {
 
         try {
-            EthereumTransaction transaction = new EthereumTransaction(web3j, transactionHash, true);
+            EthereumTransaction transaction = new EthereumTransaction(web3j, transactionHash);
 
             return transaction;
         } catch (Throwable t) {
@@ -77,53 +86,48 @@ public class EthereumChainNode extends ChainNode {
     }
 
     private BlockData fetchBlockByHash(String blockHash) throws OperationFailedException {
-
         try {
             long start = Instant.now().getEpochSecond();
 
-            Object parameters[] = new Object[] { blockHash };
+            EthBlock ethBlock = web3j.ethGetBlockByHash(blockHash, false).send();
+            Block block = ethBlock.getBlock();
 
-            /*
-             * RPCBlock rpcBlock = jsonrpcClient.invoke(ETHMethods.GET_BLOCK_BYHASH,
-             * parameters, RPCBlock.class);
-             * 
-             * BlockData blockData = new BlockData(); blockData.setHash(rpcBlock.hash);
-             * blockData.setSize(rpcBlock.size); blockData.setHeight(rpcBlock.height);
-             * blockData.setVersionHex(rpcBlock.versionHex);
-             * blockData.setMerkleRoot(rpcBlock.merkleroot);
-             * blockData.setTimestamp(rpcBlock.time); blockData.setNonce(rpcBlock.nonce);
-             * blockData.setBits(rpcBlock.bits);
-             * blockData.setDifficulty(rpcBlock.difficulty);
-             * blockData.setPrevHash(rpcBlock.previousblockhash);
-             * blockData.setNextHash(rpcBlock.nextblockhash);
-             * 
-             * blockData.setBlockchainCode(blockchainCode);
-             * 
-             * System.out.println("CALCULATING BLOCK: " + rpcBlock.hash);
-             * 
-             * calculate(jsonrpcClient, blockData, rpcBlock);
-             * 
-             * long indexingDuration = Instant.now().getEpochSecond() - start; long now =
-             * Instant.now().toEpochMilli();
-             * 
-             * blockData.setIndexed(now); blockData.setIndexingDuration(indexingDuration);
-             */
+            BlockData blockData = new BlockData();
 
-            return new BlockData();
+            blockData.setHash(blockHash);
+            blockData.setTransactionCount(block.getTransactions().size());
 
+            blockData.setHeight(block.getNumber().longValue());
+            blockData.setTimestamp(block.getTimestamp().longValue());
+            blockData.setNonce(block.getNonce().longValue());
+            blockData.setDifficulty(block.getDifficulty().doubleValue());
+            blockData.setPrevHash(block.getParentHash());
+            blockData.setBlockchainCode(blockchainCode);
+            blockData.setSize(block.getSize().intValue());
+
+            System.out.println("CALCULATING BLOCK: " + blockHash);
+
+            calculate(blockData, block);
+
+            System.out.println(blockData.getLargestFee());
+
+            long indexingDuration = Instant.now().getEpochSecond() - start;
+            long now = Instant.now().toEpochMilli();
+
+            blockData.setIndexed(now);
+            blockData.setIndexingDuration(indexingDuration);
+
+            return blockData;
         } catch (Throwable t) {
-            if (t instanceof OperationFailedException)
-                throw (OperationFailedException) t;
-            else {
-                OperationFailedException e = new OperationFailedException("Error fetching latest Block: ", t);
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-                throw e;
-            }
+            t.printStackTrace();
+            OperationFailedException e = new OperationFailedException(
+                    "Error fetching block from Blockchain: " + blockHash, t);
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            throw e;
         }
-
     }
 
-    private void calculate(BlockData blockData, RPCBlock rpcBlock) throws OperationFailedException {
+    private void calculate(BlockData blockData, Block block) throws OperationFailedException {
 
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
@@ -133,14 +137,53 @@ public class EthereumChainNode extends ChainNode {
         double largestTxAmount = 0.0;
         String largestTxHash = null;
 
-        int transactionCount = 1; // rpcBlock.tx.size();
+        int transactionCount = 0; // rpcBlock.tx.size();
 
-        for (String transactionHash : rpcBlock.tx) {
-            EthereumTransaction transaction = new EthereumTransaction(web3j, transactionHash, true);
-            // System.out.println(transactionHash + " " + ((double) transactionCount /
-            // (double) rpcBlock.tx.size()));
+        for (TransactionResult<?> transactionResult : block.getTransactions()) {
+            String transactionHash = transactionResult.get().toString();
 
+            EthTransaction ethTransaction = null;
+            EthGetTransactionReceipt ethTransactionReceipt = null;
+            try {
+                ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
+                ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+
+            Transaction transaction = ethTransaction.getTransaction().get();
+            TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
+
+            double transactionFee = transactionReceipt.getGasUsed().doubleValue();
+
+            BigInteger priceWei = transaction.getGasPrice();
+            double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+            double transactionFeeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
+
+            BigInteger valueWei = transaction.getValue();
+            double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+            double transactionAmount = valueEther;
+
+            largestFee = Math.max(largestFee, transactionFee);
+            smallestFee = Math.min(smallestFee, transactionFee);
+
+            transactionCount++;
+            totalFee += transactionFee;
+            totalFeeRate += transactionFeeRate;
+
+            if (transactionAmount > largestTxAmount) {
+                largestTxAmount = transactionAmount;
+                largestTxHash = transactionHash;
+            }
         }
+
+        System.out.println(ETHEREUM_BASE_BLOCK_REWARD_BTC + "+" + totalFeeRate + "+ (" + ETHEREUM_BASE_BLOCK_REWARD_BTC
+                + "*" + block.getUncles().size() + "/32)");
+
+        double reward = ETHEREUM_BASE_BLOCK_REWARD_BTC + totalFeeRate
+                + (ETHEREUM_BASE_BLOCK_REWARD_BTC * block.getUncles().size() / 32);
+        blockData.setReward(reward);
 
         if (smallestFee == Double.MAX_VALUE)
             smallestFee = 0;

@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class BlockDataByInterval {
+    private double avgReward;
     private double avgFee;
     private double avgFeeRate;
     private double largestFee;
@@ -19,6 +20,10 @@ public class BlockDataByInterval {
     private int transactionCount;
     private int avgTransactionCount;
     private int blockCount;
+
+    public final double getAvgReward() {
+        return avgReward;
+    }
 
     public final double getAvgFee() {
         return avgFee;
@@ -57,13 +62,14 @@ public class BlockDataByInterval {
     }
 
     public BlockDataByInterval(ResultSet rs) throws SQLException {
-        avgFee = rs.getDouble(1);
-        avgFeeRate = rs.getDouble(2);
-        largestFee = rs.getDouble(3);
-        smallestFee = rs.getDouble(4);
-        transactionCount = rs.getInt(5);
-        avgTransactionCount = rs.getInt(6);
-        blockCount = rs.getInt(7);
+        avgReward = rs.getDouble(1);
+        avgFee = rs.getDouble(2);
+        avgFeeRate = rs.getDouble(3);
+        largestFee = rs.getDouble(4);
+        smallestFee = rs.getDouble(5);
+        transactionCount = rs.getInt(6);
+        avgTransactionCount = rs.getInt(7);
+        blockCount = rs.getInt(8);
     }
 
     private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";

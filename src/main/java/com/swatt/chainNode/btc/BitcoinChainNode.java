@@ -13,6 +13,7 @@ import com.swatt.util.OperationFailedException;
 
 public class BitcoinChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
+    private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
@@ -117,6 +118,8 @@ public class BitcoinChainNode extends ChainNode {
             blockData.setDifficulty(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
+
+            blockData.setReward(BITCOIN_BLOCK_REWARD_BTC);
 
             blockData.setBlockchainCode(blockchainCode);
 

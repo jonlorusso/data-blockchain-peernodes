@@ -15,15 +15,15 @@
         "application/json"
     ],
     "paths": {
-        "/{ticker}/txn/{hash}": {
+        "/{blockchainCode}/txn/{hash}": {
             "get": {
                 "summary": "Transaction details",
                 "description": "Details of a transaction on the blockchain\n",
                 "parameters": [
                     {
-                        "name": "ticker",
+                        "name": "blockchainCode",
                         "in": "path",
-                        "description": "Blockchain ticker of ticker",
+                        "description": "Code for the Blockchain of the transaction",
                         "required": true,
                         "type": "string",
                         "enum": [
@@ -38,7 +38,7 @@
                     {
                         "name": "hash",
                         "in": "path",
-                        "description": "Blockchain hash of the transaction",
+                        "description": "Hash key of the transaction",
                         "required": true,
                         "type": "string",
                         "format": "hash"
@@ -63,15 +63,15 @@
                 }
             }
         },
-        "/{ticker}/blk/{hash}": {
+        "/{blockchainCode}/blk/{hash}": {
             "get": {
                 "summary": "Block details",
                 "description": "Details of a block on the blockchain\n",
                 "parameters": [
                     {
-                        "name": "ticker",
+                        "name": "blockchainCode",
                         "in": "path",
-                        "description": "Blockchain ticker of ticker",
+                        "description": "Code for the Blockchain of the transaction",
                         "required": true,
                         "type": "string",
                         "enum": [
@@ -86,7 +86,7 @@
                     {
                         "name": "hash",
                         "in": "path",
-                        "description": "Blockchain hash of the block",
+                        "description": "Hash key of the block",
                         "required": true,
                         "type": "string",
                         "format": "hash"
@@ -111,15 +111,15 @@
                 }
             }
         },
-        "/{ticker}/chn/{from}/{to}": {
+        "/{blockchainCode}/chn/{from}/{to}": {
             "get": {
                 "summary": "Aggregate data from a blockchain",
                 "description": "Details of a block on the blockchain\n",
                 "parameters": [
                     {
-                        "name": "ticker",
+                        "name": "blockchainCode",
                         "in": "path",
-                        "description": "Blockchain ticker of ticker",
+                        "description": "Code for the Blockchain",
                         "required": true,
                         "type": "string",
                         "enum": [

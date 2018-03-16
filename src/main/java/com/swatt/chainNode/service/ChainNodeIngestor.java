@@ -30,6 +30,10 @@ public class ChainNodeIngestor {
 
                 while (blockCount < limitBlockCount) {
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
+
+                    System.out.println("# " + blockData.getPrevHash());
+                    System.out.println("~ " + blockData.getAvgFee());
+
                     blockData.setBlockchainCode(blockchainCode);
                     BlockData.insertBlockData(connection, blockData);
 
@@ -38,10 +42,13 @@ public class ChainNodeIngestor {
 
                     chainNode.setUpdateProgress(connection, blockchainCode, blockHash, limitBlockCount - blockCount);
                     System.out.println("BLOCK INGESTED, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
+
+                    // Thread.sleep(10); // This will allow the Interrupt to break
                 }
 
-                Thread.sleep(10); // This will allow the Interrupt to break
-            } catch (OperationFailedException | SQLException | InterruptedException e) {
+                System.out.println("INGESTION COMPLETED");
+                System.exit(0);
+            } catch (OperationFailedException | SQLException e) {
                 e.printStackTrace();
             }
         }, "IngestorThread-" + chainNode.getCode());

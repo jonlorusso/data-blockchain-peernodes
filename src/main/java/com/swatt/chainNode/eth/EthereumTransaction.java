@@ -13,26 +13,24 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.chainNode.btc.RPCTransaction;
 import com.swatt.util.OperationFailedException;
 
 public class EthereumTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(EthereumTransaction.class.getName());
 
-    EthereumTransaction(Web3j web3j, String transactionHash, boolean calculateFee) {
+    EthereumTransaction(Web3j web3j, String transactionHash) {
         super(transactionHash);
 
         try {
-            Web3jTransaction transaction = fetchFromBlockchain(web3j, transactionHash);
+            fetchFromBlockchain(web3j, transactionHash);
         } catch (OperationFailedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    private Web3jTransaction fetchFromBlockchain(Web3j web3j, String transactionHash) throws OperationFailedException {
+    private void fetchFromBlockchain(Web3j web3j, String transactionHash) throws OperationFailedException {
         try {
-
             EthTransaction ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
             EthGetTransactionReceipt ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
             Transaction transaction = ethTransaction.getTransaction().get();
@@ -55,8 +53,6 @@ public class EthereumTransaction extends ChainNodeTransaction {
             BigInteger valueWei = transaction.getValue();
             double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
             super.setAmount(valueEther);
-
-            return null;
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException(
                     "Error fetching transaction from Blockchain: " + transactionHash, t);
@@ -64,10 +60,4 @@ public class EthereumTransaction extends ChainNodeTransaction {
             throw e;
         }
     }
-
-    private void calculateFee(RPCTransaction rpcTransaction) throws OperationFailedException {
-
-        // Perform Calculations
-    }
-
 }
