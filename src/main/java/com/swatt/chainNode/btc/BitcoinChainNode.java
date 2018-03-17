@@ -10,10 +10,12 @@ import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.util.JsonRpcHttpClientPool;
 import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.KeepNewestHash;
 
 public class BitcoinChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
+    private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
@@ -161,9 +163,12 @@ public class BitcoinChainNode extends ChainNode {
         int transactionCount = 1; // rpcBlock.tx.size();
 
         for (String transactionHash : rpcBlock.tx) {
-            BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
-            // System.out.println(transactionHash + " " + ((double) transactionCount /
-            // (double) rpcBlock.tx.size()));
+            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(transactionHash);
+
+            if (transaction == null) {
+                transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
+                transactions.put(transactionHash, transaction);
+            }
 
             if (!transaction.isNewlyMinted()) {
                 double transactionFee = transaction.getFee();
