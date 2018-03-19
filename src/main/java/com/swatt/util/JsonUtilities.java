@@ -47,4 +47,8 @@ public class JsonUtilities {
         return client;
     }
 
+    public static JsonRpcHttpClient createJsonRpcHttpClient(String url) {
+        return createJsonRpcHttpClient(url, null, null);
+    }
+
 }

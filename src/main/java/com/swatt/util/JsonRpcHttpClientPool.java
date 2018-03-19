@@ -19,6 +19,11 @@ public class JsonRpcHttpClientPool { // FIXME: Not Industrial Strength. Does not
         this.maxSize = maxSize;
     }
 
+    public JsonRpcHttpClientPool(String url, int maxSize2) {
+        this.url = url;
+        this.maxSize = maxSize;
+    }
+
     public JsonRpcHttpClient getJsonRpcHttpClient() {
         synchronized (freeJsonRpcHttpClients) {
             JsonRpcHttpClient jsonRpcHttpClient = null;
@@ -26,7 +31,10 @@ public class JsonRpcHttpClientPool { // FIXME: Not Industrial Strength. Does not
             if (freeJsonRpcHttpClients.size() > 0) {
                 jsonRpcHttpClient = freeJsonRpcHttpClients.removeFirst();
             } else if ((freeJsonRpcHttpClients.size() + busyJsonRpcHttpClients.size()) < maxSize) {
-                jsonRpcHttpClient = JsonUtilities.createJsonRpcHttpClient(url, user, password);
+                if (user == null)
+                    jsonRpcHttpClient = JsonUtilities.createJsonRpcHttpClient(url);
+                else
+                    jsonRpcHttpClient = JsonUtilities.createJsonRpcHttpClient(url, user, password);
             } else {
                 while (freeJsonRpcHttpClients.size() == 0) {
                     ConcurrencyUtilities.waitOn(freeJsonRpcHttpClients);

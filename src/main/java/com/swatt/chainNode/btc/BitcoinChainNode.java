@@ -146,7 +146,6 @@ public class BitcoinChainNode extends ChainNode {
                 throw e;
             }
         }
-
     }
 
     private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RPCBlock rpcBlock)
