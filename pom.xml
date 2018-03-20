@@ -49,6 +49,21 @@
     			<groupId>org.web3j</groupId>
     			<artifactId>core</artifactId>
     			<version>3.3.1</version>
-		</dependency>	
+		</dependency>
+		<dependency>			
+    			<groupId>com.thetransactioncompany</groupId>
+    			<artifactId>jsonrpc2-base</artifactId>
+    			<version>1.38.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.thetransactioncompany</groupId>
+			<artifactId>jsonrpc2-client</artifactId>
+			<version>1.16.4</version>
+		</dependency>
+		<dependency>
+    			<groupId>eu.bittrade.libs</groupId>
+    			<artifactId>steemj-core</artifactId>
+    			<version>0.4.3</version>
+		</dependency>
 	</dependencies>
 </project>
