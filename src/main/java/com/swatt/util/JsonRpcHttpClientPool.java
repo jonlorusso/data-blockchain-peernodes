@@ -19,11 +19,6 @@ public class JsonRpcHttpClientPool { // FIXME: Not Industrial Strength. Does not
         this.maxSize = maxSize;
     }
 
-    public JsonRpcHttpClientPool(String url, int maxSize2) {
-        this.url = url;
-        this.maxSize = maxSize;
-    }
-
     public JsonRpcHttpClient getJsonRpcHttpClient() {
         synchronized (freeJsonRpcHttpClients) {
             JsonRpcHttpClient jsonRpcHttpClient = null;

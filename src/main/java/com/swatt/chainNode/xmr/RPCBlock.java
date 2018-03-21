@@ -9,17 +9,17 @@ public class RPCBlock {
     // properties poulated using introspection by jsonrpcClient
     // All fields in feed must be defined, even if not needed
     public String blob;
-    public RPCBlockHeader blockHeader;
+    public RPCBlockHeader block_header;
     public String json;
     public String status;
-    public List<String> txHashes = null;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    public List<String> tx_hashes = null;
+    private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
+        return this.additional_properties;
     }
 
     public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+        this.additional_properties.put(name, value);
     }
 }

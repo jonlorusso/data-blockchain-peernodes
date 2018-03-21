@@ -56,7 +56,7 @@ public class ChainNodeService {
             ctx.result(result);
         });
 
-        app.get("/:blockchainCode/blk/:blockHash", ctx -> {
+        app.get("/:blockchainCode/blck/:blockHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
             String blockHash = ctx.param("blockHash");
 
@@ -76,7 +76,28 @@ public class ChainNodeService {
             }
         });
 
-        app.get("/:blockchainCode/chn/:from/:to", ctx -> {
+        app.get("/:blockchainCode/block/:blockHash", ctx -> {
+            String blockchainCode = ctx.param("blockchainCode");
+            String blockHash = ctx.param("blockHash");
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                System.out.println(blockHash);
+                BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
+
+                connectionPool.returnConnection(conn);
+
+                String result = JsonUtilities.objectToJsonString(blockData);
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.get("/:blockchainCode/report/:from/:to", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
             String From = ctx.param("from");
             String To = ctx.param("to");

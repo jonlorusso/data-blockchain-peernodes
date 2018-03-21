@@ -40,6 +40,7 @@ public class JsonUtilities {
             }
 
             client = new JsonRpcHttpClient(uri);
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

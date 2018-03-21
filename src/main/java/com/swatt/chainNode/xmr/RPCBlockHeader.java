@@ -8,26 +8,26 @@ public class RPCBlockHeader {
     // properties poulated using introspection by jsonrpcClient
     // All fields in feed must be defined, even if not needed
 
-    public int blockSize;
+    public int block_size;
     public int depth;
     public int difficulty;
     public String hash;
     public int height;
-    public int majorVersion;
-    public int minorVersion;
+    public int major_version;
+    public int minor_version;
     public int nonce;
-    public int numTxes;
-    public boolean orphanStatus;
-    public String prevHash;
+    public int num_txes;
+    public boolean orphan_status;
+    public String prev_hash;
     public int reward;
     public int timestamp;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
+        return this.additional_properties;
     }
 
     public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+        this.additional_properties.put(name, value);
     }
 }

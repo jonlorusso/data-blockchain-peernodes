@@ -207,5 +207,4 @@ public class BitcoinChainNode extends ChainNode {
         blockData.setLargestTxAmount(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
-
 }

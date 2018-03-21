@@ -25,7 +25,7 @@ public class SteemChainNode extends ChainNode {
         String url = chainNodeConfig.getURL();
         int maxSize = 10; // TODO: Should get from chainNodeConfig
 
-        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, maxSize);
+        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, null, null, maxSize);
     }
 
     @Override

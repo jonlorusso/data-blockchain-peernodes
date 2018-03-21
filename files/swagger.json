@@ -63,7 +63,7 @@
                 }
             }
         },
-        "/{blockchainCode}/blk/{hash}": {
+        "/{blockchainCode}/block/{hash}": {
             "get": {
                 "summary": "Block details",
                 "description": "Details of a block on the blockchain\n",
@@ -111,7 +111,7 @@
                 }
             }
         },
-        "/{blockchainCode}/chn/{from}/{to}": {
+        "/{blockchainCode}/report/{from}/{to}": {
             "get": {
                 "summary": "Aggregate data from a blockchain",
                 "description": "Details of a block on the blockchain\n",
