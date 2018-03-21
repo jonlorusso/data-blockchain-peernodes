@@ -4,12 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RPCTransaction {
+public class RPCKey {
 
-    public String status;
-    public List<RPCTx> txs = null;
-    public List<String> txs_as_hex = null;
-    public List<String> txs_as_json = null;
+    public long amount;
+    public List<Integer> key_offsets = null;
+    public String k_image;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {

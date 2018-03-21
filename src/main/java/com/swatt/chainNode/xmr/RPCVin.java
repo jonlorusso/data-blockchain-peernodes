@@ -1,15 +1,11 @@
 package com.swatt.chainNode.xmr;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class RPCTransaction {
+public class RPCVin {
 
-    public String status;
-    public List<RPCTx> txs = null;
-    public List<String> txs_as_hex = null;
-    public List<String> txs_as_json = null;
+    public RPCKey key;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {

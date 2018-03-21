@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RPCTransaction {
+public class RPCTransactionInternal {
 
-    public String status;
-    public List<RPCTx> txs = null;
-    public List<String> txs_as_hex = null;
-    public List<String> txs_as_json = null;
+    public int version;
+    public int unlock_time;
+    public List<RPCVin> vin = null;
+    public List<RPCVout> vout = null;
+    public List<Integer> extra = null;
+    public List<String> signatures = null;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {

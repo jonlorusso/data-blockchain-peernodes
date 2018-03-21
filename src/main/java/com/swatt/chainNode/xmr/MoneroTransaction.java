@@ -23,6 +23,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.util.OperationFailedException;
 
@@ -30,7 +31,6 @@ public class MoneroTransaction extends ChainNodeTransaction {
     private String url;
     private static final Logger LOGGER = Logger.getLogger(MoneroTransaction.class.getName());
     private static final String TXN_URL_SUFFIX = "/gettransactions";
-    private static final String TXN_PARAM = "txs_hashes";
 
     public MoneroTransaction(String url, String hash) {
         super(hash);
@@ -65,7 +65,7 @@ public class MoneroTransaction extends ChainNodeTransaction {
             HttpPost postRequest = new HttpPost(uriBuilder.build());
             postRequest.setHeader("Content-Type", "application/json");
 
-            String paramJSON = "{\"" + TXN_PARAM + "\":\"" + transactionHash + "\"} ";
+            String paramJSON = "{\"txs_hashes\":[\"" + transactionHash + "\"], \"decode_as_json\": true} ";
 
             // pass the json string request in the entity
             HttpEntity entity = new ByteArrayEntity(paramJSON.getBytes("UTF-8"));
@@ -99,7 +99,6 @@ public class MoneroTransaction extends ChainNodeTransaction {
             String responseString = "";
 
             int statusCode = response.getStatusLine().getStatusCode();
-
             String message = response.getStatusLine().getReasonPhrase();
 
             HttpEntity responseHttpEntity = response.getEntity();
@@ -113,7 +112,15 @@ public class MoneroTransaction extends ChainNodeTransaction {
                 responseString += line;
             }
 
-            System.out.println(responseString);
+            ObjectMapper mapper = new ObjectMapper();
+            RPCTransaction rpcTransaction = mapper.readValue(responseString, RPCTransaction.class);
+
+            RPCTransactionInternal rpcTransactionInternal = mapper.readValue(rpcTransaction.txs_as_json.get(0),
+                    RPCTransactionInternal.class);
+
+            RPCVin vin = rpcTransactionInternal.vin.get(0);
+
+            System.out.println(vin.key.amount);
 
             // release all resources held by the responseHttpEntity
             EntityUtils.consume(responseHttpEntity);
