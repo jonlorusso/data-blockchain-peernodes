@@ -15,23 +15,26 @@ import com.swatt.util.general.KeepNewestHash;
 public class MoneroChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(MoneroChainNode.class.getName());
     private static final int POWX_ATOMIC_UNITS = 12;
-    private static final String URL_SUFFIX = "/json_rpc";
+    private static final int TRANSACTION_BUFFER_SIZE = 1000;
+    private static final String RPC_URL_SUFFIX = "/json_rpc";
     private static KeepNewestHash transactions;
+    private String url;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
     public MoneroChainNode() {
+        transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
     }
 
     @Override
     public void init() {
-        String url = chainNodeConfig.getURL();
-        url = url + URL_SUFFIX;
+        url = chainNodeConfig.getURL();
+        System.out.println(url);
 
         int maxSize = 10; // TODO: Should get from chainNodeConfig
         // chainNodeManagerConfig.getIntAttribute("jsonPoolSize ", 10);
 
-        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, null, null, maxSize);
+        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, maxSize);
     }
 
     public class RPCBlockCall {
@@ -108,7 +111,15 @@ public class MoneroChainNode extends ChainNode {
     @Override
     public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
             throws OperationFailedException {
-        return null;
+
+        try {
+            MoneroTransaction transaction = new MoneroTransaction(url, transactionHash);
+            return transaction;
+        } catch (Throwable t) {
+            OperationFailedException e = new OperationFailedException("Error fetching Transaction: ", t);
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            throw e;
+        }
     }
 
     private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RPCBlock rpcBlock)
@@ -124,11 +135,12 @@ public class MoneroChainNode extends ChainNode {
         int transactionCount = 1;
 
         for (String transactionHash : rpcBlock.tx_hashes) {
+            System.out.println(transactionHash);
             MoneroTransaction transaction = (MoneroTransaction) transactions.get(transactionHash);
 
             if (transaction == null) {
                 System.out.println("Let's at least try and fetch");
-                transaction = new MoneroTransaction(jsonrpcClient, transactionHash, true);
+                transaction = new MoneroTransaction(url, transactionHash);
                 transactions.put(transactionHash, transaction);
             }
         }

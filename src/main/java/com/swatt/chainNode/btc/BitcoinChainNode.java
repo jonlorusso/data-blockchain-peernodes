@@ -15,11 +15,13 @@ import com.swatt.util.general.KeepNewestHash;
 public class BitcoinChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
+    private static final int TRANSACTION_BUFFER_SIZE = 1000;
     private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
     public BitcoinChainNode() {
+        transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
     }
 
     @Override
