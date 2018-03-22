@@ -70,7 +70,7 @@ public class EthereumChainNode extends ChainNode {
     }
 
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException {
 
         try {

@@ -1,6 +1,6 @@
 package com.swatt.chainNode.btc;
 
-class BTCMethods {
+class RpcMethodsBitcoin {
 	static final String GET_ACCOUNT = "getaccount";
 	static final String GET_ACCOUNT_ADDRESS = "getaccountaddress";
 	static final String GET_ADDED_NODE_INFO = "getaddednodeinfo";

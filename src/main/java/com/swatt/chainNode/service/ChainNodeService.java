@@ -43,9 +43,7 @@ public class ChainNodeService {
             String transactionHash = ctx.param("transactionHash");
 
             ChainNode chainNode = chainNodeManager.getChainNode(chainName);
-            boolean calculateFees = true;
-
-            ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, calculateFees); // Fetch
+            ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, true);
             // the
             // transactions
             // and

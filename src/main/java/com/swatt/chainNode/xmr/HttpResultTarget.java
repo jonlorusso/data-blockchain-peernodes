@@ -3,7 +3,7 @@ package com.swatt.chainNode.xmr;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RPCTarget {
+public class HttpResultTarget {
 
     public String key;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();

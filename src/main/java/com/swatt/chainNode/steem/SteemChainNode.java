@@ -36,7 +36,7 @@ public class SteemChainNode extends ChainNode {
     }
 
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 

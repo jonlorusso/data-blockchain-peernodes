@@ -38,7 +38,7 @@ public abstract class ChainNode {
                                                                                                       // itself (not via
                                                                                                       // DB)
 
-    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException; // Fetches directly from the Blockchain Node
 
     public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will only
@@ -50,10 +50,10 @@ public abstract class ChainNode {
 
         String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" + blockHash + "'";
 
-        ArrayList<BlockData> results = (ArrayList<BlockData>) BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
-                                                                                                    // Autogenerator to
-                                                                                                    // add single return
-                                                                                                    // where
+        ArrayList<BlockData> results = BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
+                                                                             // Autogenerator to
+                                                                             // add single return
+                                                                             // where
 
         if (results.size() > 0)
             return results.get(0);

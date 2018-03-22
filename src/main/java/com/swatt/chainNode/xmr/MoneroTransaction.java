@@ -11,34 +11,41 @@ import java.util.logging.Logger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swatt.chainNode.ChainNodeTransaction;
+import com.swatt.chainNode.dao.BlockData;
+import com.swatt.util.HttpClientPool;
 import com.swatt.util.OperationFailedException;
 
 public class MoneroTransaction extends ChainNodeTransaction {
     private String url;
+    private long blockHeight;
     private static final Logger LOGGER = Logger.getLogger(MoneroTransaction.class.getName());
     private static final String TXN_URL_SUFFIX = "/gettransactions";
+    private static final int POWX_ATOMIC_UNITS = 12;
+    private static final int HTTP_POOL = 10; // TODO: Should get from chainNodeConfig
 
-    public MoneroTransaction(String url, String hash) {
+    private MoneroChainNode node;
+    private HttpClientPool httpClientPool;
+
+    public MoneroTransaction(MoneroChainNode node, String url, String hash, boolean calculateTimestamp) {
         super(hash);
+
+        this.node = node;
 
         this.url = url + TXN_URL_SUFFIX;
 
+        System.out.println(this.url);
+
+        httpClientPool = new HttpClientPool(this.url, HTTP_POOL);
+
         try {
-            RPCTransaction rpcTransaction = fetchFromBlockchain(hash);
+            HttpResultTransaction httpTransaction = fetchFromBlockchain(hash);
+
+            if (calculateTimestamp)
+                calculateTimestamp();
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -51,85 +58,46 @@ public class MoneroTransaction extends ChainNodeTransaction {
         }
     }
 
-    public class RPCTransactionCall {
-        public String txs_hashes;
-    }
-
-    private RPCTransaction fetchFromBlockchain(String transactionHash)
+    private HttpResultTransaction fetchFromBlockchain(String transactionHash)
             throws URISyntaxException, UnsupportedEncodingException, IOException {
         try {
+            String params = "{\"txs_hashes\":[\"" + transactionHash + "\"], \"decode_as_json\": true} ";
 
-            // Build the server URI together with the parameters you wish to pass
-            URIBuilder uriBuilder = new URIBuilder(url);
-
-            HttpPost postRequest = new HttpPost(uriBuilder.build());
-            postRequest.setHeader("Content-Type", "application/json");
-
-            String paramJSON = "{\"txs_hashes\":[\"" + transactionHash + "\"], \"decode_as_json\": true} ";
-
-            // pass the json string request in the entity
-            HttpEntity entity = new ByteArrayEntity(paramJSON.getBytes("UTF-8"));
-            postRequest.setEntity(entity);
-
-            // create a socketfactory in order to use an http connection manager
-            PlainConnectionSocketFactory plainSocketFactory = PlainConnectionSocketFactory.getSocketFactory();
-            Registry<ConnectionSocketFactory> connSocketFactoryRegistry = RegistryBuilder
-                    .<ConnectionSocketFactory>create().register("http", plainSocketFactory).build();
-
-            PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
-                    connSocketFactoryRegistry);
-
-            connManager.setMaxTotal(20);
-            connManager.setDefaultMaxPerRoute(20);
-
-            /*
-             * RequestConfig defaultRequestConfig = RequestConfig.custom();
-             * .setSocketTimeout(HttpClientPool.connTimeout)
-             * .setConnectTimeout(HttpClientPool.connTimeout)
-             * .setConnectionRequestTimeout(HttpClientPool.readTimeout) .build();
-             */
-
-            // Build the http client.
-            CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(connManager).build();
-            // .setDefaultRequestConfig(defaultRequestConfig)
-
-            CloseableHttpResponse response = httpclient.execute(postRequest);
-
-            // Read the response
-            String responseString = "";
-
-            int statusCode = response.getStatusLine().getStatusCode();
-            String message = response.getStatusLine().getReasonPhrase();
-
-            HttpEntity responseHttpEntity = response.getEntity();
-
-            InputStream content = responseHttpEntity.getContent();
-
-            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
-            String line;
-
-            while ((line = buffer.readLine()) != null) {
-                responseString += line;
-            }
+            CloseableHttpResponse response = httpClientPool.execute(params);
+            String responseString = readResponse(response);
 
             ObjectMapper mapper = new ObjectMapper();
-            RPCTransaction rpcTransaction = mapper.readValue(responseString, RPCTransaction.class);
+            HttpResultTransaction httpResultTransaction = mapper.readValue(responseString, HttpResultTransaction.class);
 
-            RPCTransactionInternal rpcTransactionInternal = mapper.readValue(rpcTransaction.txs_as_json.get(0),
-                    RPCTransactionInternal.class);
+            long inAmount = 0;
+            long outAmount = 0;
 
-            RPCVin vin = rpcTransactionInternal.vin.get(0);
+            for (String transactionJSON : httpResultTransaction.txs_as_json) {
+                HttpResultTransactionInternal httpResultTransactionInternal = mapper.readValue(transactionJSON,
+                        HttpResultTransactionInternal.class);
 
-            System.out.println(vin.key.amount);
+                for (HttpResultVin vin : httpResultTransactionInternal.vin) {
+                    inAmount += vin.key.amount;
+                    ;
+                }
 
-            // release all resources held by the responseHttpEntity
-            EntityUtils.consume(responseHttpEntity);
+                for (HttpResultVout vout : httpResultTransactionInternal.vout) {
+                    outAmount += vout.amount;
+                }
+            }
 
-            // close the stream
-            response.close();
+            double inAmountXmr = inAmount * Math.pow(10, (-1 * MoneroChainNode.POWX_ATOMIC_UNITS));
+            double outAmountXmr = outAmount * Math.pow(10, (-1 * MoneroChainNode.POWX_ATOMIC_UNITS));
 
-            // Close the connection manager.
-            connManager.close();
+            double fee = inAmountXmr - outAmountXmr;
+
+            this.blockHeight = httpResultTransaction.txs.get(0).block_height;
+            String blockHash = Long.toString(blockHeight);
+
+            setBlockHash(blockHash);
+            setFee(fee);
+            setFeeRate(fee);
+            setAmount(outAmountXmr);
 
             return null;
 
@@ -140,6 +108,43 @@ public class MoneroTransaction extends ChainNodeTransaction {
                     "Error fetching transaction from Blockchain: " + transactionHash, t);
             LOGGER.log(Level.SEVERE, e.toString(), e);
             throw t;
+        }
+    }
+
+    private String readResponse(CloseableHttpResponse response) {
+        String responseString = "";
+
+        // int statusCode = response.getStatusLine().getStatusCode();
+        // String message = response.getStatusLine().getReasonPhrase();
+
+        HttpEntity responseHttpEntity = response.getEntity();
+
+        InputStream content;
+        try {
+            content = responseHttpEntity.getContent();
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
+            String line;
+
+            while ((line = buffer.readLine()) != null) {
+                responseString += line;
+            }
+
+            EntityUtils.consume(responseHttpEntity);
+        } catch (UnsupportedOperationException | IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return responseString;
+    }
+
+    private void calculateTimestamp() {
+        BlockData block;
+        try {
+            block = node.fetchBlockDataByHeight(this.blockHeight, false);
+            setTimestamp(block.getTimestamp());
+        } catch (OperationFailedException e) {
+            e.printStackTrace();
         }
     }
 }

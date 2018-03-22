@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class RPCScriptPubKey {
+public final class RpcResultScriptPubKey {
     // Simple container object to receive results of JSONRPC call - public
     // properties poulated using introspection by jsonrpcClient
     // All fields in feed must be defined, even if not needed

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RPCKey {
+public class HttpResultKey {
 
     public long amount;
     public List<Integer> key_offsets = null;

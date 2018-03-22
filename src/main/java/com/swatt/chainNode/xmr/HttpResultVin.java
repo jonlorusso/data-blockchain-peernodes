@@ -3,9 +3,9 @@ package com.swatt.chainNode.xmr;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RPCVin {
+public class HttpResultVin {
 
-    public RPCKey key;
+    public HttpResultKey key;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {

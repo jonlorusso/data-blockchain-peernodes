@@ -1,12 +1,17 @@
 package com.swatt.chainNode.xmr;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class RPCVout {
+public class HttpResultTransactionInternal {
 
-    public long amount;
-    public RPCTarget target;
+    public int version;
+    public int unlock_time;
+    public List<HttpResultVin> vin = null;
+    public List<HttpResultVout> vout = null;
+    public List<Integer> extra = null;
+    public List<String> signatures = null;
     private Map<String, Object> additional_properties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {

@@ -14,13 +14,13 @@ public class BitcoinTransaction extends ChainNodeTransaction {
     private boolean minted = false;
     private long size;
 
-    private List<RPCVout> vout;
+    private List<RpcResultVout> vout;
 
     BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, String hash, boolean calculateFee)
             throws OperationFailedException {
         super(hash);
 
-        RPCTransaction rpcTransaction = fetchFromBlockchain(jsonrpcClient, hash);
+        RpcResultTransaction rpcTransaction = fetchFromBlockchain(jsonrpcClient, hash);
 
         this.vout = rpcTransaction.vout;
 
@@ -29,7 +29,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
 
         // TODO clean up vout array once values read, no further need
         for (int i = 0; i < rpcTransaction.vout.size(); i++) {
-            RPCVout outTransaction = rpcTransaction.vout.get(i);
+            RpcResultVout outTransaction = rpcTransaction.vout.get(i);
             amount += outTransaction.value;
         }
 
@@ -50,14 +50,14 @@ public class BitcoinTransaction extends ChainNodeTransaction {
             calculateFee(jsonrpcClient, rpcTransaction);
     }
 
-    private RPCTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)
+    private RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)
             throws OperationFailedException {
         try {
 
             Object parameters[] = new Object[] { transactionHash, true };
 
-            RPCTransaction rtn;
-            rtn = jsonrpcClient.invoke(BTCMethods.GET_RAW_TRANSACTION, parameters, RPCTransaction.class);
+            RpcResultTransaction rtn;
+            rtn = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_RAW_TRANSACTION, parameters, RpcResultTransaction.class);
 
             return rtn;
         } catch (Throwable t) {
@@ -96,7 +96,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
         this.minted = minted;
     }
 
-    private void calculateFee(JsonRpcHttpClient jsonrpcClient, RPCTransaction rpcTransaction)
+    private void calculateFee(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction)
             throws OperationFailedException {
 
         // Perform Calculations
@@ -105,7 +105,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
         double inValue = 0.0;
         double fee = 0.0;
 
-        RPCVin inTransaction = null;
+        RpcResultVin inTransaction = null;
 
         for (int i = 0; i < rpcTransaction.vin.size(); i++) {
             inTransaction = rpcTransaction.vin.get(i);
@@ -129,5 +129,4 @@ public class BitcoinTransaction extends ChainNodeTransaction {
             setNewlyMinted(true);
         }
     }
-
 }

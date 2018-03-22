@@ -14,11 +14,13 @@ import com.swatt.util.general.KeepNewestHash;
 
 public class MoneroChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(MoneroChainNode.class.getName());
-    private static final int POWX_ATOMIC_UNITS = 12;
+    private static final int JSON_RPC_POOL = 10; // TODO: Should get from chainNodeConfig
     private static final int TRANSACTION_BUFFER_SIZE = 1000;
     private static final String RPC_URL_SUFFIX = "/json_rpc";
     private static KeepNewestHash transactions;
     private String url;
+
+    public static final int POWX_ATOMIC_UNITS = 12;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
@@ -29,16 +31,15 @@ public class MoneroChainNode extends ChainNode {
     @Override
     public void init() {
         url = chainNodeConfig.getURL();
-        System.out.println(url);
-
-        int maxSize = 10; // TODO: Should get from chainNodeConfig
-        // chainNodeManagerConfig.getIntAttribute("jsonPoolSize ", 10);
-
-        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, maxSize);
+        jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, JSON_RPC_POOL);
     }
 
-    public class RPCBlockCall {
+    public class RPCBlockHashCall {
         public String hash;
+    }
+
+    public class RPCBlockHeightCall {
+        public long height;
     }
 
     @Override
@@ -46,22 +47,42 @@ public class MoneroChainNode extends ChainNode {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlockByHash(jsonRpcHttpClient, blockHash);
+            return fetchBlock(jsonRpcHttpClient, 0, blockHash, true);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
     }
 
-    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash)
+    public BlockData fetchBlockDataByHeight(long blockHeight, boolean calculate) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return fetchBlock(jsonRpcHttpClient, blockHeight, null, calculate);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
+
+    private BlockData fetchBlock(JsonRpcHttpClient jsonrpcClient, long blockHeight, String blockHash, boolean calculate)
             throws OperationFailedException {
 
         try {
             long start = Instant.now().getEpochSecond();
 
-            RPCBlockCall blockCall = new RPCBlockCall();
-            blockCall.hash = blockHash;
+            RpcResultBlock rpcBlock = null;
 
-            RPCBlock rpcBlock = jsonrpcClient.invoke(XMRMethods.GET_BLOCK, blockCall, RPCBlock.class);
+            System.out.println(blockHash);
+            if (blockHash != null) {
+                RPCBlockHashCall blockCallHash = new RPCBlockHashCall();
+                blockCallHash.hash = blockHash;
+
+                rpcBlock = jsonrpcClient.invoke(RpcMethodsMonero.GET_BLOCK, blockCallHash, RpcResultBlock.class);
+            } else {
+                RPCBlockHeightCall blockCallHeight = new RPCBlockHeightCall();
+                blockCallHeight.height = blockHeight;
+
+                rpcBlock = jsonrpcClient.invoke(RpcMethodsMonero.GET_BLOCK, blockCallHeight, RpcResultBlock.class);
+            }
 
             BlockData blockData = new BlockData();
 
@@ -84,9 +105,10 @@ public class MoneroChainNode extends ChainNode {
             blockData.setTransactionCount(rpcBlock.block_header.num_txes);
             blockData.setBlockchainCode(blockchainCode);
 
-            System.out.println("CALCULATING BLOCK: " + rpcBlock.block_header.hash);
-
-            calculate(jsonrpcClient, blockData, rpcBlock);
+            if (calculate) {
+                System.out.println("CALCULATING BLOCK: " + rpcBlock.block_header.hash);
+                calculate(jsonrpcClient, blockData, rpcBlock);
+            }
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -109,11 +131,11 @@ public class MoneroChainNode extends ChainNode {
     }
 
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculateFee)
+    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException {
 
         try {
-            MoneroTransaction transaction = new MoneroTransaction(url, transactionHash);
+            MoneroTransaction transaction = new MoneroTransaction(this, url, transactionHash, true);
             return transaction;
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException("Error fetching Transaction: ", t);
@@ -122,7 +144,7 @@ public class MoneroChainNode extends ChainNode {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RPCBlock rpcBlock)
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
             throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
@@ -132,16 +154,30 @@ public class MoneroChainNode extends ChainNode {
         double largestTxAmount = 0.0;
         String largestTxHash = null;
 
-        int transactionCount = 1;
+        int transactionCount = 0;
 
         for (String transactionHash : rpcBlock.tx_hashes) {
             System.out.println(transactionHash);
             MoneroTransaction transaction = (MoneroTransaction) transactions.get(transactionHash);
 
             if (transaction == null) {
-                System.out.println("Let's at least try and fetch");
-                transaction = new MoneroTransaction(url, transactionHash);
+                transaction = new MoneroTransaction(this, url, transactionHash, false);
                 transactions.put(transactionHash, transaction);
+            }
+
+            double transactionFee = transaction.getFee();
+            double transactionAmount = transaction.getAmount();
+
+            largestFee = Math.max(largestFee, transactionFee);
+            smallestFee = Math.min(smallestFee, transactionFee);
+
+            transactionCount++;
+            totalFee += transactionFee;
+            totalFeeRate += transaction.getFeeRate();
+
+            if (transactionAmount > largestTxAmount) {
+                largestTxAmount = transactionAmount;
+                largestTxHash = transactionHash;
             }
         }
 

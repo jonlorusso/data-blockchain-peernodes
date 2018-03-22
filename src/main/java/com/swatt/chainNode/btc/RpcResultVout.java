@@ -3,13 +3,13 @@ package com.swatt.chainNode.btc;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class RPCVout {
+public final class RpcResultVout {
     // Simple container object to receive results of JSONRPC call - public
     // properties poulated using introspection by jsonrpcClient
     // All fields in feed must be defined, even if not needed
     public double value;
     public int n;
-    public RPCScriptPubKey scriptPubKey;
+    public RpcResultScriptPubKey scriptPubKey;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public Map<String, Object> getAdditionalProperties() {
