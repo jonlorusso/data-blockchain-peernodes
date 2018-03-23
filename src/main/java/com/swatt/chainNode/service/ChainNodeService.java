@@ -29,26 +29,12 @@ public class ChainNodeService {
     public ChainNodeService(final ChainNodeManager chainNodeManager, int port, final ConnectionPool connectionPool) {
         app = Javalin.create().port(port).enableCorsForOrigin("*");
 
-        /*
-         * embeddedServer(new EmbeddedJettyFactory(() -> { Server server = new Server();
-         * ServerConnector sslConnector = new ServerConnector(server,
-         * getSslContextFactory()); sslConnector.setPort(7000); ServerConnector
-         * connector = new ServerConnector(server); connector.setPort(7070);
-         * server.setConnectors(new Connector[] { sslConnector, connector }); return
-         * server; })).
-         */
-
         app.get("/:chainName/txn/:transactionHash", ctx -> {
             String chainName = ctx.param("chainName");
             String transactionHash = ctx.param("transactionHash");
 
             ChainNode chainNode = chainNodeManager.getChainNode(chainName);
             ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, true);
-            // the
-            // transactions
-            // and
-            // calculate
-            // fees
 
             String result = JsonUtilities.objectToJsonString(chainTransaction);
             ctx.result(result);
@@ -83,8 +69,7 @@ public class ChainNodeService {
 
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                System.out.println(blockHash);
-                BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
+                BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
                 connectionPool.returnConnection(conn);
 
@@ -146,7 +131,7 @@ public class ChainNodeService {
 
                 chainNodeService.start();
 
-                long autoExitTimeout = 30 * 1000;
+                long autoExitTimeout = 300 * 1000;
 
                 ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is useful while debugging so you
                                                                               // don't have to constantly stop server to

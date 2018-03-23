@@ -8,9 +8,9 @@ public class ChainNodeTransaction {
     private String hash;
     private long timestamp;
 
-    private double fee; // All
-    private double feeRate; // Bitcoin?
-    private double amount; // ?? Christian had this be lazily synthetic
+    private double fee;
+    private double feeRate;
+    private double amount;
 
     private String blockHash;
 

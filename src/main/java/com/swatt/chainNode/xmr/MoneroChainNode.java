@@ -71,7 +71,6 @@ public class MoneroChainNode extends ChainNode {
 
             RpcResultBlock rpcBlock = null;
 
-            System.out.println(blockHash);
             if (blockHash != null) {
                 RPCBlockHashCall blockCallHash = new RPCBlockHashCall();
                 blockCallHash.hash = blockHash;
@@ -157,7 +156,6 @@ public class MoneroChainNode extends ChainNode {
         int transactionCount = 0;
 
         for (String transactionHash : rpcBlock.tx_hashes) {
-            System.out.println(transactionHash);
             MoneroTransaction transaction = (MoneroTransaction) transactions.get(transactionHash);
 
             if (transaction == null) {

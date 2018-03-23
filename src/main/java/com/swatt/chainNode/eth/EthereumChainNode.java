@@ -23,7 +23,7 @@ import com.swatt.util.OperationFailedException;
 
 public class EthereumChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(EthereumChainNode.class.getName());
-    private static final double ETHEREUM_BASE_BLOCK_REWARD_BTC = 3.0;
+    private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
     private static Web3j web3j;
 
     public static final int POWX_ETHER_WEI = 18;
@@ -175,8 +175,8 @@ public class EthereumChainNode extends ChainNode {
             }
         }
 
-        double reward = ETHEREUM_BASE_BLOCK_REWARD_BTC + totalFeeRate
-                + (ETHEREUM_BASE_BLOCK_REWARD_BTC * block.getUncles().size() / 32);
+        double reward = ETHEREUM_BASE_BLOCK_REWARD_ETH + totalFeeRate
+                + (ETHEREUM_BASE_BLOCK_REWARD_ETH * block.getUncles().size() / 32);
         blockData.setReward(reward);
 
         if (smallestFee == Double.MAX_VALUE)
