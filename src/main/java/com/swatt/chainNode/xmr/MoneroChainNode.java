@@ -34,11 +34,11 @@ public class MoneroChainNode extends ChainNode {
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, JSON_RPC_POOL);
     }
 
-    public class RPCBlockHashCall {
+    public class RpcBlockHashCall {
         public String hash;
     }
 
-    public class RPCBlockHeightCall {
+    public class RpcBlockHeightCall {
         public long height;
     }
 
@@ -72,12 +72,12 @@ public class MoneroChainNode extends ChainNode {
             RpcResultBlock rpcBlock = null;
 
             if (blockHash != null) {
-                RPCBlockHashCall blockCallHash = new RPCBlockHashCall();
+                RpcBlockHashCall blockCallHash = new RpcBlockHashCall();
                 blockCallHash.hash = blockHash;
 
                 rpcBlock = jsonrpcClient.invoke(RpcMethodsMonero.GET_BLOCK, blockCallHash, RpcResultBlock.class);
             } else {
-                RPCBlockHeightCall blockCallHeight = new RPCBlockHeightCall();
+                RpcBlockHeightCall blockCallHeight = new RpcBlockHeightCall();
                 blockCallHeight.height = blockHeight;
 
                 rpcBlock = jsonrpcClient.invoke(RpcMethodsMonero.GET_BLOCK, blockCallHeight, RpcResultBlock.class);

@@ -131,7 +131,7 @@ public class ChainNodeService {
 
                 chainNodeService.start();
 
-                long autoExitTimeout = 300 * 1000;
+                long autoExitTimeout = 3000 * 1000;
 
                 ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is useful while debugging so you
                                                                               // don't have to constantly stop server to
