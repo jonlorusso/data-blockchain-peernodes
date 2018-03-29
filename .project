@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>internal-blockchain-access</name>
+	<name>blockchain-access-layer</name>
 	<comment></comment>
 	<projects>
+		<project>swatt-common-library</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -1,6 +1,6 @@
 package com.swatt.chainNode.service;
 
-import com.swatt.util.Attributable;
+import com.swatt.util.general.Attributable;
 
 public class ChainNodeConfig extends Attributable {
     private String blockchainCode; // Name of this chain

@@ -7,9 +7,9 @@ import java.util.Properties;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.CheckProgress;
-import com.swatt.util.CollectionsUtilities;
-import com.swatt.util.ConcurrencyUtilities;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.CollectionsUtilities;
+import com.swatt.util.general.ConcurrencyUtilities;
+import com.swatt.util.general.OperationFailedException;
 
 public class ChainNodeIngestor {
     private ChainNode chainNode;

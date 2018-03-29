@@ -9,7 +9,7 @@ import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.OperationFailedException;
 
 public abstract class ChainNode {
     protected ChainNodeConfig chainNodeConfig;
