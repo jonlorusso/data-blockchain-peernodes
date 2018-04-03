@@ -5,9 +5,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import com.swatt.chainNode.ChainNode;
-import com.swatt.util.ConnectionPool;
-import com.swatt.util.OperationFailedException;
-import com.swatt.util.SqlUtilities;
+import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.sql.ConnectionPool;
+import com.swatt.util.sql.SqlUtilities;;
 
 public class ChainNodeManager {
     private ConnectionPool connectionPool;

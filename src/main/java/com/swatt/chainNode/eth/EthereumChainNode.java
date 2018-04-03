@@ -19,7 +19,7 @@ import org.web3j.protocol.http.HttpService;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.OperationFailedException;
 
 public class EthereumChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(EthereumChainNode.class.getName());

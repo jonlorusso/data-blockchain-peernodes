@@ -9,7 +9,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swatt.util.CollectionsUtilities;
+import com.swatt.util.general.CollectionsUtilities;
 
 public class ChainNodeRestTester {
     private static String testTest = "{\"hash\":\"46575afff8d7ab38927bace94a343c18b2212dc2f6a3c353326a8986c0b0ba7f\",\"timestamp\":1452792495,\"fee\":0.03856904595600241,\"feeRate\":0.03856904595600241,\"amount\":34.07,\"blockHash\":\"912320\"}";

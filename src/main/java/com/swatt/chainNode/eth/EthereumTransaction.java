@@ -13,7 +13,7 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.OperationFailedException;
 
 public class EthereumTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(EthereumTransaction.class.getName());

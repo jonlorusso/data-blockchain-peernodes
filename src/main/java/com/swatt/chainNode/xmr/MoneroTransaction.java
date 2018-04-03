@@ -16,8 +16,8 @@ import org.apache.http.util.EntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.util.HttpClientPool;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.json.HttpClientPool;
 
 public class MoneroTransaction extends ChainNodeTransaction {
     private String url;

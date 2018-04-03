@@ -18,6 +18,8 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import com.swatt.chainNode.ChainNodeScaling;
+
 public class BlockData {
     private int id;
     private String blockchainCode;
@@ -487,7 +489,8 @@ public class BlockData {
                 largestTxHash, largestTxAmount, largestFee, smallestFee, indexingDuration);
     }
 
-    public static BlockData insertBlockData(Connection connection, BlockData blockData) throws SQLException {
+    public static BlockData insertBlockData(Connection connection, BlockData blockData, ChainNodeScaling scaling)
+            throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
@@ -515,8 +518,8 @@ public class BlockData {
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setLong(4, blockData.height);
-        ps.setDouble(5, blockData.difficulty);
-        ps.setDouble(6, blockData.reward);
+        ps.setDouble(5, blockData.difficulty / Math.pow(10, scaling.Difficulty()));
+        ps.setDouble(6, blockData.reward / Math.pow(10, scaling.Reward()));
         ps.setString(7, blockData.merkleRoot);
         ps.setLong(8, blockData.timestamp);
         ps.setString(9, blockData.bits);
@@ -525,13 +528,13 @@ public class BlockData {
         ps.setLong(12, blockData.nonce);
         ps.setString(13, blockData.prevHash);
         ps.setString(14, blockData.nextHash);
-        ps.setDouble(15, blockData.avgFee);
-        ps.setDouble(16, blockData.avgFeeRate);
+        ps.setDouble(15, blockData.avgFee / Math.pow(10, scaling.AvgFee()));
+        ps.setDouble(16, blockData.avgFeeRate / Math.pow(10, scaling.AvgFeeRate()));
         ps.setLong(17, blockData.indexed);
         ps.setString(18, blockData.largestTxHash);
-        ps.setDouble(19, blockData.largestTxAmount);
-        ps.setDouble(20, blockData.largestFee);
-        ps.setDouble(21, blockData.smallestFee);
+        ps.setDouble(19, blockData.largestTxAmount / Math.pow(10, scaling.LargestTxAmount()));
+        ps.setDouble(20, blockData.largestFee / Math.pow(10, scaling.LargestFee()));
+        ps.setDouble(21, blockData.smallestFee / Math.pow(10, scaling.SmallestFee()));
         ps.setLong(22, blockData.indexingDuration);
         ps.executeUpdate();
 

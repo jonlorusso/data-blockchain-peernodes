@@ -1,5 +1,10 @@
 package com.swatt.chainNode.service;
 
+//import org.junit.jupiter.api...BeforeAll;
+//import org.junit.jupiter.api.BeforeEach;
+
+import com.swatt.util.general.OperationFailedException;
+
 public class ChainNodeRestTesterTest {
     private String hash;
     private long timestamp;
@@ -7,6 +12,18 @@ public class ChainNodeRestTesterTest {
     private double feeRate;
     private double amount;
     private String blockHash;
+
+    // @BeforeAll
+    static void init() throws Exception {
+
+    }
+
+    // @BeforeEach
+    void recreateExchange() throws OperationFailedException {
+        // simpleExchange = new SimpleExchange();
+
+        // clientOrderIds.clear();
+    }
 
     public String getHash() {
         return hash;

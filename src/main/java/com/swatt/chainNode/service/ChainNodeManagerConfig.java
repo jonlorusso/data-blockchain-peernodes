@@ -9,9 +9,9 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.swatt.chainNode.dao.BlockchainNodeInfo;
-import com.swatt.util.Attributable;
-import com.swatt.util.CollectionsUtilities;
-import com.swatt.util.SqlUtilities;
+import com.swatt.util.general.Attributable;
+import com.swatt.util.general.CollectionsUtilities;
+import com.swatt.util.sql.SqlUtilities;
 
 public class ChainNodeManagerConfig extends Attributable {
     HashMap<String, ChainNodeConfig> chainNodeConfigs = new HashMap<>();

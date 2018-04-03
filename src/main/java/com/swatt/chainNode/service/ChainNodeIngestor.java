@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import com.swatt.chainNode.ChainNode;
+import com.swatt.chainNode.ChainNodeScaling;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.util.general.CollectionsUtilities;
@@ -32,7 +33,9 @@ public class ChainNodeIngestor {
                     BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
 
                     blockData.setBlockchainCode(blockchainCode);
-                    BlockData.insertBlockData(connection, blockData);
+
+                    ChainNodeScaling scaling = null;
+                    BlockData.insertBlockData(connection, blockData, scaling);
 
                     blockHash = blockData.getPrevHash();
                     blockCount++;

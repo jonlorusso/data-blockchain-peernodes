@@ -1,16 +1,20 @@
 package com.swatt.chainNode.service;
 
+import static org.junit.Assert.fail;
+
 import java.sql.Connection;
 import java.util.Properties;
+
+import org.junit.Test;
 
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.BlockDataByInterval;
-import com.swatt.util.CollectionsUtilities;
-import com.swatt.util.ConcurrencyUtilities;
-import com.swatt.util.ConnectionPool;
-import com.swatt.util.JsonUtilities;
+import com.swatt.util.general.CollectionsUtilities;
+import com.swatt.util.general.ConcurrencyUtilities;
+import com.swatt.util.json.JsonUtilities;
+import com.swatt.util.sql.ConnectionPool;
 
 import io.javalin.Javalin;
 
@@ -140,5 +144,10 @@ public class ChainNodeService {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+    }
+
+    @Test
+    public void test() {
+        fail("Not yet implemented");
     }
 }

@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.util.OperationFailedException;
+import com.swatt.util.general.OperationFailedException;
 
 public class SteemTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(SteemTransaction.class.getName());
