@@ -38,9 +38,6 @@ public class EthereumChainNode extends ChainNode {
     public static final int POWX_ETHER_GETHER = -9;
     public static final int POWX_ETHER_TETHER = -12;
 
-    public EthereumChainNode() {
-    }
-
     @Override
     public void init() {
         String url = chainNodeConfig.getURL();
@@ -195,5 +192,4 @@ public class EthereumChainNode extends ChainNode {
         blockData.setLargestTxAmount(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
-
 }

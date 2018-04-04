@@ -1,8 +1,10 @@
 package com.swatt.chainNode.dao;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 /*  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  * 
- *     THIS IS AUTO-GENERATED CODE WAS CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
+ *     THIS IS AUTO-GENERATED CODE CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
  *
  *     Based on Excel File: /Users/gloverwilson/eclipse-workspace/internal-blockchain-access/files/Blockchain Node Schema.xls
  * 
@@ -18,16 +20,20 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import com.swatt.chainNode.ChainNodeScaling;
+import com.swatt.util.io.DataStreamSerializable;
+import com.swatt.util.io.DataStreamUtilities;
+import com.swatt.util.io.SerializationException;
 
-public class BlockData {
+public class BlockData implements DataStreamSerializable {
     private int id;
     private String blockchainCode;
     private String hash;
     private int transactionCount;
     private long height;
-    private double difficulty;
-    private double reward;
+    private long difficulty;
+    private int difficultyScale;
+    private long reward;
+    private int rewardScale;
     private String merkleRoot;
     private long timestamp;
     private String bits;
@@ -36,29 +42,38 @@ public class BlockData {
     private long nonce;
     private String prevHash;
     private String nextHash;
-    private double avgFee;
-    private double avgFeeRate;
+    private long avgFee;
+    private int avgFeeScale;
+    private long avgFeeRate;
+    private int avgFeeRateScale;
     private long indexed;
     private String largestTxHash;
-    private double largestTxAmount;
-    private double largestFee;
-    private double smallestFee;
+    private long largestTxAmount;
+    private int largestTxAmountScale;
+    private long largestFee;
+    private int largestFeeScale;
+    private long smallestFee;
+    private int smallestFeeScale;
     private long indexingDuration;
 
     public BlockData() {
     }
 
-    public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, double difficulty,
-            double reward, String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce,
-            String prevHash, String nextHash, double avgFee, double avgFeeRate, long indexed, String largestTxHash,
-            double largestTxAmount, double largestFee, double smallestFee, long indexingDuration) {
+    public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, long difficulty,
+            int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size,
+            String versionHex, long nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale,
+            long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount,
+            int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale,
+            int indexingDuration) {
         this.id = id;
         this.blockchainCode = blockchainCode;
         this.hash = hash;
         this.transactionCount = transactionCount;
         this.height = height;
         this.difficulty = difficulty;
+        this.difficultyScale = difficultyScale;
         this.reward = reward;
+        this.rewardScale = rewardScale;
         this.merkleRoot = merkleRoot;
         this.timestamp = timestamp;
         this.bits = bits;
@@ -68,12 +83,17 @@ public class BlockData {
         this.prevHash = prevHash;
         this.nextHash = nextHash;
         this.avgFee = avgFee;
+        this.avgFeeScale = avgFeeScale;
         this.avgFeeRate = avgFeeRate;
+        this.avgFeeRateScale = avgFeeRateScale;
         this.indexed = indexed;
         this.largestTxHash = largestTxHash;
         this.largestTxAmount = largestTxAmount;
+        this.largestTxAmountScale = largestTxAmountScale;
         this.largestFee = largestFee;
+        this.largestFeeScale = largestFeeScale;
         this.smallestFee = smallestFee;
+        this.smallestFeeScale = smallestFeeScale;
         this.indexingDuration = indexingDuration;
     }
 
@@ -81,7 +101,7 @@ public class BlockData {
         return id;
     }
 
-    public final String getBlockchainCode() {
+    public final String getblockchainCode() {
         return blockchainCode;
     }
 
@@ -97,12 +117,20 @@ public class BlockData {
         return height;
     }
 
-    public final double getDifficulty() {
+    public final long getDifficulty() {
         return difficulty;
     }
 
-    public final double getReward() {
+    public final int getDifficultyScale() {
+        return difficultyScale;
+    }
+
+    public final long getReward() {
         return reward;
+    }
+
+    public final int getRewardScale() {
+        return rewardScale;
     }
 
     public final String getMerkleRoot() {
@@ -137,12 +165,20 @@ public class BlockData {
         return nextHash;
     }
 
-    public final double getAvgFee() {
+    public final long getAvgFee() {
         return avgFee;
     }
 
-    public final double getAvgFeeRate() {
+    public final int getAvgFeeScale() {
+        return avgFeeScale;
+    }
+
+    public final long getAvgFeeRate() {
         return avgFeeRate;
+    }
+
+    public final int getAvgFeeRateScale() {
+        return avgFeeRateScale;
     }
 
     public final long getIndexed() {
@@ -153,16 +189,28 @@ public class BlockData {
         return largestTxHash;
     }
 
-    public final double getLargestTxAmount() {
+    public final long getLargestTxAmount() {
         return largestTxAmount;
     }
 
-    public final double getLargestFee() {
+    public final int getLargestTxAmountScale() {
+        return largestTxAmountScale;
+    }
+
+    public final long getLargestFee() {
         return largestFee;
     }
 
-    public final double getSmallestFee() {
+    public final int getLargestFeeScale() {
+        return largestFeeScale;
+    }
+
+    public final long getSmallestFee() {
         return smallestFee;
+    }
+
+    public final int getSmallestFeeScale() {
+        return smallestFeeScale;
     }
 
     public final long getIndexingDuration() {
@@ -190,11 +238,28 @@ public class BlockData {
     }
 
     public final void setDifficulty(double difficulty) {
+        // this.difficulty = difficulty;
+        // TODO handle power
+    }
+
+    public final void setDifficultyBase(long difficulty) {
         this.difficulty = difficulty;
     }
 
+    public final void setDifficultyScale(int difficultyScale) {
+        this.difficultyScale = difficultyScale;
+    }
+
     public final void setReward(double reward) {
+        // TODO handle power
+    }
+
+    public final void setRewardBase(long reward) {
         this.reward = reward;
+    }
+
+    public final void setRewardScale(int rewardScale) {
+        this.rewardScale = rewardScale;
     }
 
     public final void setMerkleRoot(String merkleRoot) {
@@ -229,12 +294,28 @@ public class BlockData {
         this.nextHash = nextHash;
     }
 
-    public final void setAvgFee(double avgFee) {
+    public final void setAvgFeeBase(long avgFee) {
         this.avgFee = avgFee;
     }
 
-    public final void setAvgFeeRate(double avgFeeRate) {
+    public final void setAvgFee(double avgFee) {
+        // TODO this.avgFee = avgFee;
+    }
+
+    public final void setAvgFeeScale(int avgFeeScale) {
+        this.avgFeeScale = avgFeeScale;
+    }
+
+    public final void setAvgFeeRateBase(long avgFeeRate) {
         this.avgFeeRate = avgFeeRate;
+    }
+
+    public final void setAvgFeeRate(double avgFeeRate) {
+        // TODO this.avgFeeRate = avgFeeRate;
+    }
+
+    public final void setAvgFeeRateScale(int avgFeeRateScale) {
+        this.avgFeeRateScale = avgFeeRateScale;
     }
 
     public final void setIndexed(long indexed) {
@@ -245,16 +326,40 @@ public class BlockData {
         this.largestTxHash = largestTxHash;
     }
 
-    public final void setLargestTxAmount(double largestTxAmount) {
+    public final void setLargestTxAmountBase(long largestTxAmount) {
         this.largestTxAmount = largestTxAmount;
     }
 
-    public final void setLargestFee(double largestFee) {
+    public final void setLargestTxAmount(double largestTxAmount) {
+        // TODO this.largestTxAmount = largestTxAmount;
+    }
+
+    public final void setLargestTxAmountScale(int largestTxAmountScale) {
+        this.largestTxAmountScale = largestTxAmountScale;
+    }
+
+    public final void setLargestFeeBase(long largestFee) {
         this.largestFee = largestFee;
     }
 
-    public final void setSmallestFee(double smallestFee) {
+    public final void setLargestFee(double largestFee) {
+        // TODO this.largestFee = largestFee;
+    }
+
+    public final void setLargestFeeScale(int largestFeeScale) {
+        this.largestFeeScale = largestFeeScale;
+    }
+
+    public final void setSmallestFeeBase(long smallestFee) {
         this.smallestFee = smallestFee;
+    }
+
+    public final void setSmallestFee(double smallestFee) {
+        // TODO this.smallestFee = smallestFee;
+    }
+
+    public final void setSmallestFeeScale(int smallestFeeScale) {
+        this.smallestFeeScale = smallestFeeScale;
     }
 
     public final void setIndexingDuration(long indexingDuration) {
@@ -262,10 +367,10 @@ public class BlockData {
     }
 
     public static String getSqlColumnList() {
-        return "ID, BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION";
+        return "ID, BLOCKCHAIN_TICKER, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION";
     }
 
-    private final static String primaryKeySelect = "SELECT ID, BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION FROM BLOCK_DATA WHERE ID = ?";
+    private final static String primaryKeySelect = "SELECT ID, BLOCKCHAIN_TICKER, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION FROM BLOCK_DATA WHERE ID = ?";
 
     public static String getStandardTableName() {
         return "BLOCK_DATA";
@@ -277,24 +382,31 @@ public class BlockData {
         hash = rs.getString(3);
         transactionCount = rs.getInt(4);
         height = rs.getInt(5);
-        difficulty = rs.getDouble(6);
-        reward = rs.getDouble(7);
-        merkleRoot = rs.getString(8);
-        timestamp = rs.getLong(9);
-        bits = rs.getString(10);
-        size = rs.getInt(11);
-        versionHex = rs.getString(12);
-        nonce = rs.getLong(13);
-        prevHash = rs.getString(14);
-        nextHash = rs.getString(15);
-        avgFee = rs.getDouble(16);
-        avgFeeRate = rs.getDouble(17);
-        indexed = rs.getLong(18);
-        largestTxHash = rs.getString(19);
-        largestTxAmount = rs.getDouble(20);
-        largestFee = rs.getDouble(21);
-        smallestFee = rs.getDouble(22);
-        indexingDuration = rs.getLong(23);
+        difficulty = rs.getLong(6);
+        difficultyScale = rs.getInt(7);
+        reward = rs.getLong(8);
+        rewardScale = rs.getInt(9);
+        merkleRoot = rs.getString(10);
+        timestamp = rs.getLong(11);
+        bits = rs.getString(12);
+        size = rs.getInt(13);
+        versionHex = rs.getString(14);
+        nonce = rs.getLong(15);
+        prevHash = rs.getString(16);
+        nextHash = rs.getString(17);
+        avgFee = rs.getLong(18);
+        avgFeeScale = rs.getInt(19);
+        avgFeeRate = rs.getLong(20);
+        avgFeeRateScale = rs.getInt(21);
+        indexed = rs.getInt(22);
+        largestTxHash = rs.getString(23);
+        largestTxAmount = rs.getLong(24);
+        largestTxAmountScale = rs.getInt(25);
+        largestFee = rs.getLong(26);
+        largestFeeScale = rs.getInt(27);
+        smallestFee = rs.getLong(28);
+        smallestFeeScale = rs.getInt(29);
+        indexingDuration = rs.getInt(30);
     }
 
     public static ArrayList<BlockData> getBlockDatas(PreparedStatement ps) throws SQLException {
@@ -398,40 +510,48 @@ public class BlockData {
     }
 
     public static BlockData insertBlockData(Connection connection, String blockchainCode, String hash,
-            int transactionCount, int height, double difficulty, double reward, String merkleRoot, long timestamp,
-            String bits, int size, String versionHex, long nonce, String prevHash, String nextHash, double avgFee,
-            double avgFeeRate, long indexed, String largestTxHash, double largestTxAmount, double largestFee,
-            double smallestFee, long indexingDuration) throws SQLException {
+            int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale,
+            String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash,
+            String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed,
+            String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale,
+            long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_TICKER, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
         ps.setInt(3, transactionCount);
         ps.setInt(4, height);
-        ps.setDouble(5, difficulty);
-        ps.setDouble(6, reward);
-        ps.setString(7, merkleRoot);
-        ps.setLong(8, timestamp);
-        ps.setString(9, bits);
-        ps.setInt(10, size);
-        ps.setString(11, versionHex);
-        ps.setLong(12, nonce);
-        ps.setString(13, prevHash);
-        ps.setString(14, nextHash);
-        ps.setDouble(15, avgFee);
-        ps.setDouble(16, avgFeeRate);
-        ps.setLong(17, indexed);
-        ps.setString(18, largestTxHash);
-        ps.setDouble(19, largestTxAmount);
-        ps.setDouble(20, largestFee);
-        ps.setDouble(21, smallestFee);
-        ps.setLong(22, indexingDuration);
+        ps.setLong(5, difficulty);
+        ps.setInt(6, difficultyScale);
+        ps.setLong(7, reward);
+        ps.setInt(8, rewardScale);
+        ps.setString(9, merkleRoot);
+        ps.setLong(10, timestamp);
+        ps.setString(11, bits);
+        ps.setInt(12, size);
+        ps.setString(13, versionHex);
+        ps.setLong(14, nonce);
+        ps.setString(15, prevHash);
+        ps.setString(16, nextHash);
+        ps.setLong(17, avgFee);
+        ps.setInt(18, avgFeeScale);
+        ps.setLong(19, avgFeeRate);
+        ps.setInt(20, avgFeeRateScale);
+        ps.setInt(21, indexed);
+        ps.setString(22, largestTxHash);
+        ps.setLong(23, largestTxAmount);
+        ps.setInt(24, largestTxAmountScale);
+        ps.setLong(25, largestFee);
+        ps.setInt(26, largestFeeScale);
+        ps.setLong(27, smallestFee);
+        ps.setInt(28, smallestFeeScale);
+        ps.setInt(29, indexingDuration);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
@@ -447,95 +567,96 @@ public class BlockData {
             connection.setAutoCommit(true);
         }
 
-        return new BlockData(autoGeneratedKey, blockchainCode, hash, transactionCount, height, difficulty, reward,
-                merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeRate, indexed,
-                largestTxHash, largestTxAmount, largestFee, smallestFee, indexingDuration);
+        return new BlockData(autoGeneratedKey, blockchainCode, hash, transactionCount, height, difficulty,
+                difficultyScale, reward, rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash,
+                nextHash, avgFee, avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount,
+                largestTxAmountScale, largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
     }
 
     public static BlockData updateBlockData(Connection connection, int id, String blockchainCode, String hash,
-            int transactionCount, int height, double difficulty, double reward, String merkleRoot, long timestamp,
-            String bits, int size, String versionHex, long nonce, String prevHash, String nextHash, double avgFee,
-            double avgFeeRate, long indexed, String largestTxHash, double largestTxAmount, double largestFee,
-            double smallestFee, long indexingDuration) throws SQLException {
+            int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale,
+            String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash,
+            String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed,
+            String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale,
+            long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, REWARD = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ? WHERE ID = ?");
+                "UPDATE BLOCK_DATA SET BLOCKCHAIN_TICKER = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
         ps.setInt(3, transactionCount);
         ps.setInt(4, height);
-        ps.setDouble(5, difficulty);
-        ps.setDouble(6, reward);
-        ps.setString(7, merkleRoot);
-        ps.setLong(8, timestamp);
-        ps.setString(9, bits);
-        ps.setInt(10, size);
-        ps.setString(11, versionHex);
-        ps.setLong(12, nonce);
-        ps.setString(13, prevHash);
-        ps.setString(14, nextHash);
-        ps.setDouble(15, avgFee);
-        ps.setDouble(16, avgFeeRate);
-        ps.setLong(17, indexed);
-        ps.setString(18, largestTxHash);
-        ps.setDouble(19, largestTxAmount);
-        ps.setDouble(20, largestFee);
-        ps.setDouble(21, smallestFee);
-        ps.setLong(22, indexingDuration);
+        ps.setLong(5, difficulty);
+        ps.setInt(6, difficultyScale);
+        ps.setLong(7, reward);
+        ps.setInt(8, rewardScale);
+        ps.setString(9, merkleRoot);
+        ps.setLong(10, timestamp);
+        ps.setString(11, bits);
+        ps.setInt(12, size);
+        ps.setString(13, versionHex);
+        ps.setLong(14, nonce);
+        ps.setString(15, prevHash);
+        ps.setString(16, nextHash);
+        ps.setLong(17, avgFee);
+        ps.setInt(18, avgFeeScale);
+        ps.setLong(19, avgFeeRate);
+        ps.setInt(20, avgFeeRateScale);
+        ps.setInt(21, indexed);
+        ps.setString(22, largestTxHash);
+        ps.setLong(23, largestTxAmount);
+        ps.setInt(24, largestTxAmountScale);
+        ps.setLong(25, largestFee);
+        ps.setInt(26, largestFeeScale);
+        ps.setLong(27, smallestFee);
+        ps.setInt(28, smallestFeeScale);
+        ps.setInt(29, indexingDuration);
         ps.executeUpdate();
 
-        return new BlockData(id, blockchainCode, hash, transactionCount, height, difficulty, reward, merkleRoot,
-                timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeRate, indexed,
-                largestTxHash, largestTxAmount, largestFee, smallestFee, indexingDuration);
+        return new BlockData(id, blockchainCode, hash, transactionCount, height, difficulty, difficultyScale, reward,
+                rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee,
+                avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount, largestTxAmountScale,
+                largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
     }
 
-    public static BlockData insertBlockData(Connection connection, BlockData blockData, ChainNodeScaling scaling)
-            throws SQLException {
+    public static BlockData insertBlockData(Connection connection, BlockData blockData) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        /*
-         * String sql =
-         * "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES ("
-         * + "'" + blockData.blockchainCode + "'," + "'" + blockData.hash + "'," +
-         * blockData.transactionCount + "," + blockData.height + "," +
-         * blockData.difficulty + "," + blockData.reward + "," + "'" +
-         * blockData.merkleRoot + "'," + blockData.timestamp + "," + blockData.bits +
-         * "," + blockData.size + "," + "'" + blockData.versionHex + "'," +
-         * blockData.nonce + "," + "'" + blockData.prevHash + "'," + "'" +
-         * blockData.nextHash + "'," + blockData.avgFee + "," + blockData.avgFeeRate +
-         * "," + blockData.indexed + "," + "'" + blockData.largestTxHash + "'," +
-         * blockData.largestTxAmount + "," + blockData.largestFee + "," +
-         * blockData.smallestFee + "," + blockData.indexingDuration + ")";
-         * System.out.println(sql);
-         */
+                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_TICKER, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setLong(4, blockData.height);
-        ps.setDouble(5, blockData.difficulty / Math.pow(10, scaling.Difficulty()));
-        ps.setDouble(6, blockData.reward / Math.pow(10, scaling.Reward()));
-        ps.setString(7, blockData.merkleRoot);
-        ps.setLong(8, blockData.timestamp);
-        ps.setString(9, blockData.bits);
-        ps.setInt(10, blockData.size);
-        ps.setString(11, blockData.versionHex);
-        ps.setLong(12, blockData.nonce);
-        ps.setString(13, blockData.prevHash);
-        ps.setString(14, blockData.nextHash);
-        ps.setDouble(15, blockData.avgFee / Math.pow(10, scaling.AvgFee()));
-        ps.setDouble(16, blockData.avgFeeRate / Math.pow(10, scaling.AvgFeeRate()));
-        ps.setLong(17, blockData.indexed);
-        ps.setString(18, blockData.largestTxHash);
-        ps.setDouble(19, blockData.largestTxAmount / Math.pow(10, scaling.LargestTxAmount()));
-        ps.setDouble(20, blockData.largestFee / Math.pow(10, scaling.LargestFee()));
-        ps.setDouble(21, blockData.smallestFee / Math.pow(10, scaling.SmallestFee()));
-        ps.setLong(22, blockData.indexingDuration);
+        ps.setLong(5, blockData.difficulty);
+        ps.setInt(6, blockData.difficultyScale);
+        ps.setLong(7, blockData.reward);
+        ps.setInt(8, blockData.rewardScale);
+        ps.setString(9, blockData.merkleRoot);
+        ps.setLong(10, blockData.timestamp);
+        ps.setString(11, blockData.bits);
+        ps.setInt(12, blockData.size);
+        ps.setString(13, blockData.versionHex);
+        ps.setLong(14, blockData.nonce);
+        ps.setString(15, blockData.prevHash);
+        ps.setString(16, blockData.nextHash);
+        ps.setLong(17, blockData.avgFee);
+        ps.setInt(18, blockData.avgFeeScale);
+        ps.setLong(19, blockData.avgFeeRate);
+        ps.setInt(20, blockData.avgFeeRateScale);
+        ps.setLong(21, blockData.indexed);
+        ps.setString(22, blockData.largestTxHash);
+        ps.setLong(23, blockData.largestTxAmount);
+        ps.setInt(24, blockData.largestTxAmountScale);
+        ps.setLong(25, blockData.largestFee);
+        ps.setInt(26, blockData.largestFeeScale);
+        ps.setLong(27, blockData.smallestFee);
+        ps.setInt(28, blockData.smallestFeeScale);
+        ps.setLong(29, blockData.indexingDuration);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
@@ -562,30 +683,37 @@ public class BlockData {
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "REPLACE INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, REWARD, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_RATE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_FEE, SMALLEST_FEE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "REPLACE INTO BLOCK_DATA (BLOCKCHAIN_TICKER, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setLong(4, blockData.height);
-        ps.setDouble(5, blockData.difficulty);
-        ps.setDouble(6, blockData.reward);
-        ps.setString(7, blockData.merkleRoot);
-        ps.setLong(8, blockData.timestamp);
-        ps.setString(9, blockData.bits);
-        ps.setInt(10, blockData.size);
-        ps.setString(11, blockData.versionHex);
-        ps.setLong(12, blockData.nonce);
-        ps.setString(13, blockData.prevHash);
-        ps.setString(14, blockData.nextHash);
-        ps.setDouble(15, blockData.avgFee);
-        ps.setDouble(16, blockData.avgFeeRate);
-        ps.setLong(17, blockData.indexed);
-        ps.setString(18, blockData.largestTxHash);
-        ps.setDouble(19, blockData.largestTxAmount);
-        ps.setDouble(20, blockData.largestFee);
-        ps.setDouble(21, blockData.smallestFee);
-        ps.setLong(22, blockData.indexingDuration);
+        ps.setLong(5, blockData.difficulty);
+        ps.setInt(6, blockData.difficultyScale);
+        ps.setLong(7, blockData.reward);
+        ps.setInt(8, blockData.rewardScale);
+        ps.setString(9, blockData.merkleRoot);
+        ps.setLong(10, blockData.timestamp);
+        ps.setString(11, blockData.bits);
+        ps.setInt(12, blockData.size);
+        ps.setString(13, blockData.versionHex);
+        ps.setLong(14, blockData.nonce);
+        ps.setString(15, blockData.prevHash);
+        ps.setString(16, blockData.nextHash);
+        ps.setLong(17, blockData.avgFee);
+        ps.setInt(18, blockData.avgFeeScale);
+        ps.setLong(19, blockData.avgFeeRate);
+        ps.setInt(20, blockData.avgFeeRateScale);
+        ps.setLong(21, blockData.indexed);
+        ps.setString(22, blockData.largestTxHash);
+        ps.setLong(23, blockData.largestTxAmount);
+        ps.setInt(24, blockData.largestTxAmountScale);
+        ps.setLong(25, blockData.largestFee);
+        ps.setInt(26, blockData.largestFeeScale);
+        ps.setLong(27, blockData.smallestFee);
+        ps.setInt(28, blockData.smallestFeeScale);
+        ps.setLong(29, blockData.indexingDuration);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
@@ -607,31 +735,38 @@ public class BlockData {
 
     public static BlockData updateBlockData(Connection connection, BlockData blockData) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, REWARD = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_RATE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_FEE = ?, SMALLEST_FEE = ?, INDEXING_DURATION = ? WHERE ID = ?");
+                "UPDATE BLOCK_DATA SET BLOCKCHAIN_TICKER = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
         ps.setInt(3, blockData.transactionCount);
         ps.setLong(4, blockData.height);
-        ps.setDouble(5, blockData.difficulty);
-        ps.setDouble(6, blockData.reward);
-        ps.setString(7, blockData.merkleRoot);
-        ps.setLong(8, blockData.timestamp);
-        ps.setString(9, blockData.bits);
-        ps.setInt(10, blockData.size);
-        ps.setString(11, blockData.versionHex);
-        ps.setLong(12, blockData.nonce);
-        ps.setString(13, blockData.prevHash);
-        ps.setString(14, blockData.nextHash);
-        ps.setDouble(15, blockData.avgFee);
-        ps.setDouble(16, blockData.avgFeeRate);
-        ps.setLong(17, blockData.indexed);
-        ps.setString(18, blockData.largestTxHash);
-        ps.setDouble(19, blockData.largestTxAmount);
-        ps.setDouble(20, blockData.largestFee);
-        ps.setDouble(21, blockData.smallestFee);
-        ps.setLong(22, blockData.indexingDuration);
-        ps.setInt(23, blockData.id);
+        ps.setLong(5, blockData.difficulty);
+        ps.setInt(6, blockData.difficultyScale);
+        ps.setLong(7, blockData.reward);
+        ps.setInt(8, blockData.rewardScale);
+        ps.setString(9, blockData.merkleRoot);
+        ps.setLong(10, blockData.timestamp);
+        ps.setString(11, blockData.bits);
+        ps.setInt(12, blockData.size);
+        ps.setString(13, blockData.versionHex);
+        ps.setLong(14, blockData.nonce);
+        ps.setString(15, blockData.prevHash);
+        ps.setString(16, blockData.nextHash);
+        ps.setLong(17, blockData.avgFee);
+        ps.setInt(18, blockData.avgFeeScale);
+        ps.setLong(19, blockData.avgFeeRate);
+        ps.setInt(20, blockData.avgFeeRateScale);
+        ps.setLong(21, blockData.indexed);
+        ps.setString(22, blockData.largestTxHash);
+        ps.setLong(23, blockData.largestTxAmount);
+        ps.setInt(24, blockData.largestTxAmountScale);
+        ps.setLong(25, blockData.largestFee);
+        ps.setInt(26, blockData.largestFeeScale);
+        ps.setLong(27, blockData.smallestFee);
+        ps.setInt(28, blockData.smallestFeeScale);
+        ps.setLong(29, blockData.indexingDuration);
+        ps.setInt(30, blockData.id);
         ps.executeUpdate();
 
         return blockData;
@@ -652,6 +787,90 @@ public class BlockData {
             return new BlockData(rs);
         else
             return null;
+    }
+
+    @Override
+    public void write(DataOutput dout) throws SerializationException {
+        try {
+            DataStreamUtilities.writeInt(dout, id);
+            DataStreamUtilities.writeString(dout, blockchainCode);
+
+            DataStreamUtilities.writeString(dout, hash);
+
+            DataStreamUtilities.writeInt(dout, transactionCount);
+            DataStreamUtilities.writeLong(dout, height);
+            DataStreamUtilities.writeLong(dout, difficulty);
+            DataStreamUtilities.writeInt(dout, difficultyScale);
+            DataStreamUtilities.writeLong(dout, reward);
+            DataStreamUtilities.writeInt(dout, rewardScale);
+            DataStreamUtilities.writeString(dout, merkleRoot);
+
+            DataStreamUtilities.writeLong(dout, timestamp);
+            DataStreamUtilities.writeString(dout, bits);
+
+            DataStreamUtilities.writeInt(dout, size);
+            DataStreamUtilities.writeString(dout, versionHex);
+
+            DataStreamUtilities.writeLong(dout, nonce);
+            DataStreamUtilities.writeString(dout, prevHash);
+
+            DataStreamUtilities.writeString(dout, nextHash);
+
+            DataStreamUtilities.writeLong(dout, avgFee);
+            DataStreamUtilities.writeInt(dout, avgFeeScale);
+            DataStreamUtilities.writeLong(dout, avgFeeRate);
+            DataStreamUtilities.writeInt(dout, avgFeeRateScale);
+            DataStreamUtilities.writeLong(dout, indexed);
+            DataStreamUtilities.writeString(dout, largestTxHash);
+
+            DataStreamUtilities.writeLong(dout, largestTxAmount);
+            DataStreamUtilities.writeInt(dout, largestTxAmountScale);
+            DataStreamUtilities.writeLong(dout, largestFee);
+            DataStreamUtilities.writeInt(dout, largestFeeScale);
+            DataStreamUtilities.writeLong(dout, smallestFee);
+            DataStreamUtilities.writeInt(dout, smallestFeeScale);
+            DataStreamUtilities.writeLong(dout, indexingDuration);
+        } catch (Throwable t) {
+            throw new SerializationException("Unable To Serialize", t);
+        }
+    }
+
+    @Override
+    public void read(DataInput din) throws SerializationException {
+        try {
+            id = DataStreamUtilities.readInt(din);
+            blockchainCode = DataStreamUtilities.readString(din);
+            hash = DataStreamUtilities.readString(din);
+            transactionCount = DataStreamUtilities.readInt(din);
+            height = DataStreamUtilities.readLong(din);
+            difficulty = DataStreamUtilities.readLong(din);
+            difficultyScale = DataStreamUtilities.readInt(din);
+            reward = DataStreamUtilities.readLong(din);
+            rewardScale = DataStreamUtilities.readInt(din);
+            merkleRoot = DataStreamUtilities.readString(din);
+            timestamp = DataStreamUtilities.readLong(din);
+            bits = DataStreamUtilities.readString(din);
+            size = DataStreamUtilities.readInt(din);
+            versionHex = DataStreamUtilities.readString(din);
+            nonce = DataStreamUtilities.readLong(din);
+            prevHash = DataStreamUtilities.readString(din);
+            nextHash = DataStreamUtilities.readString(din);
+            avgFee = DataStreamUtilities.readLong(din);
+            avgFeeScale = DataStreamUtilities.readInt(din);
+            avgFeeRate = DataStreamUtilities.readLong(din);
+            avgFeeRateScale = DataStreamUtilities.readInt(din);
+            indexed = DataStreamUtilities.readInt(din);
+            largestTxHash = DataStreamUtilities.readString(din);
+            largestTxAmount = DataStreamUtilities.readLong(din);
+            largestTxAmountScale = DataStreamUtilities.readInt(din);
+            largestFee = DataStreamUtilities.readLong(din);
+            largestFeeScale = DataStreamUtilities.readInt(din);
+            smallestFee = DataStreamUtilities.readLong(din);
+            smallestFeeScale = DataStreamUtilities.readInt(din);
+            indexingDuration = DataStreamUtilities.readLong(din);
+        } catch (Throwable t) {
+            throw new SerializationException("Unable To Serialize", t);
+        }
     }
 
 }

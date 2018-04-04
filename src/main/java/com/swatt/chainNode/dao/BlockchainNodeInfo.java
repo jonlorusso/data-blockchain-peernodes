@@ -1,8 +1,10 @@
 package com.swatt.chainNode.dao;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 /*  =============================  DO NOT EDIT ANY OF THIS FILE  ============================= 
  * 
- *     THIS IS AUTO-GENERATED CODE WAS CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
+ *     THIS IS AUTO-GENERATED CODE CREATED BY gerrySeidman.tools.sql.ExcelSqlCodegen
  *
  *     Based on Excel File: /Users/gloverwilson/eclipse-workspace/internal-blockchain-access/files/Blockchain Node Schema.xls
  * 
@@ -18,8 +20,11 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-public class BlockchainNodeInfo {
-    private int id;
+import com.swatt.util.io.DataStreamSerializable;
+import com.swatt.util.io.DataStreamUtilities;
+import com.swatt.util.io.SerializationException;
+
+public class BlockchainNodeInfo implements DataStreamSerializable {
     private String code;
     private String forkCode;
     private String name;
@@ -32,13 +37,17 @@ public class BlockchainNodeInfo {
     private String rpcUn;
     private String rpcPw;
     private String className;
+    private int difficultyScaling;
+    private int rewardScaling;
+    private int feeScaling;
+    private int amountScaling;
 
     public BlockchainNodeInfo() {
     }
 
-    public BlockchainNodeInfo(int id, String code, String forkCode, String name, String description, String units,
-            String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className) {
-        this.id = id;
+    public BlockchainNodeInfo(String code, String forkCode, String name, String description, String units,
+            String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className,
+            int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling) {
         this.code = code;
         this.forkCode = forkCode;
         this.name = name;
@@ -51,10 +60,10 @@ public class BlockchainNodeInfo {
         this.rpcUn = rpcUn;
         this.rpcPw = rpcPw;
         this.className = className;
-    }
-
-    public final int getId() {
-        return id;
+        this.difficultyScaling = difficultyScaling;
+        this.rewardScaling = rewardScaling;
+        this.feeScaling = feeScaling;
+        this.amountScaling = amountScaling;
     }
 
     public final String getCode() {
@@ -105,6 +114,22 @@ public class BlockchainNodeInfo {
         return className;
     }
 
+    public final int getDifficultyScaling() {
+        return difficultyScaling;
+    }
+
+    public final int getRewardScaling() {
+        return rewardScaling;
+    }
+
+    public final int getFeeScaling() {
+        return feeScaling;
+    }
+
+    public final int getAmountScaling() {
+        return amountScaling;
+    }
+
     public final void setCode(String code) {
         this.code = code;
     }
@@ -153,30 +178,49 @@ public class BlockchainNodeInfo {
         this.className = className;
     }
 
-    public static String getSqlColumnList() {
-        return "ID, CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME";
+    public final void setDifficultyScaling(int difficultyScaling) {
+        this.difficultyScaling = difficultyScaling;
     }
 
-    private final static String primaryKeySelect = "SELECT ID, CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME FROM BLOCKCHAIN_NODE_INFO WHERE ID = ?";
+    public final void setRewardScaling(int rewardScaling) {
+        this.rewardScaling = rewardScaling;
+    }
+
+    public final void setFeeScaling(int feeScaling) {
+        this.feeScaling = feeScaling;
+    }
+
+    public final void setAmountScaling(int amountScaling) {
+        this.amountScaling = amountScaling;
+    }
+
+    public static String getSqlColumnList() {
+        return "CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING";
+    }
+
+    private final static String primaryKeySelect = "SELECT CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING FROM BLOCKCHAIN_NODE_INFO WHERE CODE = ?";
 
     public static String getStandardTableName() {
         return "BLOCKCHAIN_NODE_INFO";
     }
 
     public BlockchainNodeInfo(ResultSet rs) throws SQLException {
-        id = rs.getInt(1);
-        code = rs.getString(2);
-        forkCode = rs.getString(3);
-        name = rs.getString(4);
-        description = rs.getString(5);
-        units = rs.getString(6);
-        txFeeUnits = rs.getString(7);
-        ip = rs.getString(8);
-        port = rs.getInt(9);
-        forwardedPort = rs.getInt(10);
-        rpcUn = rs.getString(11);
-        rpcPw = rs.getString(12);
-        className = rs.getString(13);
+        code = rs.getString(1);
+        forkCode = rs.getString(2);
+        name = rs.getString(3);
+        description = rs.getString(4);
+        units = rs.getString(5);
+        txFeeUnits = rs.getString(6);
+        ip = rs.getString(7);
+        port = rs.getInt(8);
+        forwardedPort = rs.getInt(9);
+        rpcUn = rs.getString(10);
+        rpcPw = rs.getString(11);
+        className = rs.getString(12);
+        difficultyScaling = rs.getInt(13);
+        rewardScaling = rs.getInt(14);
+        feeScaling = rs.getInt(15);
+        amountScaling = rs.getInt(16);
     }
 
     public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(PreparedStatement ps) throws SQLException {
@@ -287,14 +331,15 @@ public class BlockchainNodeInfo {
 
     public static BlockchainNodeInfo insertBlockchainNodeInfo(Connection connection, String code, String forkCode,
             String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort,
-            String rpcUn, String rpcPw, String className) throws SQLException {
+            String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling,
+            int amountScaling) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, code);
         ps.setString(2, forkCode);
@@ -308,11 +353,15 @@ public class BlockchainNodeInfo {
         ps.setString(10, rpcUn);
         ps.setString(11, rpcPw);
         ps.setString(12, className);
+        ps.setInt(13, difficultyScaling);
+        ps.setInt(14, rewardScaling);
+        ps.setInt(15, feeScaling);
+        ps.setInt(16, amountScaling);
         ps.executeUpdate();
 
         int autoGeneratedKey = 0;
 
-        ps = connection.prepareStatement("Select MAX(ID) FROM BLOCKCHAIN_NODE_INFO");
+        ps = connection.prepareStatement("Select MAX(CODE) FROM BLOCKCHAIN_NODE_INFO");
         ResultSet rs = ps.executeQuery();
 
         if (rs.next())
@@ -323,15 +372,16 @@ public class BlockchainNodeInfo {
             connection.setAutoCommit(true);
         }
 
-        return new BlockchainNodeInfo(autoGeneratedKey, code, forkCode, name, description, units, txFeeUnits, ip, port,
-                forwardedPort, rpcUn, rpcPw, className);
+        return new BlockchainNodeInfo(code, forkCode, name, description, units, txFeeUnits, ip, port, forwardedPort,
+                rpcUn, rpcPw, className, difficultyScaling, rewardScaling, feeScaling, amountScaling);
     }
 
-    public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection, int id, String code,
-            String forkCode, String name, String description, String units, String txFeeUnits, String ip, int port,
-            int forwardedPort, String rpcUn, String rpcPw, String className) throws SQLException {
+    public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection, String code, String forkCode,
+            String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort,
+            String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling,
+            int amountScaling) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCKCHAIN_NODE_INFO SET CODE = ?, FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ? WHERE ID = ?");
+                "UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ? WHERE CODE = ?");
 
         ps.setString(1, code);
         ps.setString(2, forkCode);
@@ -345,10 +395,14 @@ public class BlockchainNodeInfo {
         ps.setString(10, rpcUn);
         ps.setString(11, rpcPw);
         ps.setString(12, className);
+        ps.setInt(13, difficultyScaling);
+        ps.setInt(14, rewardScaling);
+        ps.setInt(15, feeScaling);
+        ps.setInt(16, amountScaling);
         ps.executeUpdate();
 
-        return new BlockchainNodeInfo(id, code, forkCode, name, description, units, txFeeUnits, ip, port, forwardedPort,
-                rpcUn, rpcPw, className);
+        return new BlockchainNodeInfo(code, forkCode, name, description, units, txFeeUnits, ip, port, forwardedPort,
+                rpcUn, rpcPw, className, difficultyScaling, rewardScaling, feeScaling, amountScaling);
     }
 
     public static BlockchainNodeInfo insertBlockchainNodeInfo(Connection connection,
@@ -359,7 +413,7 @@ public class BlockchainNodeInfo {
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainNodeInfo.code);
         ps.setString(2, blockchainNodeInfo.forkCode);
@@ -373,22 +427,20 @@ public class BlockchainNodeInfo {
         ps.setString(10, blockchainNodeInfo.rpcUn);
         ps.setString(11, blockchainNodeInfo.rpcPw);
         ps.setString(12, blockchainNodeInfo.className);
+        ps.setInt(13, blockchainNodeInfo.difficultyScaling);
+        ps.setInt(14, blockchainNodeInfo.rewardScaling);
+        ps.setInt(15, blockchainNodeInfo.feeScaling);
+        ps.setInt(16, blockchainNodeInfo.amountScaling);
         ps.executeUpdate();
 
-        int autoGeneratedKey = 0;
-
-        ps = connection.prepareStatement("Select MAX(ID) FROM BLOCKCHAIN_NODE_INFO");
+        ps = connection.prepareStatement("Select MAX(CODE) FROM BLOCKCHAIN_NODE_INFO");
         ResultSet rs = ps.executeQuery();
-
-        if (rs.next())
-            autoGeneratedKey = rs.getInt(1);
 
         if (storedAutoCommitValue) {
             connection.commit();
             connection.setAutoCommit(true);
         }
 
-        blockchainNodeInfo.id = autoGeneratedKey;
         return blockchainNodeInfo;
     }
 
@@ -400,7 +452,7 @@ public class BlockchainNodeInfo {
             connection.setAutoCommit(false);
 
         PreparedStatement ps = connection.prepareStatement(
-                "REPLACE INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "REPLACE INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainNodeInfo.code);
         ps.setString(2, blockchainNodeInfo.forkCode);
@@ -414,43 +466,44 @@ public class BlockchainNodeInfo {
         ps.setString(10, blockchainNodeInfo.rpcUn);
         ps.setString(11, blockchainNodeInfo.rpcPw);
         ps.setString(12, blockchainNodeInfo.className);
+        ps.setInt(13, blockchainNodeInfo.difficultyScaling);
+        ps.setInt(14, blockchainNodeInfo.rewardScaling);
+        ps.setInt(15, blockchainNodeInfo.feeScaling);
+        ps.setInt(16, blockchainNodeInfo.amountScaling);
         ps.executeUpdate();
 
-        int autoGeneratedKey = 0;
-
-        ps = connection.prepareStatement("Select MAX(ID) FROM BLOCKCHAIN_NODE_INFO");
+        ps = connection.prepareStatement("Select MAX(CODE) FROM BLOCKCHAIN_NODE_INFO");
         ResultSet rs = ps.executeQuery();
-
-        if (rs.next())
-            autoGeneratedKey = rs.getInt(1);
 
         if (storedAutoCommitValue) {
             connection.commit();
             connection.setAutoCommit(true);
         }
 
-        blockchainNodeInfo.id = autoGeneratedKey;
         return blockchainNodeInfo;
     }
 
     public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection,
             BlockchainNodeInfo blockchainNodeInfo) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCKCHAIN_NODE_INFO SET CODE = ?, FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ? WHERE ID = ?");
+                "UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ? WHERE CODE = ?");
 
-        ps.setString(1, blockchainNodeInfo.code);
-        ps.setString(2, blockchainNodeInfo.forkCode);
-        ps.setString(3, blockchainNodeInfo.name);
-        ps.setString(4, blockchainNodeInfo.description);
-        ps.setString(5, blockchainNodeInfo.units);
-        ps.setString(6, blockchainNodeInfo.txFeeUnits);
-        ps.setString(7, blockchainNodeInfo.ip);
-        ps.setInt(8, blockchainNodeInfo.port);
-        ps.setInt(9, blockchainNodeInfo.forwardedPort);
-        ps.setString(10, blockchainNodeInfo.rpcUn);
-        ps.setString(11, blockchainNodeInfo.rpcPw);
-        ps.setString(12, blockchainNodeInfo.className);
-        ps.setInt(13, blockchainNodeInfo.id);
+        ps.setString(1, blockchainNodeInfo.forkCode);
+        ps.setString(2, blockchainNodeInfo.name);
+        ps.setString(3, blockchainNodeInfo.description);
+        ps.setString(4, blockchainNodeInfo.units);
+        ps.setString(5, blockchainNodeInfo.txFeeUnits);
+        ps.setString(6, blockchainNodeInfo.ip);
+        ps.setInt(7, blockchainNodeInfo.port);
+        ps.setInt(8, blockchainNodeInfo.forwardedPort);
+        ps.setString(9, blockchainNodeInfo.rpcUn);
+        ps.setString(10, blockchainNodeInfo.rpcPw);
+        ps.setString(11, blockchainNodeInfo.className);
+        ps.setInt(12, blockchainNodeInfo.difficultyScaling);
+        ps.setInt(13, blockchainNodeInfo.rewardScaling);
+        ps.setInt(14, blockchainNodeInfo.feeScaling);
+        ps.setInt(15, blockchainNodeInfo.amountScaling);
+        ps.setString(16, blockchainNodeInfo.code);
         ps.executeUpdate();
 
         return blockchainNodeInfo;
@@ -461,16 +514,74 @@ public class BlockchainNodeInfo {
         ps.executeUpdate();
     }
 
-    public static BlockchainNodeInfo getBlockchainNodeInfo(Connection connection, int id) throws SQLException {
+    public static BlockchainNodeInfo getBlockchainNodeInfo(Connection connection, String code) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(primaryKeySelect);
 
-        ps.setInt(1, id);
+        ps.setString(1, code);
         ResultSet rs = ps.executeQuery();
 
         if (rs.next())
             return new BlockchainNodeInfo(rs);
         else
             return null;
+    }
+
+    @Override
+    public void write(DataOutput dout) throws SerializationException {
+        try {
+            DataStreamUtilities.writeString(dout, code);
+
+            DataStreamUtilities.writeString(dout, forkCode);
+
+            DataStreamUtilities.writeString(dout, name);
+
+            DataStreamUtilities.writeString(dout, description);
+
+            DataStreamUtilities.writeString(dout, units);
+
+            DataStreamUtilities.writeString(dout, txFeeUnits);
+
+            DataStreamUtilities.writeString(dout, ip);
+
+            DataStreamUtilities.writeInt(dout, port);
+            DataStreamUtilities.writeInt(dout, forwardedPort);
+            DataStreamUtilities.writeString(dout, rpcUn);
+
+            DataStreamUtilities.writeString(dout, rpcPw);
+
+            DataStreamUtilities.writeString(dout, className);
+
+            DataStreamUtilities.writeInt(dout, difficultyScaling);
+            DataStreamUtilities.writeInt(dout, rewardScaling);
+            DataStreamUtilities.writeInt(dout, feeScaling);
+            DataStreamUtilities.writeInt(dout, amountScaling);
+        } catch (Throwable t) {
+            throw new SerializationException("Unable To Serialize", t);
+        }
+    }
+
+    @Override
+    public void read(DataInput din) throws SerializationException {
+        try {
+            code = DataStreamUtilities.readString(din);
+            forkCode = DataStreamUtilities.readString(din);
+            name = DataStreamUtilities.readString(din);
+            description = DataStreamUtilities.readString(din);
+            units = DataStreamUtilities.readString(din);
+            txFeeUnits = DataStreamUtilities.readString(din);
+            ip = DataStreamUtilities.readString(din);
+            port = DataStreamUtilities.readInt(din);
+            forwardedPort = DataStreamUtilities.readInt(din);
+            rpcUn = DataStreamUtilities.readString(din);
+            rpcPw = DataStreamUtilities.readString(din);
+            className = DataStreamUtilities.readString(din);
+            difficultyScaling = DataStreamUtilities.readInt(din);
+            rewardScaling = DataStreamUtilities.readInt(din);
+            feeScaling = DataStreamUtilities.readInt(din);
+            amountScaling = DataStreamUtilities.readInt(din);
+        } catch (Throwable t) {
+            throw new SerializationException("Unable To Serialize", t);
+        }
     }
 
 }
