@@ -112,6 +112,10 @@ public class BitcoinChainNode extends ChainNode {
                     RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
+
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
+                    super.getAmountScaling());
+
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
             blockData.setHeight(rpcBlock.height);
@@ -120,11 +124,11 @@ public class BitcoinChainNode extends ChainNode {
             blockData.setTimestamp(rpcBlock.time);
             blockData.setNonce(rpcBlock.nonce);
             blockData.setBits(rpcBlock.bits);
-            blockData.setDifficulty(rpcBlock.difficulty);
+            blockData.setDifficultyBase(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
 
-            blockData.setReward(BITCOIN_BLOCK_REWARD_BTC);
+            blockData.setRewardBase(BITCOIN_BLOCK_REWARD_BTC);
 
             blockData.setBlockchainCode(blockchainCode);
 
@@ -201,13 +205,13 @@ public class BitcoinChainNode extends ChainNode {
         double averageFeeRate = totalFeeRate / transactionCount;
 
         blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFee(averageFee);
-        blockData.setAvgFeeRate(averageFeeRate);
+        blockData.setAvgFeeBase(averageFee);
+        blockData.setAvgFeeRateBase(averageFeeRate);
 
-        blockData.setSmallestFee(smallestFee);
-        blockData.setLargestFee(largestFee);
+        blockData.setSmallestFeeBase(smallestFee);
+        blockData.setLargestFeeBase(largestFee);
 
-        blockData.setLargestTxAmount(largestTxAmount);
+        blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
 }

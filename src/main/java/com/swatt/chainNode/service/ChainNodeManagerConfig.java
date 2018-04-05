@@ -70,8 +70,11 @@ public class ChainNodeManagerConfig extends Attributable {
 
             String url = rootURL + ":" + blockchainNodeInfo.getForwardedPort();
 
-            addChainNodeConfig(blockchainCode, new ChainNodeConfig(blockchainCode, blockchainNodeInfo.getClassName(),
-                    url, blockchainNodeInfo.getRpcUn(), blockchainNodeInfo.getRpcPw()));
+            addChainNodeConfig(blockchainCode,
+                    new ChainNodeConfig(blockchainCode, blockchainNodeInfo.getClassName(), url,
+                            blockchainNodeInfo.getRpcUn(), blockchainNodeInfo.getRpcPw(),
+                            blockchainNodeInfo.getDifficultyScaling(), blockchainNodeInfo.getRewardScaling(),
+                            blockchainNodeInfo.getFeeScaling(), blockchainNodeInfo.getAmountScaling()));
         }
     }
 

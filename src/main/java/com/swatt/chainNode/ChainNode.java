@@ -100,4 +100,20 @@ public abstract class ChainNode {
     public ChainNodeSummaryData getChainNodePeriodSummary(long from, long to) {
         return null;
     }
+
+    public int getDifficultyScaling() {
+        return chainNodeConfig.getDifficultyScaling();
+    }
+
+    public int getRewardScaling() {
+        return chainNodeConfig.getRewardScaling();
+    }
+
+    public int getFeeScaling() {
+        return chainNodeConfig.getFeeScaling();
+    }
+
+    public int getAmountScaling() {
+        return chainNodeConfig.getAmountScaling();
+    }
 }

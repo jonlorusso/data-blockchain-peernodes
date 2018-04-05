@@ -90,13 +90,16 @@ public class EthereumChainNode extends ChainNode {
 
             BlockData blockData = new BlockData();
 
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
+                    super.getAmountScaling());
+
             blockData.setHash(blockHash);
             blockData.setTransactionCount(block.getTransactions().size());
 
             blockData.setHeight(block.getNumber().longValue());
             blockData.setTimestamp(block.getTimestamp().longValue());
             blockData.setNonce(block.getNonce().longValue());
-            blockData.setDifficulty(block.getDifficulty().doubleValue());
+            blockData.setDifficultyBase(block.getDifficulty().doubleValue());
             blockData.setPrevHash(block.getParentHash());
             blockData.setBlockchainCode(blockchainCode);
             blockData.setSize(block.getSize().intValue());
@@ -174,7 +177,7 @@ public class EthereumChainNode extends ChainNode {
 
         double reward = ETHEREUM_BASE_BLOCK_REWARD_ETH + totalFeeRate
                 + (ETHEREUM_BASE_BLOCK_REWARD_ETH * block.getUncles().size() / 32);
-        blockData.setReward(reward);
+        blockData.setRewardBase(reward);
 
         if (smallestFee == Double.MAX_VALUE)
             smallestFee = 0;
@@ -183,13 +186,13 @@ public class EthereumChainNode extends ChainNode {
         double averageFeeRate = totalFeeRate / transactionCount;
 
         blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFee(averageFee);
-        blockData.setAvgFeeRate(averageFeeRate);
+        blockData.setAvgFeeBase(averageFee);
+        blockData.setAvgFeeRateBase(averageFeeRate);
 
-        blockData.setSmallestFee(smallestFee);
-        blockData.setLargestFee(largestFee);
+        blockData.setSmallestFeeBase(smallestFee);
+        blockData.setLargestFeeBase(largestFee);
 
-        blockData.setLargestTxAmount(largestTxAmount);
+        blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
 }

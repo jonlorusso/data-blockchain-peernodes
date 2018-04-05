@@ -97,6 +97,17 @@ public class BlockData implements DataStreamSerializable {
         this.indexingDuration = indexingDuration;
     }
 
+    public void setScalingPowers(int difficultyScale, int rewardScale, int feeScale, int amountScale) {
+        this.difficultyScale = difficultyScale;
+        this.rewardScale = rewardScale;
+        this.avgFeeScale = feeScale;
+        this.avgFeeRateScale = feeScale;
+        this.largestTxAmountScale = amountScale;
+        this.largestFeeScale = feeScale;
+        this.smallestFeeScale = feeScale;
+
+    }
+
     public final int getId() {
         return id;
     }
@@ -117,16 +128,16 @@ public class BlockData implements DataStreamSerializable {
         return height;
     }
 
-    public final long getDifficulty() {
-        return difficulty;
+    public final double getDifficulty() {
+        return difficulty / Math.pow(10, difficultyScale);
     }
 
     public final int getDifficultyScale() {
         return difficultyScale;
     }
 
-    public final long getReward() {
-        return reward;
+    public final double getReward() {
+        return reward / Math.pow(10, rewardScale);
     }
 
     public final int getRewardScale() {
@@ -165,16 +176,16 @@ public class BlockData implements DataStreamSerializable {
         return nextHash;
     }
 
-    public final long getAvgFee() {
-        return avgFee;
+    public final double getAvgFee() {
+        return avgFee / Math.pow(10, avgFeeScale);
     }
 
     public final int getAvgFeeScale() {
         return avgFeeScale;
     }
 
-    public final long getAvgFeeRate() {
-        return avgFeeRate;
+    public final double getAvgFeeRate() {
+        return avgFeeRate / Math.pow(10, avgFeeRateScale);
     }
 
     public final int getAvgFeeRateScale() {
@@ -189,24 +200,24 @@ public class BlockData implements DataStreamSerializable {
         return largestTxHash;
     }
 
-    public final long getLargestTxAmount() {
-        return largestTxAmount;
+    public final double getLargestTxAmount() {
+        return largestTxAmount / Math.pow(10, largestTxAmountScale);
     }
 
     public final int getLargestTxAmountScale() {
         return largestTxAmountScale;
     }
 
-    public final long getLargestFee() {
-        return largestFee;
+    public final double getLargestFee() {
+        return largestFee / Math.pow(10, largestFeeScale);
     }
 
     public final int getLargestFeeScale() {
         return largestFeeScale;
     }
 
-    public final long getSmallestFee() {
-        return smallestFee;
+    public final double getSmallestFee() {
+        return smallestFee / Math.pow(10, smallestFeeScale);
     }
 
     public final int getSmallestFeeScale() {
@@ -237,12 +248,11 @@ public class BlockData implements DataStreamSerializable {
         this.height = height;
     }
 
-    public final void setDifficulty(double difficulty) {
-        // this.difficulty = difficulty;
-        // TODO handle power
+    public final void setDifficultyBase(double difficulty) {
+        this.difficulty = Double.valueOf(difficulty * Math.pow(10, difficultyScale)).longValue();
     }
 
-    public final void setDifficultyBase(long difficulty) {
+    public final void setDifficulty(long difficulty) {
         this.difficulty = difficulty;
     }
 
@@ -250,11 +260,11 @@ public class BlockData implements DataStreamSerializable {
         this.difficultyScale = difficultyScale;
     }
 
-    public final void setReward(double reward) {
-        // TODO handle power
+    public final void setRewardBase(double reward) {
+        this.reward = Double.valueOf(reward * Math.pow(10, rewardScale)).longValue();
     }
 
-    public final void setRewardBase(long reward) {
+    public final void setReward(long reward) {
         this.reward = reward;
     }
 
@@ -294,24 +304,24 @@ public class BlockData implements DataStreamSerializable {
         this.nextHash = nextHash;
     }
 
-    public final void setAvgFeeBase(long avgFee) {
-        this.avgFee = avgFee;
+    public final void setAvgFeeBase(double avgFee) {
+        this.avgFee = Double.valueOf(avgFee * Math.pow(10, avgFeeScale)).longValue();
     }
 
-    public final void setAvgFee(double avgFee) {
-        // TODO this.avgFee = avgFee;
+    public final void setAvgFee(long avgFee) {
+        this.avgFee = avgFee;
     }
 
     public final void setAvgFeeScale(int avgFeeScale) {
         this.avgFeeScale = avgFeeScale;
     }
 
-    public final void setAvgFeeRateBase(long avgFeeRate) {
-        this.avgFeeRate = avgFeeRate;
+    public final void setAvgFeeRateBase(double avgFeeRate) {
+        this.avgFeeRate = Double.valueOf(avgFeeRate * Math.pow(10, avgFeeRateScale)).longValue();
     }
 
-    public final void setAvgFeeRate(double avgFeeRate) {
-        // TODO this.avgFeeRate = avgFeeRate;
+    public final void setAvgFeeRate(long avgFeeRate) {
+        this.avgFeeRate = avgFeeRate;
     }
 
     public final void setAvgFeeRateScale(int avgFeeRateScale) {
@@ -326,36 +336,36 @@ public class BlockData implements DataStreamSerializable {
         this.largestTxHash = largestTxHash;
     }
 
-    public final void setLargestTxAmountBase(long largestTxAmount) {
-        this.largestTxAmount = largestTxAmount;
+    public final void setLargestTxAmountBase(double largestTxAmount) {
+        this.largestTxAmount = Double.valueOf(largestTxAmount * Math.pow(10, largestTxAmountScale)).longValue();
     }
 
-    public final void setLargestTxAmount(double largestTxAmount) {
-        // TODO this.largestTxAmount = largestTxAmount;
+    public final void setLargestTxAmount(long largestTxAmount) {
+        this.largestTxAmount = largestTxAmount;
     }
 
     public final void setLargestTxAmountScale(int largestTxAmountScale) {
         this.largestTxAmountScale = largestTxAmountScale;
     }
 
-    public final void setLargestFeeBase(long largestFee) {
-        this.largestFee = largestFee;
+    public final void setLargestFeeBase(double largestFee) {
+        this.largestFee = Double.valueOf(largestFee * Math.pow(10, largestFeeScale)).longValue();
     }
 
-    public final void setLargestFee(double largestFee) {
-        // TODO this.largestFee = largestFee;
+    public final void setLargestFee(long largestFee) {
+        this.largestFee = largestFee;
     }
 
     public final void setLargestFeeScale(int largestFeeScale) {
         this.largestFeeScale = largestFeeScale;
     }
 
-    public final void setSmallestFeeBase(long smallestFee) {
-        this.smallestFee = smallestFee;
+    public final void setSmallestFeeBase(double smallestFee) {
+        this.smallestFee = Double.valueOf(smallestFee * Math.pow(10, smallestFeeScale)).longValue();
     }
 
-    public final void setSmallestFee(double smallestFee) {
-        // TODO this.smallestFee = smallestFee;
+    public final void setSmallestFee(long smallestFee) {
+        this.smallestFee = smallestFee;
     }
 
     public final void setSmallestFeeScale(int smallestFeeScale) {

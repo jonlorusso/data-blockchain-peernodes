@@ -85,6 +85,9 @@ public class MoneroChainNode extends ChainNode {
 
             BlockData blockData = new BlockData();
 
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
+                    super.getAmountScaling());
+
             blockData.setHash(rpcBlock.block_header.hash);
             blockData.setSize(rpcBlock.block_header.block_size);
             blockData.setHeight(rpcBlock.block_header.height);
@@ -186,13 +189,13 @@ public class MoneroChainNode extends ChainNode {
         double averageFeeRate = totalFeeRate / transactionCount;
 
         blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFee(averageFee);
-        blockData.setAvgFeeRate(averageFeeRate);
+        blockData.setAvgFeeBase(averageFee);
+        blockData.setAvgFeeRateBase(averageFeeRate);
 
-        blockData.setSmallestFee(smallestFee);
-        blockData.setLargestFee(largestFee);
+        blockData.setSmallestFeeBase(smallestFee);
+        blockData.setLargestFeeBase(largestFee);
 
-        blockData.setLargestTxAmount(largestTxAmount);
+        blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
 }

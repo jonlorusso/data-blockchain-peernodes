@@ -71,6 +71,10 @@ public class SteemChainNode extends ChainNode {
             RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsSteem.GET_BLOCK, parameters, RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
+
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
+                    super.getAmountScaling());
+
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
             blockData.setHeight(rpcBlock.height);
@@ -79,7 +83,7 @@ public class SteemChainNode extends ChainNode {
             blockData.setTimestamp(rpcBlock.time);
             blockData.setNonce(rpcBlock.nonce);
             blockData.setBits(rpcBlock.bits);
-            blockData.setDifficulty(rpcBlock.difficulty);
+            blockData.setDifficultyBase(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
 
@@ -157,13 +161,13 @@ public class SteemChainNode extends ChainNode {
         double averageFeeRate = totalFeeRate / transactionCount;
 
         blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFee(averageFee);
-        blockData.setAvgFeeRate(averageFeeRate);
+        blockData.setAvgFeeBase(averageFee);
+        blockData.setAvgFeeRateBase(averageFeeRate);
 
-        blockData.setSmallestFee(smallestFee);
-        blockData.setLargestFee(largestFee);
+        blockData.setSmallestFeeBase(smallestFee);
+        blockData.setLargestFeeBase(largestFee);
 
-        blockData.setLargestTxAmount(largestTxAmount);
+        blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
 }

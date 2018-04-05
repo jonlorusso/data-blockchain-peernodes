@@ -8,13 +8,23 @@ public class ChainNodeConfig extends Attributable {
     private String url; // URL to remote blockchain
     private String rpcUser; // If any username required
     private String rpcPassword; // Accompanying password
+    private int difficultyScaling;
+    private int rewardScaling;
+    private int feeScaling;
+    private int amountScaling;
 
-    public ChainNodeConfig(String blockchainCode, String className, String url, String rpcUser, String rpcPassword) {
+    public ChainNodeConfig(String blockchainCode, String className, String url, String rpcUser, String rpcPassword,
+            int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling) {
         this.blockchainCode = blockchainCode;
         this.className = className;
         this.url = url;
         this.rpcUser = rpcUser;
         this.rpcPassword = rpcPassword;
+
+        this.difficultyScaling = difficultyScaling;
+        this.rewardScaling = rewardScaling;
+        this.feeScaling = feeScaling;
+        this.amountScaling = amountScaling;
     }
 
     public final String getCode() {
@@ -35,5 +45,21 @@ public class ChainNodeConfig extends Attributable {
 
     public String getURL() {
         return url;
+    }
+
+    public int getDifficultyScaling() {
+        return difficultyScaling;
+    }
+
+    public int getRewardScaling() {
+        return rewardScaling;
+    }
+
+    public int getFeeScaling() {
+        return feeScaling;
+    }
+
+    public int getAmountScaling() {
+        return amountScaling;
     }
 }
