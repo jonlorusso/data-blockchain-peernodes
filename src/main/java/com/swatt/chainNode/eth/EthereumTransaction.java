@@ -1,5 +1,6 @@
 package com.swatt.chainNode.eth;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,51 +14,52 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.util.general.OperationFailedException;
 
 public class EthereumTransaction extends ChainNodeTransaction {
     private static final Logger LOGGER = Logger.getLogger(EthereumTransaction.class.getName());
-
-    EthereumTransaction(Web3j web3j, String transactionHash) {
+    
+    protected EthereumTransaction(Web3j web3j, String transactionHash) {
         super(transactionHash);
 
         try {
-            fetchFromBlockchain(web3j, transactionHash);
-        } catch (OperationFailedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            EthTransaction ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
+            EthGetTransactionReceipt ethGetTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
+            EthBlock ethBlock = web3j.ethGetBlockByHash(ethTransaction.getTransaction().get().getBlockHash(), false).send();
+            
+            setTransactionAndReceipt(ethTransaction.getTransaction().get(), ethGetTransactionReceipt, ethBlock);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }
-
-    private void fetchFromBlockchain(Web3j web3j, String transactionHash) throws OperationFailedException {
+    
+    public EthereumTransaction(Web3j web3j, Transaction transaction) {
+        super(transaction.getHash());
+        
         try {
-            EthTransaction ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
-            EthGetTransactionReceipt ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
-            Transaction transaction = ethTransaction.getTransaction().get();
-            TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
-
+            EthGetTransactionReceipt ethGetTransactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send();
             EthBlock ethBlock = web3j.ethGetBlockByHash(transaction.getBlockHash(), false).send();
-            Block block = ethBlock.getBlock();
-
-            super.setBlockHash(transaction.getBlockHash());
-
-            super.setTimestamp(block.getTimestamp().longValue());
-
-            super.setFee(transactionReceipt.getGasUsed().doubleValue());
-
-            BigInteger priceWei = transaction.getGasPrice();
-            double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
-            double feeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
-            super.setFeeRate(feeRate);
-
-            BigInteger valueWei = transaction.getValue();
-            double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
-            super.setAmount(valueEther);
-        } catch (Throwable t) {
-            OperationFailedException e = new OperationFailedException(
-                    "Error fetching transaction from Blockchain: " + transactionHash, t);
+            
+            setTransactionAndReceipt(transaction, ethGetTransactionReceipt, ethBlock);
+        } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
         }
+    }
+    
+    private void setTransactionAndReceipt(Transaction transaction, EthGetTransactionReceipt ethGetTransactionReceipt, EthBlock ethBlock) {
+        TransactionReceipt transactionReceipt = ethGetTransactionReceipt.getTransactionReceipt().get();
+        Block block = ethBlock.getBlock();
+
+        super.setBlockHash(transaction.getBlockHash());
+        super.setTimestamp(block.getTimestamp().longValue());
+        super.setFee(transactionReceipt.getGasUsed().doubleValue());
+
+        BigInteger priceWei = transaction.getGasPrice();
+        double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+        double feeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
+        super.setFeeRate(feeRate);
+
+        BigInteger valueWei = transaction.getValue();
+        double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumChainNode.POWX_ETHER_WEI));
+        super.setAmount(valueEther);
     }
 }

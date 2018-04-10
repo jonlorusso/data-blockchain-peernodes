@@ -32,30 +32,22 @@ public class SteemChainNode extends ChainNode {
     }
 
     @Override
-    public BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException {
+    public BlockData fetchBlockDataByHash(String hash) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlockByHash(jsonRpcHttpClient, blockHash);
+            return fetchBlockByHash(jsonRpcHttpClient, hash);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
     }
-
+    
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException {
+    public ChainNodeTransaction fetchTransactionByHash(String hash, boolean calculate) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            SteemTransaction transaction = new SteemTransaction(jsonRpcHttpClient, transactionHash, calculate);
-            return transaction;
-        } catch (OperationFailedException e) {
-            throw e;
-        } catch (Throwable t) {
-            OperationFailedException e = new OperationFailedException("Error fetching latest Block: ", t);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
+            return new SteemTransaction(jsonRpcHttpClient, hash, calculate);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
@@ -169,5 +161,30 @@ public class SteemChainNode extends ChainNode {
 
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
+    }
+
+	@Override
+	public long fetchBlockCount() throws OperationFailedException {
+	    throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+	@Override
+	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+	    throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+	@Override
+	public String getGenesisHash() {
+		throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+    @Override
+    public void fetchNewTransactions() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
+    public void fetchNewBlocks() {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

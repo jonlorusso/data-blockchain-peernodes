@@ -1,6 +1,8 @@
 package com.swatt.chainNode.btc;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,25 +18,17 @@ public class BitcoinTransaction extends ChainNodeTransaction {
 
     private List<RpcResultVout> vout;
 
-    BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, String hash, boolean calculateFee)
+    BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction, boolean calculateFee) 
             throws OperationFailedException {
-        super(hash);
-
-        RpcResultTransaction rpcTransaction = fetchFromBlockchain(jsonrpcClient, hash);
+        super(rpcTransaction.txid);
 
         this.vout = rpcTransaction.vout;
 
         // Compute amount
-        double amount = 0.0;
-
-        // TODO clean up vout array once values read, no further need
-        for (int i = 0; i < rpcTransaction.vout.size(); i++) {
-            RpcResultVout outTransaction = rpcTransaction.vout.get(i);
-            amount += outTransaction.value;
-        }
+        double amount = vout.stream().mapToDouble(v -> v.value).sum();
 
         setAmount(amount);
-        setTimestamp(rpcTransaction.time);
+        // setTimestamp(rpcTransaction.time);
 
         // Compute Size
 
@@ -44,33 +38,45 @@ public class BitcoinTransaction extends ChainNodeTransaction {
             setSize(rpcTransaction.size);
         }
 
-        super.setBlockHash(rpcTransaction.blockhash);
+        // super.setBlockHash(rpcTransaction.blockhash);
 
         if (calculateFee)
             calculateFee(jsonrpcClient, rpcTransaction);
     }
 
-    private RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)
-            throws OperationFailedException {
+    // FIXME pull this out into its own file
+    @SuppressWarnings("serial")
+    public static class Cache extends LinkedHashMap<String, RpcResultTransaction> {
+        protected boolean removeEldestEntry(Map.Entry<String, RpcResultTransaction> eldest) {
+            return size() > 10000;
+        }
+    }
+
+    public static Cache transactions = new Cache();
+
+    public static RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash) throws OperationFailedException {
+        if (transactions.get(transactionHash) != null)
+            return transactions.get(transactionHash);
+
         try {
 
             Object parameters[] = new Object[] { transactionHash, true };
 
             RpcResultTransaction rtn;
             rtn = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_RAW_TRANSACTION, parameters, RpcResultTransaction.class);
+            transactions.put(transactionHash, rtn);
 
             return rtn;
         } catch (Throwable t) {
-            OperationFailedException e = new OperationFailedException(
-                    "Error fetching transaction from Blockchain: " + transactionHash, t);
+            OperationFailedException e = new OperationFailedException("Error fetching transaction from Blockchain: " + transactionHash, t);
             LOGGER.log(Level.SEVERE, e.toString(), e);
             throw e;
         }
     }
 
-    private double outputValue(int i) {
-        return vout.get(i).value;
-    }
+    // private double outputValue(int i) {
+    // return vout.get(i).value;
+    // }
 
     public final double getInValue() {
         return inValue;
@@ -96,8 +102,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
         this.minted = minted;
     }
 
-    private void calculateFee(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction)
-            throws OperationFailedException {
+    private void calculateFee(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction) throws OperationFailedException {
 
         // Perform Calculations
 
@@ -111,8 +116,8 @@ public class BitcoinTransaction extends ChainNodeTransaction {
             inTransaction = rpcTransaction.vin.get(i);
 
             if (inTransaction.txid != null) {
-                BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, inTransaction.txid, false);
-                inValue += transaction.outputValue(inTransaction.vout);
+                RpcResultTransaction rpcResultTransaction = fetchFromBlockchain(jsonrpcClient, inTransaction.txid);
+                inValue += rpcResultTransaction.vout.get(inTransaction.vout).value;
             }
         }
 

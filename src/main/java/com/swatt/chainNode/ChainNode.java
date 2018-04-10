@@ -14,7 +14,7 @@ import com.swatt.util.general.OperationFailedException;
 public abstract class ChainNode {
     protected ChainNodeConfig chainNodeConfig;
     protected String blockchainCode;
-    private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
+    protected ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
 
     public ChainNode() {
     }
@@ -74,6 +74,14 @@ public abstract class ChainNode {
 
         return results;
     }
+
+    public abstract void fetchNewTransactions();
+    public abstract void fetchNewBlocks();
+
+    public abstract String getGenesisHash();
+    
+    public abstract long fetchBlockCount() throws OperationFailedException;
+    public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
     public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
             throws SQLException {
