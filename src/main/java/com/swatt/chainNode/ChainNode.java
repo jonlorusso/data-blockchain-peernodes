@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.chainNode.dao.BlockDataByInterval;
+import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
@@ -61,10 +61,10 @@ public abstract class ChainNode {
             return null;
     }
 
-    public final BlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
+    public final APIBlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
             long toTimestamp) throws SQLException {
 
-        BlockDataByInterval results = BlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+        APIBlockDataByInterval results = APIBlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
 
         return results;
     }

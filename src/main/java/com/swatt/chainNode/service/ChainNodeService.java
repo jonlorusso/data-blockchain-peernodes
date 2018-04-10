@@ -10,7 +10,7 @@ import org.junit.Test;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.chainNode.dao.BlockDataByInterval;
+import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.json.JsonUtilities;
@@ -44,26 +44,6 @@ public class ChainNodeService {
             ctx.result(result);
         });
 
-        app.get("/:blockchainCode/blck/:blockHash", ctx -> {
-            String blockchainCode = ctx.param("blockchainCode");
-            String blockHash = ctx.param("blockHash");
-
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
-
-            try {
-                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
-
-                connectionPool.returnConnection(conn);
-
-                String result = JsonUtilities.objectToJsonString(blockData);
-                ctx.result(result);
-            } catch (Throwable t) {
-                connectionPool.returnConnection(conn);
-            }
-        });
-
         app.get("/:blockchainCode/block/:blockHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
             String blockHash = ctx.param("blockHash");
@@ -72,6 +52,8 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
+                System.out.println(blockHash);
+
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
                 BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
@@ -95,7 +77,7 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
 
-                BlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, blockchainCode,
+                APIBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, blockchainCode,
                         Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(aggregateData);
