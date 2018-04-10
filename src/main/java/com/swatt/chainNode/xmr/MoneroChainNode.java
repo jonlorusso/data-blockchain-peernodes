@@ -43,11 +43,11 @@ public class MoneroChainNode extends ChainNode {
     }
 
     @Override
-    public BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException {
+    public BlockData fetchBlockDataByHash(String hash) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlock(jsonRpcHttpClient, 0, blockHash, true);
+            return fetchBlock(jsonRpcHttpClient, 0, hash, true);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
@@ -133,12 +133,9 @@ public class MoneroChainNode extends ChainNode {
     }
 
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException {
-
+    public ChainNodeTransaction fetchTransactionByHash(String hash, boolean calculate)  throws OperationFailedException {
         try {
-            MoneroTransaction transaction = new MoneroTransaction(this, url, transactionHash, true);
-            return transaction;
+            return new MoneroTransaction(this, url, hash, true);
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException("Error fetching Transaction: ", t);
             LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -146,8 +143,7 @@ public class MoneroChainNode extends ChainNode {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
-            throws OperationFailedException {
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -197,5 +193,30 @@ public class MoneroChainNode extends ChainNode {
 
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
+    }
+
+	@Override
+	public long fetchBlockCount() throws OperationFailedException {
+	    throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+	@Override
+	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+	    throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+	@Override
+	public String getGenesisHash() {
+	    throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+    @Override
+    public void fetchNewTransactions() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
+    public void fetchNewBlocks() {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

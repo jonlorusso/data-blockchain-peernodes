@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class BlockDataByInterval {
+public class APIBlockData {
     private double avgReward;
     private double avgFee;
     private double avgFeeRate;
@@ -61,7 +61,7 @@ public class BlockDataByInterval {
         return "?, ?, ?";
     }
 
-    public BlockDataByInterval(ResultSet rs) throws SQLException {
+    public APIBlockData(ResultSet rs) throws SQLException {
         avgReward = rs.getDouble(1);
         avgFee = rs.getDouble(2);
         avgFeeRate = rs.getDouble(3);
@@ -74,8 +74,8 @@ public class BlockDataByInterval {
 
     private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";
 
-    public static BlockDataByInterval call(Connection connection, String blockchainCode, long fromTimestamp,
-            long toTimestamp) throws SQLException {
+    public static APIBlockData call(Connection connection, String blockchainCode, long fromTimestamp, long toTimestamp)
+            throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
         cs.setString(1, blockchainCode);
@@ -85,7 +85,7 @@ public class BlockDataByInterval {
         ResultSet rs = cs.executeQuery();
 
         if (rs.next())
-            return new BlockDataByInterval(rs);
+            return new APIBlockData(rs);
         else
             return null;
     }

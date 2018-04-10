@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.chainNode.dao.BlockDataByInterval;
+import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
@@ -14,7 +14,7 @@ import com.swatt.util.general.OperationFailedException;
 public abstract class ChainNode {
     protected ChainNodeConfig chainNodeConfig;
     protected String blockchainCode;
-    private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
+    protected ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
 
     public ChainNode() {
     }
@@ -61,10 +61,10 @@ public abstract class ChainNode {
             return null;
     }
 
-    public final BlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
+    public final APIBlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
             long toTimestamp) throws SQLException {
 
-        BlockDataByInterval results = BlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+        APIBlockDataByInterval results = APIBlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
 
         return results;
     }
@@ -74,6 +74,14 @@ public abstract class ChainNode {
 
         return results;
     }
+
+    public abstract void fetchNewTransactions();
+    public abstract void fetchNewBlocks();
+
+    public abstract String getGenesisHash();
+    
+    public abstract long fetchBlockCount() throws OperationFailedException;
+    public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
     public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
             throws SQLException {
