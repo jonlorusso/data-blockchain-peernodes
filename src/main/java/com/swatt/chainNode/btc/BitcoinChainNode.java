@@ -65,7 +65,8 @@ public class BitcoinChainNode extends ChainNode {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            RpcResultTransaction rpcTranaction = BitcoinTransaction.fetchFromBlockchain(jsonRpcHttpClient, transactionHash);
+            RpcResultTransaction rpcTranaction = BitcoinTransaction.fetchFromBlockchain(jsonRpcHttpClient,
+                    transactionHash);
             BitcoinTransaction transaction = new BitcoinTransaction(jsonRpcHttpClient, rpcTranaction, calculate);
             return transaction;
         } catch (OperationFailedException e) {
@@ -95,7 +96,8 @@ public class BitcoinChainNode extends ChainNode {
                                                                         // don't double catch exceptions on this call
     }
 
-    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber) throws OperationFailedException {
+    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber)
+            throws OperationFailedException {
         String blockHash = null;
 
         try {
@@ -111,17 +113,20 @@ public class BitcoinChainNode extends ChainNode {
                                                            // catch exceptions on this call
     }
 
-    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash) throws OperationFailedException {
+    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash)
+            throws OperationFailedException {
 
         try {
             long start = Instant.now().getEpochSecond();
 
             Object parameters[] = new Object[] { blockHash, 2 };
-            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, parameters, RpcResultBlock.class);
+            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, parameters,
+                    RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
 
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
+                    super.getAmountScaling());
 
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
@@ -162,7 +167,8 @@ public class BitcoinChainNode extends ChainNode {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
+            throws OperationFailedException {
 
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
@@ -181,7 +187,7 @@ public class BitcoinChainNode extends ChainNode {
                 transactions.put(rpcTransaction.txid, transaction);
             }
 
-            if (!transaction.isNewlyMinted()) {
+            if (!transaction.getCoinbase()) {
                 double transactionFee = transaction.getFee();
                 double transactionAmount = transaction.getAmount();
 
@@ -290,7 +296,8 @@ public class BitcoinChainNode extends ChainNode {
 
         try {
             ChainNodeTransaction chainNodeTransaction = fetchTransactionByHash(transactionHash, true);
-            chainNodeListeners.stream().forEach(t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
+            chainNodeListeners.stream().forEach(
+                    t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
         } catch (OperationFailedException e) {
             e.printStackTrace();
         }
@@ -313,7 +320,8 @@ public class BitcoinChainNode extends ChainNode {
 
         try {
             ChainNodeTransaction chainNodeTransaction = fetchTransactionByHash(transactionHash, true);
-            chainNodeListeners.stream().forEach(t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
+            chainNodeListeners.stream().forEach(
+                    t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
         } catch (OperationFailedException e) {
             e.printStackTrace();
         }
