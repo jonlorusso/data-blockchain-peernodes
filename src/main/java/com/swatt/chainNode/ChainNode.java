@@ -53,17 +53,21 @@ public abstract class ChainNode {
 
         APIBlockData results = APIBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
         return results;
+    }
 
-        /*
-         * String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" +
-         * blockHash + "'";
-         * 
-         * ArrayList<BlockData> results = BlockData.getBlockDatas(conn, where); // TODO:
-         * Augment SQL // Autogenerator to // add single return // where
-         * 
-         * if (results.size() > 0) return results.get(0); else return null;
-         */
+    public final ArrayList<APIBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException { // This will
+        // only
+        // return
+        // items
+        // that are
+        // already in
+        // the
+        // DB
 
+        ArrayList<APIBlockData> results = APIBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
+        return results;
     }
 
     public final APIBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)

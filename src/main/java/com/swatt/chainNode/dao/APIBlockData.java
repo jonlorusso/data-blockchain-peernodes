@@ -10,6 +10,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class APIBlockData {
     private String blockchainName;
@@ -106,12 +107,18 @@ public class APIBlockData {
         return transactionCount;
     }
 
-    private static String getStandardProcedureName() {
-        return "GetBlock";
+    private static String getStandardProcedureName(boolean List) {
+        if (List)
+            return "GetBlocks";
+        else
+            return "GetBlock";
     }
 
-    private static String getProcedureParamMask() {
-        return "?, ?";
+    private static String getProcedureParamMask(boolean List) {
+        if (List)
+            return "?, ?, ?";
+        else
+            return "?, ?";
     }
 
     public APIBlockData(ResultSet rs) throws SQLException {
@@ -137,7 +144,10 @@ public class APIBlockData {
         largestTxAmount = rs.getDouble(18);
     }
 
-    private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";
+    private static String CALL_QUERY = "CALL " + getStandardProcedureName(false) + "(" + getProcedureParamMask(false)
+            + ")";
+    private static String LIST_QUERY = "CALL " + getStandardProcedureName(true) + "(" + getProcedureParamMask(true)
+            + ")";
 
     public static APIBlockData call(Connection connection, String blockchainCode, String blockHash)
             throws SQLException {
@@ -152,5 +162,23 @@ public class APIBlockData {
             return new APIBlockData(rs);
         else
             return null;
+    }
+
+    public static ArrayList<APIBlockData> call(Connection connection, String blockchainCode, long fromTimestamp,
+            long toTimestamp) throws SQLException {
+        CallableStatement cs = connection.prepareCall(LIST_QUERY);
+
+        cs.setString(1, blockchainCode);
+        cs.setLong(2, fromTimestamp);
+        cs.setLong(3, toTimestamp);
+
+        ResultSet rs = cs.executeQuery();
+
+        ArrayList<APIBlockData> results = new ArrayList<APIBlockData>(100);
+
+        while (rs.next())
+            results.add(new APIBlockData(rs));
+
+        return results;
     }
 }

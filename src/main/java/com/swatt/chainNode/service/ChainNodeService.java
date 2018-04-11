@@ -3,6 +3,7 @@ package com.swatt.chainNode.service;
 import static org.junit.Assert.fail;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -54,6 +55,27 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
                 APIBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
+
+                String result = JsonUtilities.objectToJsonString(blockData);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.get("/:blockchainCode/blocks/:from/:to", ctx -> {
+            String blockchainCode = ctx.param("blockchainCode");
+            String From = ctx.param("from");
+            String To = ctx.param("to");
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                ArrayList<APIBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 connectionPool.returnConnection(conn);
