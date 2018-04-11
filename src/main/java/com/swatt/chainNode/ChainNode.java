@@ -4,8 +4,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.APIBlockData;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
+import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
@@ -41,30 +42,35 @@ public abstract class ChainNode {
     public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException; // Fetches directly from the Blockchain Node
 
-    public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will only
-                                                                                                       // return items
-                                                                                                       // that are
-                                                                                                       // already in the
-                                                                                                       // DB
-        // TODO: Add Some Caching for a proscribed number of blocks.
+    public final APIBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will
+                                                                                                          // only
+                                                                                                          // return
+                                                                                                          // items
+                                                                                                          // that are
+                                                                                                          // already in
+                                                                                                          // the
+                                                                                                          // DB
 
-        String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" + blockHash + "'";
+        APIBlockData results = APIBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
+        return results;
 
-        ArrayList<BlockData> results = BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
-                                                                             // Autogenerator to
-                                                                             // add single return
-                                                                             // where
+        /*
+         * String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" +
+         * blockHash + "'";
+         * 
+         * ArrayList<BlockData> results = BlockData.getBlockDatas(conn, where); // TODO:
+         * Augment SQL // Autogenerator to // add single return // where
+         * 
+         * if (results.size() > 0) return results.get(0); else return null;
+         */
 
-        if (results.size() > 0)
-            return results.get(0);
-        else
-            return null;
     }
 
-    public final APIBlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
-            long toTimestamp) throws SQLException {
+    public final APIBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException {
 
-        APIBlockDataByInterval results = APIBlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+        APIBlockDataByInterval results = APIBlockDataByInterval.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
 
         return results;
     }
@@ -76,11 +82,13 @@ public abstract class ChainNode {
     }
 
     public abstract void fetchNewTransactions();
+
     public abstract void fetchNewBlocks();
 
     public abstract String getGenesisHash();
-    
+
     public abstract long fetchBlockCount() throws OperationFailedException;
+
     public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
     public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)

@@ -12,17 +12,58 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class APIBlockData {
-    private double avgReward;
+    private String blockchainName;
+    private String blockHash;
+    private String prevBlock;
+    private int timestamp;
+    private int height;
+    private int transactionCount;
+
+    private double difficulty;
+    private double reward;
+    private String merkleRoot;
+    private String bits;
+    private int size;
+    private long nonce;
+
     private double avgFee;
     private double avgFeeRate;
     private double largestFee;
     private double smallestFee;
-    private int transactionCount;
-    private int avgTransactionCount;
-    private int blockCount;
 
-    public final double getAvgReward() {
-        return avgReward;
+    private String largestTxHash;
+    private double largestTxAmount;
+
+    public final double getReward() {
+        return reward;
+    }
+
+    public final double getDifficulty() {
+        return difficulty;
+    }
+
+    public final String getMerkleRoot() {
+        return merkleRoot;
+    }
+
+    public final String getBits() {
+        return bits;
+    }
+
+    public final double getSize() {
+        return size;
+    }
+
+    public final String getLargestTxHash() {
+        return largestTxHash;
+    }
+
+    public final double getLargestTxAmount() {
+        return largestTxAmount;
+    }
+
+    public final long getNonce() {
+        return nonce;
     }
 
     public final double getAvgFee() {
@@ -31,6 +72,26 @@ public class APIBlockData {
 
     public final double getAvgFeeRate() {
         return avgFeeRate;
+    }
+
+    public final String getBlockchainName() {
+        return blockchainName;
+    }
+
+    public final int getTimestamp() {
+        return timestamp;
+    }
+
+    public final int getHeight() {
+        return height;
+    }
+
+    public final String getBlockHash() {
+        return blockHash;
+    }
+
+    public final String getPrevBlock() {
+        return prevBlock;
     }
 
     public final double getLargestFee() {
@@ -45,42 +106,45 @@ public class APIBlockData {
         return transactionCount;
     }
 
-    public final int getAvgTransactionCount() {
-        return avgTransactionCount;
-    }
-
-    public final int getBlockCount() {
-        return blockCount;
-    }
-
     private static String getStandardProcedureName() {
-        return "BlockDataByInterval";
+        return "GetBlock";
     }
 
     private static String getProcedureParamMask() {
-        return "?, ?, ?";
+        return "?, ?";
     }
 
     public APIBlockData(ResultSet rs) throws SQLException {
-        avgReward = rs.getDouble(1);
-        avgFee = rs.getDouble(2);
-        avgFeeRate = rs.getDouble(3);
-        largestFee = rs.getDouble(4);
-        smallestFee = rs.getDouble(5);
+        blockchainName = rs.getString(1);
+        blockHash = rs.getString(2);
+        prevBlock = rs.getString(3);
+        timestamp = rs.getInt(4);
+        height = rs.getInt(5);
         transactionCount = rs.getInt(6);
-        avgTransactionCount = rs.getInt(7);
-        blockCount = rs.getInt(8);
+
+        difficulty = rs.getDouble(7);
+        reward = rs.getDouble(8);
+        merkleRoot = rs.getString(9);
+        bits = rs.getString(10);
+        size = rs.getInt(11);
+        nonce = rs.getLong(12);
+
+        avgFee = rs.getDouble(13);
+        avgFeeRate = rs.getDouble(14);
+        largestFee = rs.getDouble(15);
+        smallestFee = rs.getDouble(16);
+        largestTxHash = rs.getString(17);
+        largestTxAmount = rs.getDouble(18);
     }
 
     private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";
 
-    public static APIBlockData call(Connection connection, String blockchainCode, long fromTimestamp, long toTimestamp)
+    public static APIBlockData call(Connection connection, String blockchainCode, String blockHash)
             throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
         cs.setString(1, blockchainCode);
-        cs.setLong(2, fromTimestamp);
-        cs.setLong(3, toTimestamp);
+        cs.setString(2, blockHash);
 
         ResultSet rs = cs.executeQuery();
 

@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.APIBlockData;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
@@ -52,14 +52,12 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                System.out.println(blockHash);
-
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                BlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
-
-                connectionPool.returnConnection(conn);
+                APIBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
                 String result = JsonUtilities.objectToJsonString(blockData);
+                connectionPool.returnConnection(conn);
+
                 ctx.result(result);
             } catch (Throwable t) {
                 connectionPool.returnConnection(conn);
@@ -77,8 +75,8 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
 
-                APIBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, blockchainCode,
-                        Long.parseLong(From), Long.parseLong(To));
+                APIBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(From),
+                        Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(aggregateData);
                 connectionPool.returnConnection(conn);
