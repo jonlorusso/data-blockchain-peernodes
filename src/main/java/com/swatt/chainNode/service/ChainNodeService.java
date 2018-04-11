@@ -12,6 +12,7 @@ import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.APIBlockData;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
+import com.swatt.chainNode.dao.APIPair;
 import com.swatt.chainNode.dao.APIRateDay;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
@@ -117,6 +118,23 @@ public class ChainNodeService {
             }
         });
 
+        app.get("/pairs", ctx -> {
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ArrayList<APIPair> rateDays = APIPair.call(conn);
+
+                String result = JsonUtilities.objectToJsonString(rateDays);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
         app.get("/:blockchainCode/blocks/:from/:to", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
             String From = ctx.param("from");
@@ -189,7 +207,7 @@ public class ChainNodeService {
 
                 chainNodeService.start();
 
-                long autoExitTimeout = 3000 * 1000;
+                long autoExitTimeout = 30 * 1000;
 
                 ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is useful while debugging so you
                                                                               // don't have to constantly stop server to
