@@ -20,13 +20,12 @@ import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.HttpClientPool;
 
 public class MoneroTransaction extends ChainNodeTransaction {
-	private static final Logger LOGGER = Logger.getLogger(MoneroTransaction.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MoneroTransaction.class.getName());
 
-	private static final String TXN_URL_SUFFIX = "/gettransactions";
-//	private static final int POWX_ATOMIC_UNITS = 12;
-	private static final int HTTP_POOL = 10; // TODO: Should get from chainNodeConfig
+    private static final String TXN_URL_SUFFIX = "/gettransactions";
+    private static final int HTTP_POOL = 10; // TODO: Should get from chainNodeConfig
 
-	private String url;
+    private String url;
     private long blockHeight;
 
     private MoneroChainNode node;
