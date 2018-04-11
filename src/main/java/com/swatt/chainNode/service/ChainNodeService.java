@@ -12,6 +12,7 @@ import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.APIBlockData;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
+import com.swatt.chainNode.dao.APIRateDay;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.json.JsonUtilities;
@@ -57,6 +58,57 @@ public class ChainNodeService {
                 APIBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
                 String result = JsonUtilities.objectToJsonString(blockData);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.get("/dayhistory/:fromCcy/:toCcy/:day", ctx -> {
+            String fromCcy = ctx.param("fromCcy");
+            String toCcy = ctx.param("toCcy");
+            String dayText = ctx.param("day");
+            dayText = dayText.substring(0, 4) + "-" + dayText.substring(4, 6) + "-" + dayText.substring(6, 8);
+
+            java.sql.Date day = java.sql.Date.valueOf(dayText);
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                APIRateDay rateDay = APIRateDay.call(conn, fromCcy, toCcy, day);
+
+                String result = JsonUtilities.objectToJsonString(rateDay);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.get("/dayhistory/:fromCcy/:toCcy/:fromDay/:toDay", ctx -> {
+            String fromCcy = ctx.param("fromCcy");
+            String toCcy = ctx.param("toCcy");
+
+            String fromDayText = ctx.param("fromDay");
+            fromDayText = fromDayText.substring(0, 4) + "-" + fromDayText.substring(4, 6) + "-"
+                    + fromDayText.substring(6, 8);
+            java.sql.Date fromDay = java.sql.Date.valueOf(fromDayText);
+
+            String toDayText = ctx.param("toDay");
+            toDayText = toDayText.substring(0, 4) + "-" + toDayText.substring(4, 6) + "-" + toDayText.substring(6, 8);
+            java.sql.Date toDay = java.sql.Date.valueOf(toDayText);
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ArrayList<APIRateDay> rateDays = APIRateDay.call(conn, fromCcy, toCcy, fromDay, toDay);
+
+                String result = JsonUtilities.objectToJsonString(rateDays);
                 connectionPool.returnConnection(conn);
 
                 ctx.result(result);

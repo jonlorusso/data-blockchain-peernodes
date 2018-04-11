@@ -256,9 +256,9 @@
                     "format": "Double",
                     "description": "Fee paid in native coin"
                 },
-                "minted": {
+                "coinbase": {
                     "type": "boolean",
-                    "description": "Whether transaction was new minting of coins"
+                    "description": "Whether transaction was a coin base for the block"
                 },
                 "size": {
                     "type": "number",
@@ -277,7 +277,7 @@
                 },
                 "blockhash": {
                     "type": "string",
-                    "description": "Blockchain hash of the writte block if any"
+                    "description": "Blockchain hash of the written block if any"
                 },
                 "timestamp": {
                     "type": "number",
