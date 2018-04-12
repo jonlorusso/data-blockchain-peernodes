@@ -1,5 +1,5 @@
 {
-    "swagger": 2.0,
+    "swagger": "2.0",
     "info": {
         "title": "SWATT Internal API",
         "description": "Connect to internal data and systems",
@@ -111,6 +111,65 @@
                 }
             }
         },
+        "/{blockchainCode}/blocks/{from}/{to}": {
+            "get": {
+                "summary": "Aggregate data from a blockchain",
+                "description": "Details of a block on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "blockchainCode",
+                        "in": "path",
+                        "description": "Code for the Blockchain",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "btc",
+                            "ltc",
+                            "dash",
+                            "bth",
+                            "eth",
+                            "etc"
+                        ]
+                    },
+                    {
+                        "name": "from",
+                        "in": "path",
+                        "description": "From time, UTC seconds",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "to",
+                        "in": "path",
+                        "description": "To time, UTC seconds",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    }
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aggregate data from a blockchain",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Block"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
         "/{blockchainCode}/report/{from}/{to}": {
             "get": {
                 "summary": "Aggregate data from a blockchain",
@@ -134,7 +193,7 @@
                     {
                         "name": "from",
                         "in": "path",
-                        "description": "From time, UTC secondss",
+                        "description": "From time, UTC seconds",
                         "required": true,
                         "type": "number",
                         "format": "int64"
@@ -142,7 +201,7 @@
                     {
                         "name": "to",
                         "in": "path",
-                        "description": "To time, UTC secondss",
+                        "description": "To time, UTC seconds",
                         "required": true,
                         "type": "number",
                         "format": "int64"
@@ -155,7 +214,137 @@
                     "200": {
                         "description": "Aggregate data from a blockchain",
                         "schema": {
-                            "$ref": "#/definitions/NodeData"
+                            "$ref": "#/definitions/Report"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/dayhistory/{fromCcy}/{toCcy}/{day}": {
+            "get": {
+                "summary": "Aggregate data from a blockchain",
+                "description": "Details of a block on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "fromCcy",
+                        "in": "path",
+                        "description": "Ticker of first asset of pair",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "fromCcy",
+                        "in": "path",
+                        "description": "Ticker of first asset of pair",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "day",
+                        "in": "path",
+                        "description": "Date for rate, yyyymmdd",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "MarketData"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aggregate data from a blockchain",
+                        "schema": {
+                            "$ref": "#/definitions/RateDay"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/dayhistory/{fromCcy}/{toCcy}/{from}/{to}": {
+            "get": {
+                "summary": "Aggregate data from a blockchain",
+                "description": "Details of a block on the blockchain\n",
+                "parameters": [
+                    {
+                        "name": "fromCcy",
+                        "in": "path",
+                        "description": "Ticker of first asset of pair",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "fromCcy",
+                        "in": "path",
+                        "description": "Ticker of first asset of pair",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "from",
+                        "in": "path",
+                        "description": "From time, UTC seconds",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "to",
+                        "in": "path",
+                        "description": "To time, UTC seconds",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    }
+                ],
+                "tags": [
+                    "MarketData"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aggregate data from a blockchain",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/RateDay"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/pairs": {
+            "get": {
+                "summary": "List of currency pairs in system",
+                "description": "List of currency pairs for which there is market data and time range\n",
+                "tags": [
+                    "MarketData"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Set of currency pairs",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Pair"
+                            }
                         }
                     },
                     "default": {
@@ -172,16 +361,20 @@
         "Block": {
             "type": "object",
             "properties": {
-                "hash": {
+                "blockchainName": {
+                    "type": "string",
+                    "description": "Name of the blockchain"
+                },
+                "blockHash": {
                     "type": "string",
                     "description": "Blockchain hash of the block"
                 },
-                "averageFee": {
+                "avgFee": {
                     "type": "number",
                     "format": "Double",
                     "description": "Average fee paid per transaction in native coin"
                 },
-                "averageFeeRate": {
+                "avgFeeRate": {
                     "type": "number",
                     "format": "Double",
                     "description": "Average fee per transaction size in native coin per kilobyte"
@@ -210,6 +403,10 @@
                     "format": "int32",
                     "description": "Number of transactions in the block"
                 },
+                "bits": {
+                    "type": "string",
+                    "description": "Hexadecimal target for the block"
+                },
                 "size": {
                     "type": "number",
                     "format": "int64",
@@ -225,6 +422,15 @@
                     "format": "Double",
                     "description": "A measure of how difficult it is to find a hash below a given target."
                 },
+                "nonce": {
+                    "type": "string",
+                    "description": "Abitrary unique nonce for the block"
+                },
+                "reward": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Miners reward paid for block."
+                },
                 "merkleRoot": {
                     "type": "string",
                     "description": "Merkle root is not used to verify the integrity of transactions in block"
@@ -232,10 +438,6 @@
                 "prevHash": {
                     "type": "string",
                     "description": "Blockchain hash of previous block in the chain"
-                },
-                "nextHash": {
-                    "type": "string",
-                    "description": "Blockchain hash of next block in the chain"
                 },
                 "timestamp": {
                     "type": "number",
@@ -286,10 +488,14 @@
                 }
             }
         },
-        "NodeData": {
+        "Report": {
             "type": "object",
             "properties": {
-                "numBlocks": {
+                "blockchainName": {
+                    "type": "string",
+                    "description": "Name of the blockchain"
+                },
+                "blockCount": {
                     "type": "number",
                     "format": "int32",
                     "description": "Number of blocks in the range"
@@ -299,17 +505,17 @@
                     "format": "int32",
                     "description": "Number of transactions in the range"
                 },
-                "averageTransactionCount": {
+                "avgTransactionCount": {
                     "type": "number",
                     "format": "int32",
                     "description": "Number of transactions per block in the range"
                 },
-                "averageFee": {
+                "avgFee": {
                     "type": "number",
                     "format": "Double",
                     "description": "Average fee paid per transaction in native coin"
                 },
-                "averageFeeRate": {
+                "avgFeeRate": {
                     "type": "number",
                     "format": "Double",
                     "description": "Average fee per transaction size in native coin per kilobyte"
@@ -323,6 +529,86 @@
                     "type": "number",
                     "format": "Double",
                     "description": "Smallest fee paid in native coin"
+                },
+                "fromTimestamp": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Timestamp of the oldest block in the range"
+                },
+                "toTimestamp": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Timestamp of the most recent block in the range"
+                }
+            }
+        },
+        "Pair": {
+            "type": "object",
+            "properties": {
+                "fromCcy": {
+                    "type": "string",
+                    "description": "Ticker of first asset in pair"
+                },
+                "toCcy": {
+                    "type": "string",
+                    "description": "Ticker of second asset in pair"
+                },
+                "fromDate": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Date of the oldest rate for the pair"
+                },
+                "toDate": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Date of the most recent rate for the pair"
+                }
+            }
+        },
+        "RateDay": {
+            "type": "object",
+            "properties": {
+                "datasource": {
+                    "type": "string",
+                    "description": "Name of source of data"
+                },
+                "fromCcy": {
+                    "type": "string",
+                    "description": "Ticker of first asset in pair"
+                },
+                "toCcy": {
+                    "type": "string",
+                    "description": "Ticker of second asset in pair"
+                },
+                "day": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Date of the rate in epoch seconds UTC"
+                },
+                "open": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Lowest observed rate for the day"
+                },
+                "close": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Last observed rate for the day"
+                },
+                "high": {
+                    "type": "number",
+                    "format": "Double",
+                    "description": "Highest observed rate for the day"
+                },
+                "volume": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Daily traded volume as reported to datasource"
+                },
+                "marketCap": {
+                    "type": "number",
+                    "format": "int64",
+                    "description": "Estimated market capitalization of the pair"
                 }
             }
         },
