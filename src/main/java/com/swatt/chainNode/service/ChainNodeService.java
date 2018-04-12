@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.APIBlockData;
+import com.swatt.chainNode.dao.APIBlockDataByDay;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.chainNode.dao.APIPair;
 import com.swatt.chainNode.dao.APIRateDay;
@@ -119,7 +120,6 @@ public class ChainNodeService {
         });
 
         app.get("/pairs", ctx -> {
-
             Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
                                                               // want to close the pooled connections
 
@@ -146,6 +146,28 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
                 ArrayList<APIBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
+
+                String result = JsonUtilities.objectToJsonString(blockData);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.get("/:blockchainCode/dayhistory/:from/:to", ctx -> {
+            String blockchainCode = ctx.param("blockchainCode");
+            String From = ctx.param("from");
+            String To = ctx.param("to");
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                ArrayList<APIBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(From),
+                        Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 connectionPool.returnConnection(conn);

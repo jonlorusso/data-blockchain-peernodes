@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.swatt.chainNode.dao.APIBlockData;
+import com.swatt.chainNode.dao.APIBlockDataByDay;
 import com.swatt.chainNode.dao.APIBlockDataByInterval;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.CheckProgress;
@@ -56,16 +57,15 @@ public abstract class ChainNode {
     }
 
     public final ArrayList<APIBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException { // This will
-        // only
-        // return
-        // items
-        // that are
-        // already in
-        // the
-        // DB
-
+            throws SQLException {
         ArrayList<APIBlockData> results = APIBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
+        return results;
+    }
+
+    public final ArrayList<APIBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException {
+        ArrayList<APIBlockDataByDay> results = APIBlockDataByDay.call(conn, chainNodeConfig.getCode(), fromTimestamp,
                 toTimestamp);
         return results;
     }
