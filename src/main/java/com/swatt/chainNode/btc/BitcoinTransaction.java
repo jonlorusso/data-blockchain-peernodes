@@ -28,7 +28,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
         double amount = vout.stream().mapToDouble(v -> v.value).sum();
 
         setAmount(amount);
-        // setTimestamp(rpcTransaction.time);
+        setTimestamp(rpcTransaction.time);
 
         // Compute Size
 
@@ -38,7 +38,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
             setSize(rpcTransaction.size);
         }
 
-        // super.setBlockHash(rpcTransaction.blockhash);
+        super.setBlockHash(rpcTransaction.blockhash);
 
         if (calculateFee)
             calculateFee(jsonrpcClient, rpcTransaction);
