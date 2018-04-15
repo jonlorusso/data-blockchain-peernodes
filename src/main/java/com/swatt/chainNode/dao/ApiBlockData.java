@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class APIBlockData {
+public class ApiBlockData {
     private String blockchainName;
     private String blockHash;
     private String prevBlock;
@@ -121,7 +121,7 @@ public class APIBlockData {
             return "?, ?";
     }
 
-    public APIBlockData(ResultSet rs) throws SQLException {
+    public ApiBlockData(ResultSet rs) throws SQLException {
         blockchainName = rs.getString(1);
         blockHash = rs.getString(2);
         prevBlock = rs.getString(3);
@@ -149,7 +149,7 @@ public class APIBlockData {
     private static String LIST_QUERY = "CALL " + getStandardProcedureName(true) + "(" + getProcedureParamMask(true)
             + ")";
 
-    public static APIBlockData call(Connection connection, String blockchainCode, String blockHash)
+    public static ApiBlockData call(Connection connection, String blockchainCode, String blockHash)
             throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
@@ -159,12 +159,12 @@ public class APIBlockData {
         ResultSet rs = cs.executeQuery();
 
         if (rs.next())
-            return new APIBlockData(rs);
+            return new ApiBlockData(rs);
         else
             return null;
     }
 
-    public static ArrayList<APIBlockData> call(Connection connection, String blockchainCode, long fromTimestamp,
+    public static ArrayList<ApiBlockData> call(Connection connection, String blockchainCode, long fromTimestamp,
             long toTimestamp) throws SQLException {
         CallableStatement cs = connection.prepareCall(LIST_QUERY);
 
@@ -174,10 +174,10 @@ public class APIBlockData {
 
         ResultSet rs = cs.executeQuery();
 
-        ArrayList<APIBlockData> results = new ArrayList<APIBlockData>(100);
+        ArrayList<ApiBlockData> results = new ArrayList<ApiBlockData>(100);
 
         while (rs.next())
-            results.add(new APIBlockData(rs));
+            results.add(new ApiBlockData(rs));
 
         return results;
     }

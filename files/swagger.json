@@ -505,102 +505,6 @@
         }
       }
     },
-    "Transaction": {
-      "type": "object",
-      "properties": {
-        "hash": {
-          "type": "string",
-          "description": "Blockchain hash of the transaction"
-        },
-        "fee": {
-          "type": "number",
-          "format": "Double",
-          "description": "Fee paid in native coin"
-        },
-        "coinbase": {
-          "type": "boolean",
-          "description": "Whether transaction was a coin base for the block"
-        },
-        "size": {
-          "type": "number",
-          "format": "int32",
-          "description": "Size of the transaction on the blockchain in bytes"
-        },
-        "amount": {
-          "type": "number",
-          "format": "Double",
-          "description": "Transaction amount net of fees paid"
-        },
-        "feeRate": {
-          "type": "number",
-          "format": "Double",
-          "description": "Fee as a function of transaction size in coin per kilobyte"
-        },
-        "blockhash": {
-          "type": "string",
-          "description": "Blockchain hash of the written block if any"
-        },
-        "timestamp": {
-          "type": "number",
-          "format": "int64",
-          "description": "Time the transaction was written to the blockchain in UTC seconds"
-        }
-      }
-    },
-    "Report": {
-      "type": "object",
-      "properties": {
-        "blockchainName": {
-          "type": "string",
-          "description": "Name of the blockchain"
-        },
-        "blockCount": {
-          "type": "number",
-          "format": "int32",
-          "description": "Number of blocks in the range"
-        },
-        "transactionCount": {
-          "type": "number",
-          "format": "int32",
-          "description": "Number of transactions in the range"
-        },
-        "avgTransactionCount": {
-          "type": "number",
-          "format": "int32",
-          "description": "Number of transactions per block in the range"
-        },
-        "avgFee": {
-          "type": "number",
-          "format": "Double",
-          "description": "Average fee paid per transaction in native coin"
-        },
-        "avgFeeRate": {
-          "type": "number",
-          "format": "Double",
-          "description": "Average fee per transaction size in native coin per kilobyte"
-        },
-        "largestFee": {
-          "type": "number",
-          "format": "Double",
-          "description": "Largest fee paid in native coin"
-        },
-        "smallestFee": {
-          "type": "number",
-          "format": "Double",
-          "description": "Smallest fee paid in native coin"
-        },
-        "fromTimestamp": {
-          "type": "number",
-          "format": "int64",
-          "description": "Timestamp of the oldest block in the range"
-        },
-        "toTimestamp": {
-          "type": "number",
-          "format": "int64",
-          "description": "Timestamp of the most recent block in the range"
-        }
-      }
-    },
     "BlockDay": {
       "type": "object",
       "properties": {
@@ -727,6 +631,102 @@
           "type": "number",
           "format": "int64",
           "description": "Estimated market capitalization of the pair"
+        }
+      }
+    },
+    "Report": {
+      "type": "object",
+      "properties": {
+        "blockchainName": {
+          "type": "string",
+          "description": "Name of the blockchain"
+        },
+        "blockCount": {
+          "type": "number",
+          "format": "int32",
+          "description": "Number of blocks in the range"
+        },
+        "transactionCount": {
+          "type": "number",
+          "format": "int32",
+          "description": "Number of transactions in the range"
+        },
+        "avgTransactionCount": {
+          "type": "number",
+          "format": "int32",
+          "description": "Number of transactions per block in the range"
+        },
+        "avgFee": {
+          "type": "number",
+          "format": "Double",
+          "description": "Average fee paid per transaction in native coin"
+        },
+        "avgFeeRate": {
+          "type": "number",
+          "format": "Double",
+          "description": "Average fee per transaction size in native coin per kilobyte"
+        },
+        "largestFee": {
+          "type": "number",
+          "format": "Double",
+          "description": "Largest fee paid in native coin"
+        },
+        "smallestFee": {
+          "type": "number",
+          "format": "Double",
+          "description": "Smallest fee paid in native coin"
+        },
+        "fromTimestamp": {
+          "type": "number",
+          "format": "int64",
+          "description": "Timestamp of the oldest block in the range"
+        },
+        "toTimestamp": {
+          "type": "number",
+          "format": "int64",
+          "description": "Timestamp of the most recent block in the range"
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string",
+          "description": "Blockchain hash of the transaction"
+        },
+        "fee": {
+          "type": "number",
+          "format": "Double",
+          "description": "Fee paid in native coin"
+        },
+        "coinbase": {
+          "type": "boolean",
+          "description": "Whether transaction was a coin base for the block"
+        },
+        "size": {
+          "type": "number",
+          "format": "int32",
+          "description": "Size of the transaction on the blockchain in bytes"
+        },
+        "amount": {
+          "type": "number",
+          "format": "Double",
+          "description": "Transaction amount net of fees paid"
+        },
+        "feeRate": {
+          "type": "number",
+          "format": "Double",
+          "description": "Fee as a function of transaction size in coin per kilobyte"
+        },
+        "blockhash": {
+          "type": "string",
+          "description": "Blockchain hash of the written block if any"
+        },
+        "timestamp": {
+          "type": "number",
+          "format": "int64",
+          "description": "Time the transaction was written to the blockchain in UTC seconds"
         }
       }
     },

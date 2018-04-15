@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class APIPair {
+public class ApiPair {
     private String fromCcy;
     private String toCcy;
     private Date fromDate;
@@ -39,7 +39,7 @@ public class APIPair {
         return "GetPairs";
     }
 
-    public APIPair(ResultSet rs) throws SQLException {
+    public ApiPair(ResultSet rs) throws SQLException {
         fromCcy = rs.getString(1);
         toCcy = rs.getString(2);
         fromDate = rs.getDate(3);
@@ -48,15 +48,15 @@ public class APIPair {
 
     private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "()";
 
-    public static ArrayList<APIPair> call(Connection connection) throws SQLException {
+    public static ArrayList<ApiPair> call(Connection connection) throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
         ResultSet rs = cs.executeQuery();
 
-        ArrayList<APIPair> results = new ArrayList<APIPair>(100);
+        ArrayList<ApiPair> results = new ArrayList<ApiPair>(100);
 
         while (rs.next())
-            results.add(new APIPair(rs));
+            results.add(new ApiPair(rs));
 
         return results;
     }

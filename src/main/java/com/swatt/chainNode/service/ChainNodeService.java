@@ -10,11 +10,12 @@ import org.junit.Test;
 
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
-import com.swatt.chainNode.dao.APIBlockData;
-import com.swatt.chainNode.dao.APIBlockDataByDay;
-import com.swatt.chainNode.dao.APIBlockDataByInterval;
-import com.swatt.chainNode.dao.APIPair;
-import com.swatt.chainNode.dao.APIRateDay;
+import com.swatt.chainNode.dao.ApiBlockData;
+import com.swatt.chainNode.dao.ApiBlockDataByDay;
+import com.swatt.chainNode.dao.ApiBlockDataByInterval;
+import com.swatt.chainNode.dao.ApiPair;
+import com.swatt.chainNode.dao.ApiRateDay;
+import com.swatt.chainNode.dao.ApiUser;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.json.JsonUtilities;
@@ -57,7 +58,7 @@ public class ChainNodeService {
 
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                APIBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
+                ApiBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 connectionPool.returnConnection(conn);
@@ -80,7 +81,7 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                APIRateDay rateDay = APIRateDay.call(conn, fromCcy, toCcy, day);
+                ApiRateDay rateDay = ApiRateDay.call(conn, fromCcy, toCcy, day);
 
                 String result = JsonUtilities.objectToJsonString(rateDay);
                 connectionPool.returnConnection(conn);
@@ -108,7 +109,7 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ArrayList<APIRateDay> rateDays = APIRateDay.call(conn, fromCcy, toCcy, fromDay, toDay);
+                ArrayList<ApiRateDay> rateDays = ApiRateDay.call(conn, fromCcy, toCcy, fromDay, toDay);
 
                 String result = JsonUtilities.objectToJsonString(rateDays);
                 connectionPool.returnConnection(conn);
@@ -124,7 +125,7 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ArrayList<APIPair> rateDays = APIPair.call(conn);
+                ArrayList<ApiPair> rateDays = ApiPair.call(conn);
 
                 String result = JsonUtilities.objectToJsonString(rateDays);
                 connectionPool.returnConnection(conn);
@@ -145,7 +146,7 @@ public class ChainNodeService {
 
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                ArrayList<APIBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
+                ArrayList<ApiBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 connectionPool.returnConnection(conn);
@@ -166,7 +167,7 @@ public class ChainNodeService {
 
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                ArrayList<APIBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(From),
+                ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(From),
                         Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
@@ -189,10 +190,30 @@ public class ChainNodeService {
             try {
                 ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
 
-                APIBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(From),
+                ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(From),
                         Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(aggregateData);
+                connectionPool.returnConnection(conn);
+
+                ctx.result(result);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                connectionPool.returnConnection(conn);
+            }
+        });
+
+        app.post("/auth", ctx -> {
+            String email = ctx.formParam("email");
+            String passwordHash = ctx.formParam("password");
+
+            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
+                                                              // want to close the pooled connections
+
+            try {
+                ApiUser user = ApiUser.auth(conn, email, passwordHash);
+
+                String result = JsonUtilities.objectToJsonString(user);
                 connectionPool.returnConnection(conn);
 
                 ctx.result(result);

@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class APIRateDay {
+public class ApiRateDay {
     private String datasource;
     private String fromCcy;
     private String toCcy;
@@ -79,7 +79,7 @@ public class APIRateDay {
             return "?, ?, ?";
     }
 
-    public APIRateDay(ResultSet rs) throws SQLException {
+    public ApiRateDay(ResultSet rs) throws SQLException {
         datasource = rs.getString(1);
         fromCcy = rs.getString(2);
         toCcy = rs.getString(3);
@@ -98,7 +98,7 @@ public class APIRateDay {
     private static String LIST_QUERY = "CALL " + getStandardProcedureName(true) + "(" + getProcedureParamMask(true)
             + ")";
 
-    public static APIRateDay call(Connection connection, String fromCcy, String toCcy, Date day) throws SQLException {
+    public static ApiRateDay call(Connection connection, String fromCcy, String toCcy, Date day) throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
         cs.setString(1, fromCcy);
@@ -108,12 +108,12 @@ public class APIRateDay {
         ResultSet rs = cs.executeQuery();
 
         if (rs.next())
-            return new APIRateDay(rs);
+            return new ApiRateDay(rs);
         else
             return null;
     }
 
-    public static ArrayList<APIRateDay> call(Connection connection, String fromCcy, String toCcy, Date fromDay,
+    public static ArrayList<ApiRateDay> call(Connection connection, String fromCcy, String toCcy, Date fromDay,
             Date toDay) throws SQLException {
         CallableStatement cs = connection.prepareCall(LIST_QUERY);
 
@@ -124,10 +124,10 @@ public class APIRateDay {
 
         ResultSet rs = cs.executeQuery();
 
-        ArrayList<APIRateDay> results = new ArrayList<APIRateDay>(100);
+        ArrayList<ApiRateDay> results = new ArrayList<ApiRateDay>(100);
 
         while (rs.next())
-            results.add(new APIRateDay(rs));
+            results.add(new ApiRateDay(rs));
 
         return results;
     }

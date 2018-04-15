@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.swatt.chainNode.dao.APIBlockData;
-import com.swatt.chainNode.dao.APIBlockDataByDay;
-import com.swatt.chainNode.dao.APIBlockDataByInterval;
+import com.swatt.chainNode.dao.ApiBlockData;
+import com.swatt.chainNode.dao.ApiBlockDataByDay;
+import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
@@ -43,7 +43,7 @@ public abstract class ChainNode {
     public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException; // Fetches directly from the Blockchain Node
 
-    public final APIBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will
+    public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will
                                                                                                           // only
                                                                                                           // return
                                                                                                           // items
@@ -52,28 +52,28 @@ public abstract class ChainNode {
                                                                                                           // the
                                                                                                           // DB
 
-        APIBlockData results = APIBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
+        ApiBlockData results = ApiBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
         return results;
     }
 
-    public final ArrayList<APIBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
+    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
             throws SQLException {
-        ArrayList<APIBlockData> results = APIBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+        ArrayList<ApiBlockData> results = ApiBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
                 toTimestamp);
         return results;
     }
 
-    public final ArrayList<APIBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
+    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
             throws SQLException {
-        ArrayList<APIBlockDataByDay> results = APIBlockDataByDay.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+        ArrayList<ApiBlockDataByDay> results = ApiBlockDataByDay.call(conn, chainNodeConfig.getCode(), fromTimestamp,
                 toTimestamp);
         return results;
     }
 
-    public final APIBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
+    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
             throws SQLException {
 
-        APIBlockDataByInterval results = APIBlockDataByInterval.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+        ApiBlockDataByInterval results = ApiBlockDataByInterval.call(conn, chainNodeConfig.getCode(), fromTimestamp,
                 toTimestamp);
 
         return results;
