@@ -38,7 +38,7 @@ public class ApiUser {
         return companyName;
     }
 
-    private final int getCompanyId() {
+    public final int getCompanyId() {
         return companyId;
     }
 

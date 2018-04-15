@@ -79,7 +79,7 @@ public class ChainNodeManagerConfig extends Attributable {
     }
 
     public Connection getConnection() {
-        return this.conn;
+        return ChainNodeManagerConfig.conn;
     }
 
     public ChainNodeConfig getChainNodeConfig(String blockchainCode) {
