@@ -17,7 +17,6 @@ import com.swatt.chainNode.dao.ApiPair;
 import com.swatt.chainNode.dao.ApiRateDay;
 import com.swatt.chainNode.dao.ApiUser;
 import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.json.JsonUtilities;
 import com.swatt.util.sql.ConnectionPool;
 
@@ -249,12 +248,15 @@ public class ChainNodeService {
                 ChainNodeService chainNodeService = new ChainNodeService(chainNodeManager, port, connectionPool);
 
                 chainNodeService.start();
-
-                long autoExitTimeout = 300 * 1000;
-
-                ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is useful while debugging so you
-                                                                              // don't have to constantly stop server to
-                                                                              // restart it
+                /*
+                 * 
+                 * long autoExitTimeout = 300 * 1000;
+                 * 
+                 * ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is
+                 * useful while debugging so you // don't have to constantly stop server to //
+                 * restart it
+                 * 
+                 */
             }
         } catch (Throwable t) {
             t.printStackTrace();
