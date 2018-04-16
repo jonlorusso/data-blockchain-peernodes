@@ -12,6 +12,11 @@
 	<name>com.swatt.blockchain.internalapi</name>
 	<dependencies>
 		<dependency>
+			<artifactId>swatt-common</artifactId>
+			<groupId>com.swatt</groupId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>io.javalin</groupId>
 			<artifactId>javalin</artifactId>
 			<version>1.3.0</version>
@@ -71,16 +76,11 @@
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>5.0.0-M1</version>
 		</dependency>
-		<dependency>
-    		<groupId>org.zeromq</groupId>
-    		<artifactId>jeromq</artifactId>
-    		<version>0.4.3</version>
-		</dependency>
 		 <dependency>
-       		<groupId>org.bouncycastle</groupId>
-        	<artifactId>bcpkix-jdk15on</artifactId>
-        	<version>1.56</version>
-    	</dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>1.56</version>
+		</dependency>
 	</dependencies>
 	<build>
 	    <plugins>
@@ -89,8 +89,17 @@
 		    <artifactId>exec-maven-plugin</artifactId>
 		    <version>1.2.1</version>
 		    <configuration>
-			<mainClass>com.swatt.chainNode.service.ChainNodeIngestor</mainClass>
+			<mainClass>com.swatt.chainNode.service.ChainNodeService</mainClass>
 		    </configuration>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<version>3.7.0</version>
+			<configuration>
+				<source>1.8</source>
+				<target>1.8</target>
+			</configuration>
 		</plugin>
 	    </plugins>
 	</build>
