@@ -35,7 +35,7 @@ public class ChainNodeService {
      */
 
     public ChainNodeService(final ChainNodeManager chainNodeManager, int port, final ConnectionPool connectionPool) {
-        app = Javalin.create().port(port).enableCorsForOrigin("*");
+        app = Javalin.create().port(port).enableCorsForOrigin("*").enableStandardRequestLogging();
 
         app.get("/:chainName/txn/:transactionHash", ctx -> {
             String chainName = ctx.param("chainName");
@@ -120,17 +120,23 @@ public class ChainNodeService {
         });
 
         app.get("/pairs", ctx -> {
+            System.out.println("Pairs api");
+
             Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
                                                               // want to close the pooled connections
+
+            System.out.println("Connected " + conn.toString());
 
             try {
                 ArrayList<ApiPair> rateDays = ApiPair.call(conn);
 
                 String result = JsonUtilities.objectToJsonString(rateDays);
+
                 connectionPool.returnConnection(conn);
 
                 ctx.result(result);
             } catch (Throwable t) {
+                System.out.println(t.toString());
                 connectionPool.returnConnection(conn);
             }
         });
@@ -242,12 +248,16 @@ public class ChainNodeService {
             ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
             ChainNodeManager chainNodeManager = new ChainNodeManager(chainNodeManagerConfig);
 
+            System.out.println("App listening on " + port);
+
             if (port > 0) {
                 ConnectionPool connectionPool = chainNodeManager.getConnectionPool();
 
                 ChainNodeService chainNodeService = new ChainNodeService(chainNodeManager, port, connectionPool);
 
                 chainNodeService.start();
+
+                System.out.println("Service started");
                 /*
                  * 
                  * long autoExitTimeout = 300 * 1000;
