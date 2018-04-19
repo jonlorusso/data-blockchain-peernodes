@@ -1,8 +1,16 @@
 package com.swatt.chainNode.btc;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.zeromq.ZFrame;
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
+import org.zeromq.ZMQ.Socket;
+import org.zeromq.ZMsg;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNode;
@@ -14,11 +22,13 @@ import com.swatt.util.json.JsonRpcHttpClientPool;
 
 public class BitcoinChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(BitcoinChainNode.class.getName());
+    private static final String GENESIS_BLOCK_HASH = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
     private static final int TRANSACTION_BUFFER_SIZE = 1000;
     private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
+    private Context context;
 
     public BitcoinChainNode() {
         transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
@@ -55,7 +65,9 @@ public class BitcoinChainNode extends ChainNode {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            BitcoinTransaction transaction = new BitcoinTransaction(jsonRpcHttpClient, transactionHash, calculate);
+            RpcResultTransaction rpcTranaction = BitcoinTransaction.fetchFromBlockchain(jsonRpcHttpClient,
+                    transactionHash);
+            BitcoinTransaction transaction = new BitcoinTransaction(jsonRpcHttpClient, rpcTranaction, calculate);
             return transaction;
         } catch (OperationFailedException e) {
             throw e;
@@ -107,7 +119,7 @@ public class BitcoinChainNode extends ChainNode {
         try {
             long start = Instant.now().getEpochSecond();
 
-            Object parameters[] = new Object[] { blockHash };
+            Object parameters[] = new Object[] { blockHash, 2 };
             RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, parameters,
                     RpcResultBlock.class);
 
@@ -167,16 +179,15 @@ public class BitcoinChainNode extends ChainNode {
         String largestTxHash = null;
 
         int transactionCount = 1; // rpcBlock.tx.size();
-
-        for (String transactionHash : rpcBlock.tx) {
-            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(transactionHash);
+        for (RpcResultTransaction rpcTransaction : rpcBlock.tx) {
+            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(rpcTransaction.txid);
 
             if (transaction == null) {
-                transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
-                transactions.put(transactionHash, transaction);
+                transaction = new BitcoinTransaction(jsonrpcClient, rpcTransaction, true);
+                transactions.put(rpcTransaction.txid, transaction);
             }
 
-            if (!transaction.isNewlyMinted()) {
+            if (!transaction.getCoinbase()) {
                 double transactionFee = transaction.getFee();
                 double transactionAmount = transaction.getAmount();
 
@@ -189,11 +200,11 @@ public class BitcoinChainNode extends ChainNode {
 
                 if (transactionAmount > largestTxAmount) {
                     largestTxAmount = transactionAmount;
-                    largestTxHash = transactionHash;
+                    largestTxHash = rpcTransaction.txid;
                 }
 
                 if (transactionFee <= 0.0) {
-                    System.out.println("Initial transaction: " + transactionHash);
+                    System.out.println("Initial transaction: " + rpcTransaction.txid);
                 }
             }
         }
@@ -213,5 +224,152 @@ public class BitcoinChainNode extends ChainNode {
 
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
+    }
+
+    @Override
+    public long fetchBlockCount() throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return jsonRpcHttpClient.invoke(RpcMethodsBitcoin.GET_BLOCK_COUNT, new Object[] {}, Long.class);
+        } catch (Throwable t) {
+            throw new OperationFailedException("Error fetching latest Block: ", t);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
+
+    @Override
+    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber);
+        } catch (Throwable t) {
+            throw new OperationFailedException("Error fetching block: ", t);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
+
+    @Override
+    public String getGenesisHash() {
+        return GENESIS_BLOCK_HASH;
+    }
+
+    protected final static char[] hexArray = "0123456789abcdef".toCharArray();
+
+    public static String hexlify(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    private int unpackBinary(byte[] bytes) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.put(bytes[0]);
+        byteBuffer.put(bytes[1]);
+        byteBuffer.put(bytes[2]);
+        byteBuffer.put(bytes[3]);
+        return byteBuffer.getInt(0);
+    }
+
+    // FIXME this method is handling hashtx at the moment
+    private void handleIncomingRawBlock(ZMsg message) {
+        ZFrame body = message.pop();
+        ZFrame last = message.getLast();
+
+        int sequenceNumber = 0;
+
+        byte[] sequenceBytes = last.getData();
+        if (sequenceBytes.length == 4) {
+            sequenceNumber = unpackBinary(sequenceBytes);
+        }
+
+        String transactionHash = hexlify(body.getData());
+        System.out.println(String.format("hashtx (%d) : %s", sequenceNumber, transactionHash));
+
+        try {
+            ChainNodeTransaction chainNodeTransaction = fetchTransactionByHash(transactionHash, true);
+            chainNodeListeners.stream().forEach(
+                    t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
+        } catch (OperationFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // FIXME this method is handling hashtx at the moment
+    private void handleIncomingRawTransaction(ZMsg message) {
+        ZFrame body = message.pop();
+        ZFrame last = message.getLast();
+
+        int sequenceNumber = 0;
+
+        byte[] sequenceBytes = last.getData();
+        if (sequenceBytes.length == 4) {
+            sequenceNumber = unpackBinary(sequenceBytes);
+        }
+
+        String transactionHash = hexlify(body.getData());
+        System.out.println(String.format("hashtx (%d) : %s", sequenceNumber, transactionHash));
+
+        try {
+            ChainNodeTransaction chainNodeTransaction = fetchTransactionByHash(transactionHash, true);
+            chainNodeListeners.stream().forEach(
+                    t -> t.newTransactionsAvailable(this, new ChainNodeTransaction[] { chainNodeTransaction }));
+        } catch (OperationFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void fetchNewTransactions() {
+        if (context == null)
+            context = ZMQ.context(1);
+
+        Socket subscriber = context.socket(ZMQ.SUB);
+        subscriber.connect("tcp://127.0.0.1:28332"); // FIXME store port in blockchain_node_info?
+        subscriber.subscribe("rawtransaction");
+
+        Thread transactionListener = new Thread(() -> {
+            while (true) {
+                ZMsg message = ZMsg.recvMsg(subscriber, 0);
+                String topic = message.popString();
+
+                if (topic.equals("rawtx"))
+                    handleIncomingRawTransaction(message);
+            }
+
+        }, "TransactionListener-" + getCode());
+
+        transactionListener.start();
+    }
+
+    @Override
+    public void fetchNewBlocks() {
+        if (context == null)
+            context = ZMQ.context(1);
+
+        Socket subscriber = context.socket(ZMQ.SUB);
+        subscriber.connect("tcp://127.0.0.1:28332"); // FIXME store port in blockchain_node_info?
+        subscriber.subscribe("rawblock");
+
+        Thread blockListener = new Thread(() -> {
+            while (true) {
+                ZMsg message = ZMsg.recvMsg(subscriber, 0);
+                String topic = message.popString();
+
+                if (topic.equals("rawblock"))
+                    handleIncomingRawBlock(message);
+            }
+
+        }, "BlockListener-" + getCode());
+
+        blockListener.start();
     }
 }

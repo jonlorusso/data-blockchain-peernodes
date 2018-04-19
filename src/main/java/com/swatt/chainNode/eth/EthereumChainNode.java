@@ -3,15 +3,15 @@ package com.swatt.chainNode.eth;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthBlock.TransactionResult;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.web3j.protocol.core.methods.response.EthTransaction;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
@@ -23,6 +23,7 @@ import com.swatt.util.general.OperationFailedException;
 
 public class EthereumChainNode extends ChainNode {
     private static final Logger LOGGER = Logger.getLogger(EthereumChainNode.class.getName());
+    public static final String ETHEREUM_GENESIS_BLOCK = "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3";
     private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
     private static Web3j web3j;
 
@@ -52,61 +53,15 @@ public class EthereumChainNode extends ChainNode {
     }
 
     @Override
-    public BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException {
-        try {
-            if (blockHash != null) {
-                return fetchBlockByHash(blockHash);
-            } else {
-                return null;
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException {
-
-        try {
-            EthereumTransaction transaction = new EthereumTransaction(web3j, transactionHash);
-
-            return transaction;
-        } catch (Throwable t) {
-            OperationFailedException e = new OperationFailedException("Error fetching latest Block: ", t);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
-        }
-    }
-
-    private BlockData fetchBlockByHash(String blockHash) throws OperationFailedException {
+    public BlockData fetchBlockDataByHash(String hash) throws OperationFailedException {
+    		if (hash == null)
+			return null;
+    		
         try {
             long start = Instant.now().getEpochSecond();
 
-            EthBlock ethBlock = web3j.ethGetBlockByHash(blockHash, false).send();
-            Block block = ethBlock.getBlock();
-
-            BlockData blockData = new BlockData();
-
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
-                    super.getAmountScaling());
-
-            blockData.setHash(blockHash);
-            blockData.setTransactionCount(block.getTransactions().size());
-
-            blockData.setHeight(block.getNumber().longValue());
-            blockData.setTimestamp(block.getTimestamp().longValue());
-            blockData.setNonce(block.getNonce().longValue());
-            blockData.setDifficultyBase(block.getDifficulty().doubleValue());
-            blockData.setPrevHash(block.getParentHash());
-            blockData.setBlockchainCode(blockchainCode);
-            blockData.setSize(block.getSize().intValue());
-
-            System.out.println("CALCULATING BLOCK: " + blockHash);
-
-            calculate(blockData, block);
+            EthBlock ethBlock = web3j.ethGetBlockByHash(hash, true).send();
+            BlockData blockData = toBlockData(ethBlock);
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -116,16 +71,65 @@ public class EthereumChainNode extends ChainNode {
 
             return blockData;
         } catch (Throwable t) {
-            t.printStackTrace();
-            OperationFailedException e = new OperationFailedException(
-                    "Error fetching block from Blockchain: " + blockHash, t);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
+        		throw new OperationFailedException(t);
         }
     }
 
-    private void calculate(BlockData blockData, Block block) throws OperationFailedException {
+	@Override
+	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+        try {
+            long start = Instant.now().getEpochSecond();
 
+            EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)), true).send();
+            BlockData blockData = toBlockData(ethBlock);
+
+            long indexingDuration = Instant.now().getEpochSecond() - start;
+            long now = Instant.now().toEpochMilli();
+
+            blockData.setIndexed(now);
+            blockData.setIndexingDuration(indexingDuration);
+
+            return blockData;
+        } catch (Throwable t) {
+        		throw new OperationFailedException(t);
+        }
+	}
+
+    @Override
+    public ChainNodeTransaction fetchTransactionByHash(String hash, boolean calculate) throws OperationFailedException {
+        try {
+            return new EthereumTransaction(web3j, hash);
+        } catch (Throwable t) {
+        		throw new OperationFailedException(t);
+        }
+    }
+
+    private BlockData toBlockData(EthBlock ethBlock) {
+        Block block = ethBlock.getBlock();
+
+        BlockData blockData = new BlockData();
+        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+        blockData.setHash(block.getHash());
+        blockData.setTransactionCount(block.getTransactions().size());
+        blockData.setHeight(block.getNumber().longValue());
+        blockData.setTimestamp(block.getTimestamp().longValue());
+        blockData.setNonce(block.getNonce().longValue());
+        blockData.setDifficultyBase(block.getDifficulty().doubleValue());
+        blockData.setPrevHash(block.getParentHash());
+        blockData.setBlockchainCode(blockchainCode);
+        blockData.setSize(block.getSize().intValue());
+
+        try {
+            calculate(blockData, block);
+        } catch (OperationFailedException e) {
+            // FIXME better exception handling
+            throw new IllegalStateException(e);
+        }
+        return blockData;
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void calculate(BlockData blockData, Block block) throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -136,20 +140,17 @@ public class EthereumChainNode extends ChainNode {
 
         int transactionCount = 0; // rpcBlock.tx.size();
 
-        for (TransactionResult<?> transactionResult : block.getTransactions()) {
-            String transactionHash = transactionResult.get().toString();
+        for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
+            Transaction transaction = transactionResult.get();
+            String transactionHash = transaction.getHash();
 
-            EthTransaction ethTransaction = null;
             EthGetTransactionReceipt ethTransactionReceipt = null;
             try {
-                ethTransaction = web3j.ethGetTransactionByHash(transactionHash).send();
                 ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                throw new OperationFailedException(e1);
             }
 
-            Transaction transaction = ethTransaction.getTransaction().get();
             TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
 
             double transactionFee = transactionReceipt.getGasUsed().doubleValue();
@@ -194,5 +195,30 @@ public class EthereumChainNode extends ChainNode {
 
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
+    }
+
+	@Override
+	public long fetchBlockCount() throws OperationFailedException {
+        try {
+            EthBlockNumber ethBlockNumber = web3j.ethBlockNumber().send();
+            return ethBlockNumber.getBlockNumber().longValueExact();
+        } catch (Throwable e) {
+        		throw new OperationFailedException(e);
+        }
+	}
+
+	@Override
+	public String getGenesisHash() {
+		return "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3";
+	}
+	
+    @Override
+    public void fetchNewBlocks() {
+        web3j.blockObservable(true).subscribe(b -> chainNodeListeners.stream().forEach(c -> c.newBlockAvailable(this, toBlockData(b))));
+    }
+
+    @Override
+    public void fetchNewTransactions() {
+        web3j.pendingTransactionObservable().subscribe(t -> chainNodeListeners.forEach(c -> c.newTransactionsAvailable(this, new ChainNodeTransaction[] { new EthereumTransaction(web3j, t) })));
     }
 }

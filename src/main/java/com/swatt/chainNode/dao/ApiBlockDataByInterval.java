@@ -11,7 +11,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class BlockDataByInterval {
+public class ApiBlockDataByInterval {
+    private String blockchainName;
     private double avgReward;
     private double avgFee;
     private double avgFeeRate;
@@ -20,6 +21,8 @@ public class BlockDataByInterval {
     private int transactionCount;
     private int avgTransactionCount;
     private int blockCount;
+    private int fromTimestamp;
+    private int toTimestamp;
 
     public final double getAvgReward() {
         return avgReward;
@@ -29,8 +32,20 @@ public class BlockDataByInterval {
         return avgFee;
     }
 
+    public final String getBlockchainName() {
+        return blockchainName;
+    }
+
     public final double getAvgFeeRate() {
         return avgFeeRate;
+    }
+
+    public final double getFromTimestamp() {
+        return fromTimestamp;
+    }
+
+    public final double getToTimestamp() {
+        return toTimestamp;
     }
 
     public final double getLargestFee() {
@@ -61,20 +76,23 @@ public class BlockDataByInterval {
         return "?, ?, ?";
     }
 
-    public BlockDataByInterval(ResultSet rs) throws SQLException {
-        avgReward = rs.getDouble(1);
-        avgFee = rs.getDouble(2);
-        avgFeeRate = rs.getDouble(3);
-        largestFee = rs.getDouble(4);
-        smallestFee = rs.getDouble(5);
-        transactionCount = rs.getInt(6);
-        avgTransactionCount = rs.getInt(7);
-        blockCount = rs.getInt(8);
+    public ApiBlockDataByInterval(ResultSet rs) throws SQLException {
+        blockchainName = rs.getString(1);
+        fromTimestamp = rs.getInt(2);
+        toTimestamp = rs.getInt(3);
+        avgReward = rs.getDouble(4);
+        avgFee = rs.getDouble(5);
+        avgFeeRate = rs.getDouble(6);
+        largestFee = rs.getDouble(7);
+        smallestFee = rs.getDouble(8);
+        transactionCount = rs.getInt(9);
+        avgTransactionCount = rs.getInt(10);
+        blockCount = rs.getInt(11);
     }
 
     private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";
 
-    public static BlockDataByInterval call(Connection connection, String blockchainCode, long fromTimestamp,
+    public static ApiBlockDataByInterval call(Connection connection, String blockchainCode, long fromTimestamp,
             long toTimestamp) throws SQLException {
         CallableStatement cs = connection.prepareCall(CALL_QUERY);
 
@@ -85,7 +103,7 @@ public class BlockDataByInterval {
         ResultSet rs = cs.executeQuery();
 
         if (rs.next())
-            return new BlockDataByInterval(rs);
+            return new ApiBlockDataByInterval(rs);
         else
             return null;
     }

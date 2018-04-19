@@ -4,8 +4,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.swatt.chainNode.dao.ApiBlockData;
+import com.swatt.chainNode.dao.ApiBlockDataByDay;
+import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.chainNode.dao.BlockDataByInterval;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
 import com.swatt.chainNode.service.ChainNodeConfig;
@@ -14,7 +16,7 @@ import com.swatt.util.general.OperationFailedException;
 public abstract class ChainNode {
     protected ChainNodeConfig chainNodeConfig;
     protected String blockchainCode;
-    private ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
+    protected ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
 
     public ChainNode() {
     }
@@ -41,30 +43,38 @@ public abstract class ChainNode {
     public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
             throws OperationFailedException; // Fetches directly from the Blockchain Node
 
-    public final BlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will only
-                                                                                                       // return items
-                                                                                                       // that are
-                                                                                                       // already in the
-                                                                                                       // DB
-        // TODO: Add Some Caching for a proscribed number of blocks.
+    public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will
+                                                                                                          // only
+                                                                                                          // return
+                                                                                                          // items
+                                                                                                          // that are
+                                                                                                          // already in
+                                                                                                          // the
+                                                                                                          // DB
 
-        String where = "BLOCKCHAIN_CODE = '" + getCode() + "' AND HASH = '" + blockHash + "'";
-
-        ArrayList<BlockData> results = BlockData.getBlockDatas(conn, where); // TODO: Augment SQL
-                                                                             // Autogenerator to
-                                                                             // add single return
-                                                                             // where
-
-        if (results.size() > 0)
-            return results.get(0);
-        else
-            return null;
+        ApiBlockData results = ApiBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
+        return results;
     }
 
-    public final BlockDataByInterval getDataForInterval(Connection conn, String blockchainCode, long fromTimestamp,
-            long toTimestamp) throws SQLException {
+    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException {
+        ArrayList<ApiBlockData> results = ApiBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
+        return results;
+    }
 
-        BlockDataByInterval results = BlockDataByInterval.call(conn, blockchainCode, fromTimestamp, toTimestamp);
+    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException {
+        ArrayList<ApiBlockDataByDay> results = ApiBlockDataByDay.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
+        return results;
+    }
+
+    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
+            throws SQLException {
+
+        ApiBlockDataByInterval results = ApiBlockDataByInterval.call(conn, chainNodeConfig.getCode(), fromTimestamp,
+                toTimestamp);
 
         return results;
     }
@@ -74,6 +84,16 @@ public abstract class ChainNode {
 
         return results;
     }
+
+    public abstract void fetchNewTransactions();
+
+    public abstract void fetchNewBlocks();
+
+    public abstract String getGenesisHash();
+
+    public abstract long fetchBlockCount() throws OperationFailedException;
+
+    public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
     public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
             throws SQLException {
