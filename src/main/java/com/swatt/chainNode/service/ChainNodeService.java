@@ -1,12 +1,12 @@
 package com.swatt.chainNode.service;
 
-import static org.junit.Assert.fail;
-
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
@@ -16,6 +16,7 @@ import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.ApiPair;
 import com.swatt.chainNode.dao.ApiRateDay;
 import com.swatt.chainNode.dao.ApiUser;
+import com.swatt.chainNode.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.json.JsonUtilities;
 import com.swatt.util.sql.ConnectionPool;
@@ -23,8 +24,16 @@ import com.swatt.util.sql.ConnectionPool;
 import io.javalin.Javalin;
 
 public class ChainNodeService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChainNodeService.class);
+    
+    private static final String PORT_PROPERTY = "servicePort";
+    
     private Javalin app;
-
+    
+    private int port;
+    private ConnectionPool connectionPool;
+    private ChainNodeManager chainNodeManager;
+    
     /*
      * TODO re-enable SSL private static SslContextFactory getSslContextFactory() {
      * SslContextFactory sslContextFactory = new SslContextFactory();
@@ -34,18 +43,37 @@ public class ChainNodeService {
      * }
      */
 
-    public ChainNodeService(final ChainNodeManager chainNodeManager, int port, final ConnectionPool connectionPool) {
+    public ChainNodeService(ChainNodeManager chainNodeManager, int port, ConnectionPool connectionPool) {
+        this.chainNodeManager = chainNodeManager;
+        this.port = port;
+        this.connectionPool = connectionPool;
+    }
+
+    public ChainNodeService(Properties properties) {
+        chainNodeManager = new ChainNodeManager(properties);
+
+        port = Integer.parseInt(properties.getProperty(PORT_PROPERTY));
+        connectionPool = DatabaseUtils.getConnectionPool(properties);
+    }
+    
+    public void init() {
         app = Javalin.create().port(port).enableCorsForOrigin("*").enableStandardRequestLogging();
 
         app.get("/:chainName/txn/:transactionHash", ctx -> {
-            String chainName = ctx.param("chainName");
-            String transactionHash = ctx.param("transactionHash");
-
-            ChainNode chainNode = chainNodeManager.getChainNode(chainName);
-            ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, true);
-
-            String result = JsonUtilities.objectToJsonString(chainTransaction);
-            ctx.result(result);
+            Connection connection = connectionPool.getConnection();
+            
+            try {
+                String chainName = ctx.param("chainName");
+                String transactionHash = ctx.param("transactionHash");
+    
+                ChainNode chainNode = chainNodeManager.getChainNode(connection, chainName);
+                ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, true);
+    
+                String result = JsonUtilities.objectToJsonString(chainTransaction);
+                ctx.result(result);
+            } finally {
+                connectionPool.returnConnection(connection);
+            }
         });
 
         app.get("/:blockchainCode/block/:blockHash", ctx -> {
@@ -56,7 +84,7 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
                 ApiBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
 
                 String result = JsonUtilities.objectToJsonString(blockData);
@@ -150,7 +178,7 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
                 ArrayList<ApiBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
@@ -171,9 +199,8 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
-                ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(From),
-                        Long.parseLong(To));
+                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
+                ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(blockData);
                 connectionPool.returnConnection(conn);
@@ -193,13 +220,11 @@ public class ChainNodeService {
                                                               // want to close the pooled connections
 
             try {
-                ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
 
-                ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(From),
-                        Long.parseLong(To));
+                ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(From), Long.parseLong(To));
 
                 String result = JsonUtilities.objectToJsonString(aggregateData);
-                connectionPool.returnConnection(conn);
 
                 ctx.result(result);
             } catch (Throwable t) {
@@ -239,42 +264,23 @@ public class ChainNodeService {
 
     public static void main(String[] args) {
         try {
-            String propertiesFileName = "config.properties";
-
-            Properties properties = CollectionsUtilities.loadProperties(propertiesFileName);
-
-            int port = Integer.parseInt(properties.getProperty("servicePort"));
-
-            ChainNodeManagerConfig chainNodeManagerConfig = new ChainNodeManagerConfig(properties);
-            ChainNodeManager chainNodeManager = new ChainNodeManager(chainNodeManagerConfig);
-
-            System.out.println("App listening on " + port);
-
-            if (port > 0) {
-                ConnectionPool connectionPool = chainNodeManager.getConnectionPool();
-
-                ChainNodeService chainNodeService = new ChainNodeService(chainNodeManager, port, connectionPool);
-
-                chainNodeService.start();
-
-                System.out.println("Service started");
-                /*
-                 * 
-                 * long autoExitTimeout = 300 * 1000;
-                 * 
-                 * ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is
-                 * useful while debugging so you // don't have to constantly stop server to //
-                 * restart it
-                 * 
-                 */
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
+            Properties properties = CollectionsUtilities.loadProperties("config.properties");
+            ChainNodeService chainNodeService = new ChainNodeService(properties);
+            chainNodeService.init();
+            chainNodeService.start();
+        } catch (IOException e) {
+            LOGGER.error(String.format("Exception caught reading config.properties: %s", e.getMessage()));
         }
-    }
 
-    @Test
-    public void test() {
-        fail("Not yet implemented");
+                
+        /*
+         * 
+         * long autoExitTimeout = 300 * 1000;
+         * 
+         * ConcurrencyUtilities.startAutoDestructTimer(autoExitTimeout); // This is
+         * useful while debugging so you // don't have to constantly stop server to //
+         * restart it
+         * 
+         */
     }
 }

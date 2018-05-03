@@ -30,7 +30,7 @@ public class MoneroChainNode extends ChainNode {
 
     @Override
     public void init() {
-        url = chainNodeConfig.getURL();
+        String url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, JSON_RPC_POOL);
     }
 
@@ -63,9 +63,7 @@ public class MoneroChainNode extends ChainNode {
         }
     }
 
-    private BlockData fetchBlock(JsonRpcHttpClient jsonrpcClient, long blockHeight, String blockHash, boolean calculate)
-            throws OperationFailedException {
-
+    private BlockData fetchBlock(JsonRpcHttpClient jsonrpcClient, long blockHeight, String blockHash, boolean calculate) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
@@ -84,10 +82,7 @@ public class MoneroChainNode extends ChainNode {
             }
 
             BlockData blockData = new BlockData();
-
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
-                    super.getAmountScaling());
-
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
             blockData.setHash(rpcBlock.block_header.hash);
             blockData.setSize(rpcBlock.block_header.block_size);
             blockData.setHeight(rpcBlock.block_header.height);
@@ -105,10 +100,9 @@ public class MoneroChainNode extends ChainNode {
 
             blockData.setReward(rpcBlock.block_header.reward);
             blockData.setTransactionCount(rpcBlock.block_header.num_txes);
-            blockData.setBlockchainCode(blockchainCode);
+            blockData.setBlockchainCode(getBlockchainCode());
 
             if (calculate) {
-                System.out.println("CALCULATING BLOCK: " + rpcBlock.block_header.hash);
                 calculate(jsonrpcClient, blockData, rpcBlock);
             }
 
@@ -202,11 +196,6 @@ public class MoneroChainNode extends ChainNode {
 
 	@Override
 	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
-	    throw new UnsupportedOperationException("Not implemented yet.");
-	}
-
-	@Override
-	public String getGenesisHash() {
 	    throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

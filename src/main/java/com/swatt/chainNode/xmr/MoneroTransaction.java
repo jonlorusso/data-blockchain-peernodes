@@ -37,8 +37,6 @@ public class MoneroTransaction extends ChainNodeTransaction {
         this.node = node;
         this.url = url + TXN_URL_SUFFIX;
 
-        System.out.println(this.url);
-
         httpClientPool = new HttpClientPool(this.url, HTTP_POOL);
 
         try {

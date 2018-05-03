@@ -8,24 +8,24 @@ import com.swatt.chainNode.dao.ApiBlockData;
 import com.swatt.chainNode.dao.ApiBlockDataByDay;
 import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.BlockchainNodeInfo;
 import com.swatt.chainNode.dao.CheckProgress;
 import com.swatt.chainNode.dao.UpdateProgress;
-import com.swatt.chainNode.service.ChainNodeConfig;
 import com.swatt.util.general.OperationFailedException;
 
 public abstract class ChainNode {
-    protected ChainNodeConfig chainNodeConfig;
-    protected String blockchainCode;
-    protected ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<ChainNodeListener>();
+    protected BlockchainNodeInfo blockchainNodeInfo;
+    protected ArrayList<ChainNodeListener> chainNodeListeners = new ArrayList<>();
 
     public ChainNode() {
+        super();
     }
 
-    public void setChainNodeConfig(ChainNodeConfig chainNodeConfig) {
-        if (this.chainNodeConfig == null)
-            this.chainNodeConfig = chainNodeConfig;
+    public void setBlockchainNodeInfo(BlockchainNodeInfo blockchainNodeInfo) {
+        if (this.blockchainNodeInfo == null)
+            this.blockchainNodeInfo = blockchainNodeInfo;
         else
-            throw new RuntimeException("ChainNodeConfig may not be reset for a ChainNode");
+            throw new RuntimeException("BlockchainNodeInfo may not be reset for a ChainNode");
     }
 
     public void init() {
@@ -33,84 +33,55 @@ public abstract class ChainNode {
 
     public void destroy() {
     }
+    
+    // Fetches directly the Blockchain Node itself (not via DB)
+    public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException; 
 
-    public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException; // Fetches
-                                                                                                      // directly the
-                                                                                                      // Blockchain Node
-                                                                                                      // itself (not via
-                                                                                                      // DB)
+    // Fetches directly from the Blockchain Node
+    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate) throws OperationFailedException; 
 
-    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException; // Fetches directly from the Blockchain Node
-
-    public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { // This will
-                                                                                                          // only
-                                                                                                          // return
-                                                                                                          // items
-                                                                                                          // that are
-                                                                                                          // already in
-                                                                                                          // the
-                                                                                                          // DB
-
-        ApiBlockData results = ApiBlockData.call(conn, chainNodeConfig.getCode(), blockHash);
-        return results;
+    // This will only return items that are already in the DB
+    public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException { 
+        return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), blockHash);
     }
 
-    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
-        ArrayList<ApiBlockData> results = ApiBlockData.call(conn, chainNodeConfig.getCode(), fromTimestamp,
-                toTimestamp);
-        return results;
+    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+        return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
-        ArrayList<ApiBlockDataByDay> results = ApiBlockDataByDay.call(conn, chainNodeConfig.getCode(), fromTimestamp,
-                toTimestamp);
-        return results;
+    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+        return ApiBlockDataByDay.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
-
-        ApiBlockDataByInterval results = ApiBlockDataByInterval.call(conn, chainNodeConfig.getCode(), fromTimestamp,
-                toTimestamp);
-
-        return results;
+    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+        return ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
     public final CheckProgress getCheckProgress(Connection conn, String blockchainCode) throws SQLException {
-        CheckProgress results = CheckProgress.call(conn, blockchainCode);
-
-        return results;
+        return CheckProgress.call(conn, blockchainCode);
     }
 
     public abstract void fetchNewTransactions();
-
     public abstract void fetchNewBlocks();
-
-    public abstract String getGenesisHash();
 
     public abstract long fetchBlockCount() throws OperationFailedException;
 
     public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
-    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
-            throws SQLException {
-
+    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount) throws SQLException {
         UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);
     }
 
     public final String getCode() {
-        return chainNodeConfig.getCode();
+        return blockchainNodeInfo.getCode();
     }
 
     public void startMonitoringNewActivity() {
-        System.out.println("NIY: Start monitoring new Activity (Blocks, pendingTransactions");
+        throw new UnsupportedOperationException("NIY: Start monitoring new Activity (Blocks, pendingTransactions");
     }
 
     public void stopMonitoringNewActivity() {
-        System.out.println("NIY: Stop monitoring new Activity (Blocks, pendingTransactions");
+        throw new UnsupportedOperationException("NIY: Stop monitoring new Activity (Blocks, pendingTransactions");
     }
 
     public void addChainNodeListener(ChainNodeListener chainNodeListener) {
@@ -122,18 +93,22 @@ public abstract class ChainNode {
     }
 
     public int getDifficultyScaling() {
-        return chainNodeConfig.getDifficultyScaling();
+        return blockchainNodeInfo.getDifficultyScaling();
     }
 
     public int getRewardScaling() {
-        return chainNodeConfig.getRewardScaling();
+        return blockchainNodeInfo.getRewardScaling();
     }
 
     public int getFeeScaling() {
-        return chainNodeConfig.getFeeScaling();
+        return blockchainNodeInfo.getFeeScaling();
     }
 
     public int getAmountScaling() {
-        return chainNodeConfig.getAmountScaling();
+        return blockchainNodeInfo.getAmountScaling();
+    }
+    
+    public String getBlockchainCode() {
+        return blockchainNodeInfo.getCode();
     }
 }

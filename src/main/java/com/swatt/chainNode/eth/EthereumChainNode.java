@@ -3,8 +3,9 @@ package com.swatt.chainNode.eth;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
@@ -22,8 +23,8 @@ import com.swatt.chainNode.dao.BlockData;
 import com.swatt.util.general.OperationFailedException;
 
 public class EthereumChainNode extends ChainNode {
-    private static final Logger LOGGER = Logger.getLogger(EthereumChainNode.class.getName());
-    public static final String ETHEREUM_GENESIS_BLOCK = "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3";
+    private static final Logger LOGGER = LoggerFactory.getLogger(EthereumChainNode.class.getName());
+    
     private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
     private static Web3j web3j;
 
@@ -41,14 +42,13 @@ public class EthereumChainNode extends ChainNode {
 
     @Override
     public void init() {
-        String url = chainNodeConfig.getURL();
-
+        String url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
         web3j = Web3j.build(new HttpService(url));
+        
         try {
-            System.out.println(
-                    "Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
+            LOGGER.info("[ETH] Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("[ETH] Could not connect to Ethereum client: " + e.getMessage());
         }
     }
 
@@ -116,7 +116,7 @@ public class EthereumChainNode extends ChainNode {
         blockData.setNonce(block.getNonce().longValue());
         blockData.setDifficultyBase(block.getDifficulty().doubleValue());
         blockData.setPrevHash(block.getParentHash());
-        blockData.setBlockchainCode(blockchainCode);
+        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
         blockData.setSize(block.getSize().intValue());
 
         try {
@@ -207,13 +207,9 @@ public class EthereumChainNode extends ChainNode {
         }
 	}
 
-	@Override
-	public String getGenesisHash() {
-		return "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3";
-	}
-	
     @Override
     public void fetchNewBlocks() {
+        LOGGER.info("ethy Starting fetchNewBlocks thread.");
         web3j.blockObservable(true).subscribe(b -> chainNodeListeners.stream().forEach(c -> c.newBlockAvailable(this, toBlockData(b))));
     }
 

@@ -1,7 +1,9 @@
 package com.swatt.chainNode.service;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -11,22 +13,34 @@ import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeListener;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.chainNode.dao.CheckProgress;
+import com.swatt.chainNode.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.sql.ConnectionPool;
 
 public class ChainNodeIngestor implements ChainNodeListener {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ChainNodeIngestor.class);
 
+    public static final String BLOCKCHAIN_CODES_PROPERTY = "ingestor.blockchainCodes";
+    public static final String BACKFILL_PROPERTY = "ingestor.backfill";
+    public static final String OVERWRITE_EXISTING_PROPERTY = "ingestor.overwriteExisting";
+    public static final String STOP_HEIGHT_PROPERTY = "ingestor.stopHeight";
+    
+    private boolean backfill = true;
+    private boolean overwriteExisting = false;
+    private long stopHeight = 0;
+    
     private ChainNode chainNode;
     private Connection connection;
-    private Thread ingestorThread;
-    private int blockCount = 0;
-    private static String blockchainCode;
+    private Thread synchronizeChainThread;
 
-    public ChainNodeIngestor(ChainNode chainNode, Connection connection) {
+    public ChainNodeIngestor(Properties properties, ChainNode chainNode, Connection connection) {
+        super();
+        
+        backfill = Boolean.valueOf(properties.getProperty(BACKFILL_PROPERTY, String.valueOf(backfill)));
+        overwriteExisting = Boolean.valueOf(properties.getProperty(OVERWRITE_EXISTING_PROPERTY, String.valueOf(overwriteExisting)));
+        stopHeight = Long.valueOf(properties.getProperty(STOP_HEIGHT_PROPERTY, String.valueOf(stopHeight)));
+        
         this.chainNode = chainNode;
         this.connection = connection;
     }
@@ -34,128 +48,73 @@ public class ChainNodeIngestor implements ChainNodeListener {
     @Override
     public void newBlockAvailable(ChainNode chainNode, BlockData blockData) {
         try {
-            LOGGER.info("New Block Available. Storing");
-            blockData.setBlockchainCode(blockchainCode);
+            logInfo(chainNode.getBlockchainCode(), String.format("Block available, storing: %d", blockData.getHeight()));
             BlockData.insertBlockData(connection, blockData);
         } catch (SQLException e) {
-            // FIXME
+            LOGGER.error("Exception caught while storing new block: " + e.getMessage());
         }
     }
 
     @Override
     public void newTransactionsAvailable(ChainNode chainNode, ChainNodeTransaction[] chainTransactions) {
+        throw new UnsupportedOperationException("Unimplemented.");
     }
 
-    public void startIngestingForwardInChain() {
-        ingestorThread = new Thread(() -> {
+    public void synchronizeChain() {
+        if (!backfill)
+            return;
+        
+        synchronizeChainThread = new Thread(() -> {
             try {
-                CheckProgress checkProgress = chainNode.getCheckProgress(connection, blockchainCode);
-                long blockCount = chainNode.fetchBlockCount();
+                long height = chainNode.fetchBlockCount();
 
-                BlockData blockData = null;
-                
-                if (checkProgress.getBlockHash() == null) {
-                    blockData = chainNode.fetchBlockDataByHash(chainNode.getGenesisHash()); 
-                    blockData.setBlockchainCode(blockchainCode);
-                    BlockData.insertBlockData(connection, blockData);
-                    LOGGER.info("GENESIS BLOCK INGESTED: , " + (blockCount - blockData.getHeight()) + " BLOCKS TO GO");
-                } else {
-                    blockData = BlockData.getFirstBlockData(connection, String.format("HASH = '%s'", checkProgress.getBlockHash())); 
-                }
-
-                while (blockData.getHeight() < blockCount) {
-                    BlockData existingBlockData = BlockData.getFirstBlockData(connection, String.format("HEIGHT = %d", blockData.getHeight() + 1));
-                    
-                    if (existingBlockData == null) {
-                        blockData = chainNode.fetchBlockData(blockData.getHeight() + 1);
-                        blockData.setBlockchainCode(blockchainCode);
-                        BlockData.insertBlockData(connection, blockData);
-                        LOGGER.info("BLOCK INGESTED: " + blockData.getHeight() + ", " + (blockCount - blockData.getHeight()) + " BLOCKS TO GO");
-                    } else {
-                        blockData = existingBlockData;
+                while (height > stopHeight) {
+                    List<BlockData> blockDatas = BlockData.getBlockDatas(connection, String.format("BLOCKCHAIN_CODE = '%s' AND HEIGHT = %d", chainNode.getBlockchainCode(), height));
+                    if (blockDatas != null && !blockDatas.isEmpty() && !overwriteExisting) {
+                        height = height - 1;
+                        continue;
                     }
                     
-                    chainNode.setUpdateProgress(connection, blockchainCode, blockData.getHash(), (int)(blockCount - blockData.getHeight()));
-                }
-            } catch (OperationFailedException | SQLException e) {
-                e.printStackTrace();
-            }
-        }, "ForwardIngestorThread-" + chainNode.getCode());
-
-        ingestorThread.start();
-    }
-
-    public void startIngestingBackwardInChain(final String firstBlockHash, final int limitBlockCount) {
-        ingestorThread = new Thread(() -> {
-            try {
-                String blockHash = firstBlockHash;
-
-                while (blockCount < limitBlockCount) {
-                    BlockData blockData = chainNode.fetchBlockDataByHash(blockHash);
-
-                    blockData.setBlockchainCode(blockchainCode);
-
+                    BlockData blockData = chainNode.fetchBlockData(height);
                     BlockData.insertBlockData(connection, blockData);
+                    logInfo(chainNode.getBlockchainCode(), String.format("Block ingested: %d", height));
 
-                    blockHash = blockData.getPrevHash();
-                    blockCount++;
-
-                    chainNode.setUpdateProgress(connection, blockchainCode, blockHash, limitBlockCount - blockCount);
-                    System.out.println("BLOCK INGESTED, " + (limitBlockCount - blockCount) + " BLOCKS TO GO");
-
-                    // Thread.sleep(10); // This will allow the Interrupt to break
+                    height = height - 1;
                 }
 
-                LOGGER.info("INGESTION COMPLETED");
-                System.exit(0);
+                LOGGER.info("SynchronizeChain complete.");
             } catch (OperationFailedException | SQLException e) {
                 e.printStackTrace();
             }
-        }, "IngestorThread-" + chainNode.getCode());
+        }, "SynchronizeChain-" + chainNode.getCode());
 
-        ingestorThread.start();
+        synchronizeChainThread.start();
     }
 
-    public void stopIngesting() {
-        ingestorThread.interrupt();
+    private static void logInfo(String blockchainCode, String message) {
+        LOGGER.info(String.format("[%s] %s", blockchainCode, message));
     }
+    
+    public static void main(String[] args) throws IOException, SQLException, OperationFailedException {
+        Properties properties = CollectionsUtilities.loadProperties("config.properties");
+        ConnectionPool connectionPool = DatabaseUtils.getConnectionPool(properties);
+        ChainNodeManager chainNodeManager = new ChainNodeManager(properties);
+        
+        String[] blockchainCodes = properties.getProperty(BLOCKCHAIN_CODES_PROPERTY).split(",");
+        for (String blockchainCode : blockchainCodes) {
+            logInfo(blockchainCode, "Starting chainNodeIngestor.");
 
-    public static void main(String[] args) {
-        try {
-            long runTimeMillis = 5 * 60 * 1000;
-
-            String propertiesFileName = "config.properties";
-
-            Properties properties = CollectionsUtilities.loadProperties(propertiesFileName);
-
-            blockchainCode = (args.length > 0) ? args[0] : properties.getProperty("ingestionStartCode");
-
-            ChainNodeManager chainNodeManager = new ChainNodeManager(new ChainNodeManagerConfig(properties));
-
-            Connection connection = chainNodeManager.getConnection();
-
-            ChainNode chainNode = chainNodeManager.getChainNode(blockchainCode);
+            Connection connection = connectionPool.getConnection();
+            ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
 
             if (chainNode != null) {
-                CheckProgress progressStart = chainNode.getCheckProgress(connection, blockchainCode);
-
-                String firstBlockHash = progressStart.getBlockHash();
-                int limitBlockCount = progressStart.getBlockCount();
-
-                ChainNodeIngestor chainNodeIngestor = new ChainNodeIngestor(chainNode, connection);
-                // chainNodeIngestor.startIngestingBackwardInChain(firstBlockHash, limitBlockCount);
-                
-//                chainNodeIngestor.startIngestingForwardInChain();
+                ChainNodeIngestor chainNodeIngestor = new ChainNodeIngestor(properties, chainNode, connection);
                 chainNode.addChainNodeListener(chainNodeIngestor);
                 chainNode.fetchNewBlocks();
-                
-                ConcurrencyUtilities.sleep(runTimeMillis);
-                //chainNodeIngestor.stopIngesting();
+                chainNodeIngestor.synchronizeChain();
             } else {
-                LOGGER.error("No ChainNode found for type: " + blockchainCode);
+                LOGGER.error(String.format("[%s] No chainNode found.", blockchainCode));
             }
-        } catch (Throwable t) {
-            t.printStackTrace();
         }
     }
 }

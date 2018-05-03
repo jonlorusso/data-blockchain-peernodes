@@ -26,11 +26,8 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.12</version>
 		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.0</version>
-		</dependency>
+		<!-- <dependency> <groupId>com.fasterxml.jackson.core</groupId> <artifactId>jackson-databind</artifactId> 
+			<version>2.9.z</version> </dependency> -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -76,31 +73,31 @@
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>5.0.0-M1</version>
 		</dependency>
-		 <dependency>
+		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<version>1.56</version>
 		</dependency>
 	</dependencies>
 	<build>
-	    <plugins>
-		<plugin>
-		    <groupId>org.codehaus.mojo</groupId>
-		    <artifactId>exec-maven-plugin</artifactId>
-		    <version>1.2.1</version>
-		    <configuration>
-			<mainClass>com.swatt.chainNode.service.ChainNodeService</mainClass>
-		    </configuration>
-		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.7.0</version>
-			<configuration>
-				<source>1.8</source>
-				<target>1.8</target>
-			</configuration>
-		</plugin>
-	    </plugins>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>com.swatt.chainNode.service.ChainNodeIngestor</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 </project>

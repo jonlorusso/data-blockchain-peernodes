@@ -1,67 +1,67 @@
 package com.swatt.chainNode.service;
 
+import static java.lang.Integer.parseInt;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toMap;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import com.swatt.chainNode.ChainNode;
-import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.sql.ConnectionPool;
-import com.swatt.util.sql.SqlUtilities;;
+import com.swatt.chainNode.dao.BlockchainNodeInfo;
+import com.swatt.util.general.OperationFailedException;;
 
 public class ChainNodeManager {
-    private ConnectionPool connectionPool;
-    private ChainNodeManagerConfig chainNodeManagerConfig;
-    private HashMap<String, ChainNode> chainNodes = new HashMap<String, ChainNode>();
-
-    public ChainNodeManager(ChainNodeManagerConfig chainNodeManagerConfig) {
-        this.chainNodeManagerConfig = chainNodeManagerConfig;
+    private HashMap<String, ChainNode> chainNodes = new HashMap<>();
+    
+    private Map<String, String> overrideIps = new HashMap<>();
+    private Map<String, Integer> overridePorts = new HashMap<>();
+    
+    public ChainNodeManager(Properties properties) {
+        super();
+        
+        overrideIps = stream(properties.getProperty("chainNode.overrideIp").split(",")).collect(toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
+        overridePorts = stream(properties.getProperty("chainNode.overridePort").split(",")).collect(toMap(s -> s.split("=")[0], s -> parseInt(s.split("=")[1])));
     }
-
-    public ChainNode getChainNode(String blockchainCode) throws OperationFailedException {
+    
+    private ChainNode createChainNode(BlockchainNodeInfo blockchainNodeInfo) throws OperationFailedException {
+        try {
+            Class<?> clazz = Class.forName(blockchainNodeInfo.getClassName());
+            ChainNode chainNode = (ChainNode)clazz.newInstance();
+            chainNode.setBlockchainNodeInfo(blockchainNodeInfo);
+            chainNode.init();
+            return chainNode;
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new OperationFailedException(e);
+        }
+    }
+    
+    private void applyProperties(BlockchainNodeInfo blockchainNodeInfo) {
+        if (overrideIps.containsKey(blockchainNodeInfo.getCode()))
+            blockchainNodeInfo.setIp(overrideIps.get(blockchainNodeInfo.getCode()));
+        
+        if (overridePorts.containsKey(blockchainNodeInfo.getCode()))
+            blockchainNodeInfo.setPort(overridePorts.get(blockchainNodeInfo.getCode()));
+    }
+    
+    public ChainNode getChainNode(Connection connection, String blockchainCode) throws OperationFailedException {
         ChainNode chainNode = chainNodes.get(blockchainCode);
         blockchainCode = blockchainCode.toUpperCase();
 
         if (chainNode == null) {
-            ChainNodeConfig chainNodeConfig = chainNodeManagerConfig.getChainNodeConfig(blockchainCode);
-
-            if (chainNodeConfig == null) {
-                throw new OperationFailedException("No ChainNodeConfig found for: " + blockchainCode);
-            }
-
             try {
-                String className = chainNodeConfig.getClassName();
-                Class<?> clazz = Class.forName(className);
-                chainNode = (ChainNode) clazz.newInstance();
-                chainNode.setChainNodeConfig(chainNodeConfig);
-                chainNode.init();
-            } catch (Throwable t) {
-                t.printStackTrace();
-                throw new OperationFailedException("Unable to create ChainNode: " + blockchainCode, t);
+                BlockchainNodeInfo blockchainNodeInfo = BlockchainNodeInfo.getBlockchainNodeInfo(connection, blockchainCode);
+                applyProperties(blockchainNodeInfo);
+                chainNode = createChainNode(blockchainNodeInfo);
+                chainNodes.put(blockchainCode, chainNode);
+            } catch (SQLException e) {
+                throw new OperationFailedException(e);
             }
         }
 
         return chainNode;
-    }
-
-    public Connection getConnection() throws SQLException {
-        String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
-        String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
-        String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
-
-        return SqlUtilities.getConnection(dbUrl, dbUser, dbPassword);
-    }
-
-    public ConnectionPool getConnectionPool() {
-        if (connectionPool == null) {
-            String dbUrl = chainNodeManagerConfig.getAttribute("dbURL", null);
-            String dbUser = chainNodeManagerConfig.getAttribute("dbUser", null);
-            String dbPassword = chainNodeManagerConfig.getAttribute("dbPassword", null);
-            int dbMaxPoolSize = chainNodeManagerConfig.getIntAttribute("dbMaxPoolSize ", 1);
-
-            connectionPool = new ConnectionPool(dbUrl, dbUser, dbPassword, dbMaxPoolSize);
-        }
-
-        return connectionPool;
     }
 }

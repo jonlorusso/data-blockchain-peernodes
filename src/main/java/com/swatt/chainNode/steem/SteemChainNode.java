@@ -1,8 +1,9 @@
 package com.swatt.chainNode.steem;
 
 import java.time.Instant;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNode;
@@ -13,7 +14,7 @@ import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
 public class SteemChainNode extends ChainNode {
-    private static final Logger LOGGER = Logger.getLogger(SteemChainNode.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SteemChainNode.class.getName());
     private static final int TRANSACTION_BUFFER_SIZE = 1000;
     private static KeepNewestHash transactions;
 
@@ -25,7 +26,7 @@ public class SteemChainNode extends ChainNode {
 
     @Override
     public void init() {
-        String url = chainNodeConfig.getURL();
+        String url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
         int maxSize = 10; // TODO: Should get from chainNodeConfig
 
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, null, null, maxSize);
@@ -63,10 +64,7 @@ public class SteemChainNode extends ChainNode {
             RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsSteem.GET_BLOCK, parameters, RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
-
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
-                    super.getAmountScaling());
-
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
             blockData.setHeight(rpcBlock.height);
@@ -78,10 +76,7 @@ public class SteemChainNode extends ChainNode {
             blockData.setDifficultyBase(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
             blockData.setNextHash(rpcBlock.nextblockhash);
-
-            blockData.setBlockchainCode(blockchainCode);
-
-            System.out.println("CALCULATING BLOCK: " + rpcBlock.hash);
+            blockData.setBlockchainCode(getBlockchainCode());
 
             calculate(jsonrpcClient, blockData, rpcBlock);
 
@@ -92,21 +87,15 @@ public class SteemChainNode extends ChainNode {
             blockData.setIndexingDuration(indexingDuration);
 
             return blockData;
-
+        } catch (OperationFailedException e) {
+            throw e;
         } catch (Throwable t) {
-            if (t instanceof OperationFailedException)
-                throw (OperationFailedException) t;
-            else {
-                OperationFailedException e = new OperationFailedException("Error fetching latest Block: ", t);
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-                throw e;
-            }
+            LOGGER.error("Error fetching latest block: ", t.getMessage());
+            throw new OperationFailedException("Error fetching latest Block: ", t);
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
-            throws OperationFailedException {
-
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -139,11 +128,6 @@ public class SteemChainNode extends ChainNode {
                 largestTxAmount = transactionAmount;
                 largestTxHash = transactionHash;
             }
-
-            if (transactionFee <= 0.0) {
-                System.out.println("Initial transaction: " + transactionHash);
-            }
-
         }
 
         if (smallestFee == Double.MAX_VALUE)
@@ -171,11 +155,6 @@ public class SteemChainNode extends ChainNode {
 	@Override
 	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
 	    throw new UnsupportedOperationException("Not implemented yet.");
-	}
-
-	@Override
-	public String getGenesisHash() {
-		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
     @Override
