@@ -22,9 +22,12 @@ public class ChainNodeManager {
     
     public ChainNodeManager(Properties properties) {
         super();
+    
+        if (properties.getProperty("chainNode.overrideIp") != null)
+            overrideIps = stream(properties.getProperty("chainNode.overrideIp").split(",")).collect(toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
         
-        overrideIps = stream(properties.getProperty("chainNode.overrideIp").split(",")).collect(toMap(s -> s.split("=")[0], s -> s.split("=")[1]));
-        overridePorts = stream(properties.getProperty("chainNode.overridePort").split(",")).collect(toMap(s -> s.split("=")[0], s -> parseInt(s.split("=")[1])));
+        if (properties.getProperty("chainNode.overridePort") != null)
+            overridePorts = stream(properties.getProperty("chainNode.overridePort").split(",")).collect(toMap(s -> s.split("=")[0], s -> parseInt(s.split("=")[1])));
     }
     
     private ChainNode createChainNode(BlockchainNodeInfo blockchainNodeInfo) throws OperationFailedException {

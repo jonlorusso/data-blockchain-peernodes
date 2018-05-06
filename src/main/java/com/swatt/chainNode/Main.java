@@ -1,5 +1,7 @@
 package com.swatt.chainNode;
 
+import static com.swatt.util.general.CollectionsUtilities.loadProperties;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,15 +14,17 @@ import com.swatt.chainNode.service.ChainNodeIngestor;
 import com.swatt.chainNode.service.ChainNodeManager;
 import com.swatt.chainNode.service.ChainNodeService;
 import com.swatt.chainNode.util.DatabaseUtils;
-import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChainNodeService.class);
+    private static final String PROPERTIES_FILENAME = "config.properties";
     
     public static void main(String[] args) {
+        String filename = args.length > 0 ? args[0] : PROPERTIES_FILENAME;
+        
         try {
-            Properties properties = CollectionsUtilities.loadProperties("config.properties");
+            Properties properties = loadProperties(filename);
 
             /** api **/
             ChainNodeService chainNodeService = new ChainNodeService(properties);

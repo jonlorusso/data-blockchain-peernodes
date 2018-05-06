@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>blockchain-access-layer</name>
+	<name>swatt-blockchain-data</name>
 	<comment></comment>
 	<projects>
 		<project>swatt-common-library</project>
