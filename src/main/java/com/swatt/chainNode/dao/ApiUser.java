@@ -42,8 +42,12 @@ public class ApiUser {
         return companyId;
     }
 
-    private static String getAuthProcedureName() {
+    private static String getAuthCredsProcedureName() {
         return "Auth";
+    }
+
+    private static String getAuthKeyProcedureName() {
+        return "CheckAPIKey";
     }
 
     public ApiUser(ResultSet rs) throws SQLException {
@@ -54,10 +58,11 @@ public class ApiUser {
         companyName = rs.getString(5);
     }
 
-    private static String AUTH_QUERY = "CALL " + getAuthProcedureName() + "(?, ?)";
+    private static String AUTH_CREDS_QUERY = "CALL " + getAuthCredsProcedureName() + "(?, ?)";
+    private static String AUTH_KEY_QUERY = "CALL " + getAuthKeyProcedureName() + "(?)";
 
-    public static ApiUser auth(Connection connection, String email, String pwHash) throws SQLException {
-        CallableStatement cs = connection.prepareCall(AUTH_QUERY);
+    public static ApiUser authCredentials(Connection connection, String email, String pwHash) throws SQLException {
+        CallableStatement cs = connection.prepareCall(AUTH_CREDS_QUERY);
 
         String pwHashSeed = email + pwHash;
         String pwHashFinal = null;
@@ -81,5 +86,23 @@ public class ApiUser {
             return new ApiUser(rs);
         else
             return null;
+    }
+
+    public static boolean authKey(Connection connection, String key) throws SQLException {
+        CallableStatement cs = connection.prepareCall(AUTH_KEY_QUERY);
+        boolean keyPassed = false;
+
+        cs.setString(1, key);
+
+        ResultSet rs = cs.executeQuery();
+
+        if (rs.next()) {
+            int keyActive = rs.getInt(3);
+
+            if (keyActive == 1)
+                keyPassed = true;
+        }
+
+        return keyPassed;
     }
 }
