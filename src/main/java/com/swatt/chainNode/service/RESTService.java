@@ -13,9 +13,9 @@ import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.ApiBlockData;
 import com.swatt.chainNode.dao.ApiBlockDataByDay;
 import com.swatt.chainNode.dao.ApiBlockDataByInterval;
+import com.swatt.chainNode.dao.ApiTime;
 import com.swatt.chainNode.dao.ApiUser;
 import com.swatt.chainNode.util.DatabaseUtils;
-import com.swatt.util.sql.ConnectionPool;
 
 import io.javalin.Context;
 import io.javalin.Javalin;
@@ -55,6 +55,20 @@ public class RESTService {
 
     public void init() {
         app = Javalin.create().port(port).enableCorsForOrigin("*").enableStandardRequestLogging();
+
+        app.get("/time", ctx -> {
+            Connection conn = connectionPool.getConnection();
+
+            try {
+                ApiTime time = ApiUser.authCredentials(conn);
+
+                connectionPool.returnConnection(conn);
+
+                ctx.json(time);
+            } finally {
+                connectionPool.returnConnection(conn);
+            }
+        });
 
         app.get("/blockchain/:blockchainCode/txn/:transactionHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
