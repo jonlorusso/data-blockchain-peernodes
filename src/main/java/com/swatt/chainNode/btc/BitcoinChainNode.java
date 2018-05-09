@@ -40,8 +40,6 @@ public class BitcoinChainNode extends ChainNode {
         String password = blockchainNodeInfo.getRpcPw();
         int maxSize = 10; // TODO: Should get from chainNodeConfig
 
-        System.out.println(url);
-
         Context context = ZMQ.context(1);
         blockSubscriber = context.socket(ZMQ.SUB);
         blockSubscriber.connect(String.format("tcp://%s:28335", blockchainNodeInfo.getIp())); // FIXME store port in

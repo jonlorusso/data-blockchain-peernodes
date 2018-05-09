@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.swatt.chainNode.service.ChainNodeIngestor;
 import com.swatt.chainNode.service.ChainNodeManager;
+import com.swatt.chainNode.service.RESTService;
 import com.swatt.chainNode.util.DatabaseUtils;
 import com.swatt.util.general.OperationFailedException;
 
@@ -24,6 +25,11 @@ public class Main {
 
         try {
             Properties properties = loadProperties(filename);
+            
+            /** api **/
+            RESTService restService = new RESTService(properties);
+            restService.init();
+            restService.start();
 
             /** ingestor **/
             ChainNodeManager chainNodeManager = new ChainNodeManager(properties);

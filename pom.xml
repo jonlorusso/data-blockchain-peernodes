@@ -1,15 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.swatt.blockchain.data</groupId>
+	<groupId>com.swatt</groupId>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-	<artifactId>blockchain.data</artifactId>
+	<artifactId>blockchain-data</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>com.swatt.blockchain.internalapi</name>
+	<name>swatt-blockchain-data</name>
 	<dependencies>
+		<dependency>
+			<groupId>com.swatt</groupId>
+			<artifactId>swatt-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>io.javalin</groupId>
 			<artifactId>javalin</artifactId>
