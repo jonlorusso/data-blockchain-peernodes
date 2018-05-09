@@ -5,9 +5,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.ApiBlockData;
@@ -16,12 +13,13 @@ import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.ApiTime;
 import com.swatt.chainNode.dao.ApiUser;
 import com.swatt.chainNode.util.DatabaseUtils;
+import com.swatt.util.sql.ConnectionPool;
 
 import io.javalin.Context;
 import io.javalin.Javalin;
 
 public class RESTService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
+//    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
 
     private static final String PORT_PROPERTY = "servicePort";
 
@@ -57,38 +55,26 @@ public class RESTService {
         app = Javalin.create().port(port).enableCorsForOrigin("*").enableStandardRequestLogging();
 
         app.get("/time", ctx -> {
-            Connection conn = connectionPool.getConnection();
-
-            try {
-                ApiTime time = ApiUser.authCredentials(conn);
-
-                connectionPool.returnConnection(conn);
-
-                ctx.json(time);
-            } finally {
-                connectionPool.returnConnection(conn);
-            }
+            try (Connection connection = connectionPool.getConnection()) {
+                ctx.json(ApiTime.authCredentials(connection));
+            } 
         });
 
         app.get("/blockchain/:blockchainCode/txn/:transactionHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
 
-            Connection conn = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
 
-            if (!validateKey(conn, ctx)) {
-                ctx.status(401);
-                return;
-            }
-
-            try {
                 String transactionHash = ctx.param("transactionHash");
 
-                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
+                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
                 ChainNodeTransaction chainTransaction = chainNode.fetchTransactionByHash(transactionHash, true);
 
                 ctx.json(chainTransaction);
-            } finally {
-                connectionPool.returnConnection(conn);
             }
         });
 
@@ -98,24 +84,16 @@ public class RESTService {
             // TODO switch for height
             String blockHash = ctx.param("blockKey");
 
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
-
-            if (!validateKey(conn, ctx)) {
-                ctx.status(401);
-                return;
-            }
-
-            try {
-                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
-                ApiBlockData blockData = chainNode.getBlockDataByHash(conn, blockHash);
-
-                connectionPool.returnConnection(conn);
-
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
+                
+                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                ApiBlockData blockData = chainNode.getBlockDataByHash(connection, blockHash);
+                
                 ctx.json(blockData);
-            } catch (Throwable t) {
-                System.out.println(t.toString());
-                connectionPool.returnConnection(conn);
             }
         });
 
@@ -185,23 +163,16 @@ public class RESTService {
             String From = ctx.queryParam("fromdate");
             String To = ctx.queryParam("todate");
 
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
-
-            if (!validateKey(conn, ctx)) {
-                ctx.status(401);
-                return;
-            }
-
-            try {
-                ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
-                ArrayList<ApiBlockData> blockData = chainNode.getBlocks(conn, Long.parseLong(From), Long.parseLong(To));
-
-                connectionPool.returnConnection(conn);
-
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
+                
+                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                ArrayList<ApiBlockData> blockData = chainNode.getBlocks(connection, Long.parseLong(From), Long.parseLong(To));
+                
                 ctx.json(blockData);
-            } catch (Throwable t) {
-                connectionPool.returnConnection(conn);
             }
         });
 
@@ -211,47 +182,24 @@ public class RESTService {
             String from = ctx.queryParam("fromdate");
             String to = ctx.queryParam("todate");
 
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
 
-            if (!validateKey(conn, ctx)) {
-                ctx.status(401);
-                return;
-            }
+                if (summarizeBy == null) {
+                    System.out.println("all");
 
-            if (summarizeBy == null) {
-                System.out.println("all");
-
-                try {
-                    ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
-
-                    ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(conn, Long.parseLong(from),
-                            Long.parseLong(to));
-
-                    connectionPool.returnConnection(conn);
+                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                    ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(connection, Long.parseLong(from), Long.parseLong(to));
 
                     ctx.json(aggregateData);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    connectionPool.returnConnection(conn);
-                }
-            } else {
-                switch (summarizeBy) {
-                case "day":
-                    System.out.println("day");
+                } else if (summarizeBy.equals("day")) {
+                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                    ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(connection, Long.parseLong(from), Long.parseLong(to));
 
-                    try {
-                        ChainNode chainNode = chainNodeManager.getChainNode(conn, blockchainCode);
-                        ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(conn, Long.parseLong(from),
-                                Long.parseLong(to));
-
-                        connectionPool.returnConnection(conn);
-
-                        ctx.json(blockData);
-                    } catch (Throwable t) {
-                        connectionPool.returnConnection(conn);
-                    }
-                    break;
+                    ctx.json(blockData);
                 }
             }
         });
@@ -260,21 +208,13 @@ public class RESTService {
             String email = ctx.formParam("email");
             String passwordHash = ctx.formParam("password");
 
-            Connection conn = connectionPool.getConnection(); // Do not use the JDK 1.7+ try with resource as we do NOT
-                                                              // want to close the pooled connections
-
-            try {
-                ApiUser user = ApiUser.authCredentials(conn, email, passwordHash);
-
-                connectionPool.returnConnection(conn);
+            try (Connection connection = connectionPool.getConnection()) {
+                ApiUser user = ApiUser.authCredentials(connection, email, passwordHash);
 
                 if (user == null)
                     ctx.status(401);
                 else
                     ctx.json(user);
-            } catch (Throwable t) {
-                t.printStackTrace();
-                connectionPool.returnConnection(conn);
             }
         });
     }
