@@ -5,6 +5,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.ApiBlockData;
@@ -19,8 +22,7 @@ import io.javalin.Context;
 import io.javalin.Javalin;
 
 public class RESTService {
-    // private static final Logger LOGGER =
-    // LoggerFactory.getLogger(RESTService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
 
     private static final String PORT_PROPERTY = "servicePort";
 
