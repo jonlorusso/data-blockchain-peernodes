@@ -112,7 +112,7 @@ public class BlockData implements DataStreamSerializable {
         return id;
     }
 
-    public final String getblockchainCode() {
+    public final String getBlockchainCode() {
         return blockchainCode;
     }
 
