@@ -19,7 +19,8 @@ import io.javalin.Context;
 import io.javalin.Javalin;
 
 public class RESTService {
-//    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
+    // private static final Logger LOGGER =
+    // LoggerFactory.getLogger(RESTService.class);
 
     private static final String PORT_PROPERTY = "servicePort";
 
@@ -57,9 +58,10 @@ public class RESTService {
         app.get("/time", ctx -> {
             try (Connection connection = connectionPool.getConnection()) {
                 ctx.json(ApiTime.authCredentials(connection));
-            } 
+            }
         });
 
+        // BLOCKCHAIN CALLS
         app.get("/blockchain/:blockchainCode/txn/:transactionHash", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
 
@@ -81,21 +83,86 @@ public class RESTService {
         app.get("/blockchain/:blockchainCode/blocks/:blockKey", ctx -> {
             String blockchainCode = ctx.param("blockchainCode");
 
-            // TODO switch for height
-            String blockHash = ctx.param("blockKey");
+            String blockKey = ctx.param("blockKey");
+            String blockHash = null;
+            boolean byHash = false;
+            long blockHeight = 0;
+
+            ApiBlockData blockData;
+
+            try {
+                blockHeight = Long.parseLong(blockKey);
+            } catch (NumberFormatException e) {
+                byHash = true;
+                blockHash = blockKey;
+            }
 
             try (Connection connection = connectionPool.getConnection()) {
                 if (!validateKey(connection, ctx)) {
                     ctx.status(401);
                     return;
                 }
-                
+
                 ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
-                ApiBlockData blockData = chainNode.getBlockDataByHash(connection, blockHash);
-                
+
+                if (byHash)
+                    blockData = chainNode.fetchBlockDataByHash(connection, blockHash);
+                else
+                    blockData = chainNode.fetchBlockDataByHeight(connection, blockHeight);
+
                 ctx.json(blockData);
             }
         });
+
+        app.get("/blockchain/:blockchainCode/blocks/", ctx -> {
+            String blockchainCode = ctx.param("blockchainCode");
+            String From = ctx.queryParam("fromdate");
+            String To = ctx.queryParam("todate");
+
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
+
+                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                ArrayList<ApiBlockData> blockData = chainNode.fetchBlocks(connection, Long.parseLong(From),
+                        Long.parseLong(To));
+
+                ctx.json(blockData);
+            }
+        });
+
+        app.get("/blockchain/:blockchainCode/summary/", ctx -> {
+            String blockchainCode = ctx.param("blockchainCode");
+            String summarizeBy = ctx.queryParam("by");
+            String from = ctx.queryParam("fromdate");
+            String to = ctx.queryParam("todate");
+
+            try (Connection connection = connectionPool.getConnection()) {
+                if (!validateKey(connection, ctx)) {
+                    ctx.status(401);
+                    return;
+                }
+
+                if (summarizeBy == null) {
+                    System.out.println("all");
+
+                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                    ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(connection,
+                            Long.parseLong(from), Long.parseLong(to));
+
+                    ctx.json(aggregateData);
+                } else if (summarizeBy.equals("day")) {
+                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
+                    ArrayList<ApiBlockDataByDay> blockData = chainNode.fetchBlocksByDay(connection,
+                            Long.parseLong(from), Long.parseLong(to));
+
+                    ctx.json(blockData);
+                }
+            }
+        });
+        // /BLOCKCHAIN CALLS
 
         /*
          * 
@@ -157,52 +224,6 @@ public class RESTService {
          * ctx.result(result); } catch (Throwable t) { System.out.println(t.toString());
          * connectionPool.returnConnection(conn); } });
          */
-
-        app.get("/blockchain/:blockchainCode/blocks/", ctx -> {
-            String blockchainCode = ctx.param("blockchainCode");
-            String From = ctx.queryParam("fromdate");
-            String To = ctx.queryParam("todate");
-
-            try (Connection connection = connectionPool.getConnection()) {
-                if (!validateKey(connection, ctx)) {
-                    ctx.status(401);
-                    return;
-                }
-                
-                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
-                ArrayList<ApiBlockData> blockData = chainNode.getBlocks(connection, Long.parseLong(From), Long.parseLong(To));
-                
-                ctx.json(blockData);
-            }
-        });
-
-        app.get("/blockchain/:blockchainCode/summary/", ctx -> {
-            String blockchainCode = ctx.param("blockchainCode");
-            String summarizeBy = ctx.queryParam("by");
-            String from = ctx.queryParam("fromdate");
-            String to = ctx.queryParam("todate");
-
-            try (Connection connection = connectionPool.getConnection()) {
-                if (!validateKey(connection, ctx)) {
-                    ctx.status(401);
-                    return;
-                }
-
-                if (summarizeBy == null) {
-                    System.out.println("all");
-
-                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
-                    ApiBlockDataByInterval aggregateData = chainNode.getDataForInterval(connection, Long.parseLong(from), Long.parseLong(to));
-
-                    ctx.json(aggregateData);
-                } else if (summarizeBy.equals("day")) {
-                    ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
-                    ArrayList<ApiBlockDataByDay> blockData = chainNode.getBlocksByDay(connection, Long.parseLong(from), Long.parseLong(to));
-
-                    ctx.json(blockData);
-                }
-            }
-        });
 
         app.post("/auth", ctx -> {
             String email = ctx.formParam("email");
