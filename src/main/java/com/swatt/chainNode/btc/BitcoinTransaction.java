@@ -16,6 +16,33 @@ public class BitcoinTransaction extends ChainNodeTransaction {
 
     private List<RpcResultVout> vout;
 
+    BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, String transactionHash, boolean calculateFee) throws OperationFailedException {
+        super(transactionHash);
+
+        RpcResultTransaction rpcTransaction = fetchFromBlockchain(jsonrpcClient, transactionHash);
+        
+        this.vout = rpcTransaction.vout;
+
+        // Compute amount
+        double amount = vout.stream().mapToDouble(v -> v.value).sum();
+
+        setAmount(amount);
+//        setTimestamp(rpcTransaction.time);
+
+        // Compute Size
+
+        if (rpcTransaction.vsize != null) {
+            setSize(rpcTransaction.vsize);
+        } else {
+            setSize(rpcTransaction.size);
+        }
+
+        super.setBlockHash(rpcTransaction.blockhash);
+
+        if (calculateFee)
+            calculateFee(jsonrpcClient, rpcTransaction);
+    }
+    
     BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction, boolean calculateFee) throws OperationFailedException {
         super(rpcTransaction.txid);
 

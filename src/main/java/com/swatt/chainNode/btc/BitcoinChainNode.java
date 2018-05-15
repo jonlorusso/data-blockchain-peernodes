@@ -13,6 +13,7 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
+import com.swatt.chainNode.dao.BlockchainNodeInfo;
 import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
@@ -42,8 +43,7 @@ public class BitcoinChainNode extends ChainNode {
 
         Context context = ZMQ.context(1);
         blockSubscriber = context.socket(ZMQ.SUB);
-        blockSubscriber.connect(String.format("tcp://%s:28335", blockchainNodeInfo.getIp())); // FIXME store port in
-                                                                                              // blockchain_node_info?
+        blockSubscriber.connect(String.format("tcp://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getZmqPort())); 
         blockSubscriber.subscribe("hashblock");
 
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url, user, password, maxSize);
@@ -62,8 +62,7 @@ public class BitcoinChainNode extends ChainNode {
     }
 
     @Override
-    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException {
+    public ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
@@ -100,8 +99,7 @@ public class BitcoinChainNode extends ChainNode {
         String blockHash = null;
 
         try {
-            blockHash = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK_HASH, new Object[] { blockNumber },
-                    String.class);
+            blockHash = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK_HASH, new Object[] { blockNumber }, String.class);
         } catch (Throwable t) {
             LOGGER.error(String.format("[BTC] Exception caught fetching block: [%s]", t.getMessage()));
             throw new OperationFailedException("Error fetching latest Block: ", t);
@@ -112,13 +110,11 @@ public class BitcoinChainNode extends ChainNode {
         return fetchBlockByHash(jsonrpcClient, blockHash);
     }
 
-    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash)
-            throws OperationFailedException {
+    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
-            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, 2 },
-                    RpcResultBlock.class);
+            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, true }, RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
             blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
@@ -158,8 +154,7 @@ public class BitcoinChainNode extends ChainNode {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
-            throws OperationFailedException {
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -169,12 +164,12 @@ public class BitcoinChainNode extends ChainNode {
         String largestTxHash = null;
 
         int transactionCount = 1; // rpcBlock.tx.size();
-        for (RpcResultTransaction rpcTransaction : rpcBlock.tx) {
-            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(rpcTransaction.txid);
+        for (String transactionHash : rpcBlock.tx) {
+            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(transactionHash);
 
             if (transaction == null) {
-                transaction = new BitcoinTransaction(jsonrpcClient, rpcTransaction, true);
-                transactions.put(rpcTransaction.txid, transaction);
+                transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
+                transactions.put(transactionHash, transaction);
             }
 
             if (!transaction.getCoinbase()) {
@@ -190,7 +185,7 @@ public class BitcoinChainNode extends ChainNode {
 
                 if (transactionAmount > largestTxAmount) {
                     largestTxAmount = transactionAmount;
-                    largestTxHash = rpcTransaction.txid;
+                    largestTxHash = transactionHash;
                 }
             }
         }
@@ -276,7 +271,7 @@ public class BitcoinChainNode extends ChainNode {
                 }
             }
 
-        }, "BlockListener-BTC");
+        }, "BlockListener-" + getCode());
 
         blockListener.start();
     }
