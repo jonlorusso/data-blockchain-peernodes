@@ -419,16 +419,20 @@ public class BlockData implements DataStreamSerializable {
         indexingDuration = rs.getInt(30);
     }
 
+    // TODO close result sets on other calls
     public static ArrayList<BlockData> getBlockDatas(PreparedStatement ps) throws SQLException {
-        ResultSet rs = ps.executeQuery();
+        ArrayList<BlockData> result = null;
 
-        return getBlockDatas(rs);
+        try (ResultSet rs = ps.executeQuery()) {
+            result = getBlockDatas(rs);
+        }
+
+        return result;
     }
 
     public static BlockData getNextBlockData(ResultSet rs) throws SQLException {
         if (rs.next())
             return new BlockData(rs);
-
         else
             return null;
     }
