@@ -13,7 +13,6 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.chainNode.ChainNode;
 import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
-import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
@@ -23,14 +22,12 @@ public class BitcoinChainNode extends ChainNode {
     private final static char[] hexArray = "0123456789abcdef".toCharArray();
 
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
-    private static final int TRANSACTION_BUFFER_SIZE = 1000;
-    private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
     private Socket blockSubscriber;
 
     public BitcoinChainNode() {
-        transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
+        super();
     }
 
     @Override
@@ -112,17 +109,14 @@ public class BitcoinChainNode extends ChainNode {
         return fetchBlockByHash(jsonrpcClient, blockHash);
     }
 
-    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash)
-            throws OperationFailedException {
+    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
-            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, 2 },
-                    RpcResultBlock.class);
+            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, 2 }, RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
-                    super.getAmountScaling());
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
             blockData.setHeight(rpcBlock.height);
@@ -158,8 +152,7 @@ public class BitcoinChainNode extends ChainNode {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock)
-            throws OperationFailedException {
+    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
         double totalFee = 0.0;
         double totalFeeRate = 0.0;
 
@@ -170,12 +163,7 @@ public class BitcoinChainNode extends ChainNode {
 
         int transactionCount = 1; // rpcBlock.tx.size();
         for (RpcResultTransaction rpcTransaction : rpcBlock.tx) {
-            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(rpcTransaction.txid);
-
-            if (transaction == null) {
-                transaction = new BitcoinTransaction(jsonrpcClient, rpcTransaction, true);
-                transactions.put(rpcTransaction.txid, transaction);
-            }
+            BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, rpcTransaction, true);
 
             if (!transaction.getCoinbase()) {
                 double transactionFee = transaction.getFee();
