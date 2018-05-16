@@ -24,14 +24,12 @@ public class BitcoinChainNode extends ChainNode {
     private final static char[] hexArray = "0123456789abcdef".toCharArray();
 
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
-    private static final int TRANSACTION_BUFFER_SIZE = 1000;
-    private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
     private Socket blockSubscriber;
 
     public BitcoinChainNode() {
-        transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
+        super();
     }
 
     @Override
@@ -117,8 +115,7 @@ public class BitcoinChainNode extends ChainNode {
             RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, true }, RpcResultBlock.class);
 
             BlockData blockData = new BlockData();
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(),
-                    super.getAmountScaling());
+            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
             blockData.setHash(rpcBlock.hash);
             blockData.setSize(rpcBlock.size);
             blockData.setHeight(rpcBlock.height);
@@ -165,12 +162,7 @@ public class BitcoinChainNode extends ChainNode {
 
         int transactionCount = 1; // rpcBlock.tx.size();
         for (String transactionHash : rpcBlock.tx) {
-            BitcoinTransaction transaction = (BitcoinTransaction) transactions.get(transactionHash);
-
-            if (transaction == null) {
-                transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
-                transactions.put(transactionHash, transaction);
-            }
+            BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
 
             if (!transaction.getCoinbase()) {
                 double transactionFee = transaction.getFee();
