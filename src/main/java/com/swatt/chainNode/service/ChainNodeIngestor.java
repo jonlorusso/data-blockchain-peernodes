@@ -124,12 +124,12 @@ public class ChainNodeIngestor implements ChainNodeListener {
         return blockData;
     }
 
-    private BlockData getBlockData(PreparedStatement preparedStatement, long height) throws SQLException {
-        preparedStatement.clearParameters();
-        preparedStatement.setString(1, chainNode.getBlockchainCode());
-        preparedStatement.setLong(2, height);
+    private BlockData getBlockData(long height) throws SQLException {
+        queryPreparedStatement.clearParameters();
+        queryPreparedStatement.setString(1, chainNode.getBlockchainCode());
+        queryPreparedStatement.setLong(2, height);
 
-        List<BlockData> blockDatas = BlockData.getBlockDatas(preparedStatement);
+        List<BlockData> blockDatas = BlockData.getBlockDatas(queryPreparedStatement);
         if (blockDatas != null && !blockDatas.isEmpty())
             return blockDatas.get(0);
 
@@ -145,7 +145,7 @@ public class ChainNodeIngestor implements ChainNodeListener {
                 long height = chainNode.fetchBlockCount();
 
                 while (height > stopHeight) {
-                    BlockData blockData = getBlockData(queryPreparedStatement, height);
+                    BlockData blockData = getBlockData(height);
                     if (blockData != null && !overwriteExisting) {
                         height = height - 1;
                         continue;
