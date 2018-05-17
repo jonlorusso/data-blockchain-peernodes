@@ -1,10 +1,6 @@
 package com.swatt.chainNode;
 
-import java.util.logging.Logger;
-
 public class ChainNodeTransaction {
-    private static final Logger LOGGER = Logger.getLogger(ChainNodeTransaction.class.getName());
-
     private String hash;
     private long timestamp;
 

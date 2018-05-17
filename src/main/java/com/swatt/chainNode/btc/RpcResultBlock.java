@@ -17,7 +17,7 @@ public class RpcResultBlock {
     public int version;
     public String versionHex;
     public String merkleroot;
-    public List<RpcResultTransaction> tx = null;
+    public List<String> tx = null;
     public Long time;
     public int mediantime;
     public Long nonce;
