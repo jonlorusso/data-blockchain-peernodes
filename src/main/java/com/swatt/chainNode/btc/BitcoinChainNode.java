@@ -83,7 +83,7 @@ public class BitcoinChainNode extends ChainNode {
             blockNumber = jsonRpcHttpClient.invoke(RpcMethodsBitcoin.GET_BLOCK_COUNT, parameters, Long.class);
         } catch (Throwable t) {
             LOGGER.error(String.format("[BTC] Exception caught fetching block: [%s]", t.getMessage()));
-            throw new OperationFailedException("Error fetching latest Block: ", t);
+            throw new OperationFailedException(String.format("Error fetching latest %s Block: %s", getCode(), t.getMessage()));
         }
 
         return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber); // We keep this out of the above try/catch so we

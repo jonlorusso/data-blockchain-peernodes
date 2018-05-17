@@ -70,7 +70,7 @@ public class BitcoinTransaction extends ChainNodeTransaction {
 
     public static RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)throws OperationFailedException {
         try {
-            return jsonrpcClient.invoke(RpcMethodsBitcoin.GET_RAW_TRANSACTION, new Object[] { transactionHash, true }, RpcResultTransaction.class);
+            return jsonrpcClient.invoke(RpcMethodsBitcoin.GET_RAW_TRANSACTION, new Object[] { transactionHash, 1 }, RpcResultTransaction.class);
         } catch (Throwable t) {
             OperationFailedException e = new OperationFailedException("Error fetching transaction from Blockchain: " + transactionHash, t);
             LOGGER.log(Level.SEVERE, e.toString(), e);

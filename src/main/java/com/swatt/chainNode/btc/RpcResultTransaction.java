@@ -11,6 +11,7 @@ public final class RpcResultTransaction {
     public String txid;
     public String hash;
     public Long version;
+    public Long height;
     public Long size;
     public Long vsize;
     public Long locktime;
