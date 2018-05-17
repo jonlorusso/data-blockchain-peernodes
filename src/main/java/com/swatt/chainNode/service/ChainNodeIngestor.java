@@ -58,7 +58,7 @@ public class ChainNodeIngestor implements ChainNodeListener {
     @Override
     public void newBlockAvailable(ChainNode chainNode, BlockData blockData) {
         try {
-            logInfo(chainNode.getBlockchainCode(), String.format("Block available, storing: %d", blockData.getHeight()));
+            logInfo(chainNode.getBlockchainCode(), String.format("New block available: %d", blockData.getHeight()));
             insertBlockData(blockData);
         } catch (SQLException e) {
             LOGGER.error("Exception caught while storing new block: " + e.getMessage());
@@ -152,7 +152,7 @@ public class ChainNodeIngestor implements ChainNodeListener {
                     }
                     
                     insertBlockData(chainNode.fetchBlockData(height));
-                    logInfo(chainNode.getBlockchainCode(), String.format("Block ingested: %d", height));
+                    logInfo(chainNode.getBlockchainCode(), String.format("Historical Block ingested: %d", height));
 
                     height = height - 1;
                 }
