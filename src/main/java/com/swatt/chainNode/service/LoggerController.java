@@ -42,10 +42,8 @@ public class LoggerController {
             e.printStackTrace();
         }
 
-        boolean logToConsole = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(
-                LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
-        boolean logToFile = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(
-                LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
+        boolean logToConsole = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
+        boolean logToFile = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
 
         Logger rootLogger = LogManager.getRootLogger();
         rootLogger.getLoggerRepository().resetConfiguration();
@@ -53,10 +51,8 @@ public class LoggerController {
         BasicConfigurator.configure();
 
         if (logToConsole) {
-            String consoleLayoutPattern = getEnvironmentVariableValueOrDefault(
-                    LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
-            Level consoleLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(
-                    LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
+            String consoleLayoutPattern = getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
+            Level consoleLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
 
             ConsoleAppender console = new ConsoleAppender();
             console.setLayout(new PatternLayout(consoleLayoutPattern));
@@ -66,15 +62,11 @@ public class LoggerController {
         }
 
         if (logToFile) {
-            String filePathRoot = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME,
-                    LOGGER_FILE_PATH_PROPERTY, properties);
-            String fileLayoutPattern = getEnvironmentVariableValueOrDefault(
-                    LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATTERN_PROPERTY, properties);
-            Level fileLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(
-                    LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_LEVEL_PROPERTY, properties));
+            String filePathRoot = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties);
+            String fileLayoutPattern = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATTERN_PROPERTY, properties);
+            Level fileLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_LEVEL_PROPERTY, properties));
 
-            System.out.println(getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME,
-                    LOGGER_FILE_PATH_PROPERTY, properties));
+            System.out.println(getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties));
 
             String logFilePath = filePathRoot + sdf.format(new Date()) + server.getHostName() + ".log";
 
@@ -95,8 +87,7 @@ public class LoggerController {
         return null;
     }
 
-    private static String getEnvironmentVariableValueOrDefault(String environmentVariableName, String propertyName,
-            Properties properties) {
+    private static String getEnvironmentVariableValueOrDefault(String environmentVariableName, String propertyName, Properties properties) {
         String value = System.getenv().get(environmentVariableName);
         if (value == null) {
             value = properties.getProperty(propertyName);
