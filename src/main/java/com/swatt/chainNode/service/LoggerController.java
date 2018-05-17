@@ -17,8 +17,20 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
 public class LoggerController {
-    public static final String LOGGER_ROOT_ENVIRONMENT_VARIABLE_NAME = "logger";
-    public static final String LOGGER_ROOT_PROPERTY = "logger.root";
+    public static final String LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME = "logger.console";
+    public static final String LOGGER_CONSOLE_PROPERTY = "logger.console";
+    public static final String LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME = "logger.console.level";
+    public static final String LOGGER_CONSOLE_LEVEL_PROPERTY = "logger.console.level";
+    public static final String LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME = "logger.console.pattern";
+    public static final String LOGGER_CONSOLE_PATTERN_PROPERTY = "logger.console.pattern";
+    public static final String LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME = "logger.file";
+    public static final String LOGGER_FILE_PROPERTY = "logger.file";
+    public static final String LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME = "logger.file.path";
+    public static final String LOGGER_FILE_PATH_PROPERTY = "logger.file.path";
+    public static final String LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME = "logger.file.level";
+    public static final String LOGGER_FILE_LEVEL_PROPERTY = "logger.file.level";
+    public static final String LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME = "logger.file.pattern";
+    public static final String LOGGER_FILE_PATTERN_PROPERTY = "logger.file.pattern";
 
     private static final DateFormat sdf = new SimpleDateFormat("yyyyMMdd-");
 
@@ -30,32 +42,53 @@ public class LoggerController {
             e.printStackTrace();
         }
 
-        String fileRoot = getEnvironmentVariableValueOrDefault(LOGGER_ROOT_ENVIRONMENT_VARIABLE_NAME,
-                LOGGER_ROOT_PROPERTY, properties);
-
-        System.out.println(properties.toString());
-
-        String logFilePath = fileRoot + sdf.format(new Date()) + server.getHostName() + ".log";
+        boolean logToConsole = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(
+                LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
+        boolean logToFile = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(
+                LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
 
         Logger rootLogger = LogManager.getRootLogger();
         rootLogger.getLoggerRepository().resetConfiguration();
 
         BasicConfigurator.configure();
 
-        ConsoleAppender console = new ConsoleAppender(); // create appender
-        console.setLayout(new PatternLayout("%d [%p|%c|%C{1}] %m%n"));
-        console.setThreshold(Level.FATAL);
-        console.activateOptions();
-        rootLogger.addAppender(console);
+        if (logToConsole) {
+            String consoleLayoutPattern = getEnvironmentVariableValueOrDefault(
+                    LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
+            Level consoleLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(
+                    LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
 
-        FileAppender fa = new FileAppender();
-        fa.setName("FileLogger");
-        fa.setFile(logFilePath);
-        fa.setLayout(new PatternLayout("%d %-5p [%c{1}] %m%n"));
-        fa.setThreshold(Level.DEBUG);
-        fa.setAppend(true);
-        fa.activateOptions();
-        rootLogger.addAppender(fa);
+            ConsoleAppender console = new ConsoleAppender();
+            console.setLayout(new PatternLayout(consoleLayoutPattern));
+            console.setThreshold(consoleLogLevel);
+            console.activateOptions();
+            rootLogger.addAppender(console);
+        }
+
+        if (logToFile) {
+            String filePathRoot = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME,
+                    LOGGER_FILE_PATH_PROPERTY, properties);
+            String fileLayoutPattern = getEnvironmentVariableValueOrDefault(
+                    LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATTERN_PROPERTY, properties);
+            Level fileLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(
+                    LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_LEVEL_PROPERTY, properties));
+
+            System.out.println(getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME,
+                    LOGGER_FILE_PATH_PROPERTY, properties));
+
+            String logFilePath = filePathRoot + sdf.format(new Date()) + server.getHostName() + ".log";
+
+            FileAppender fa = new FileAppender();
+            fa.setName("FileLogger");
+            fa.setFile(logFilePath);
+            fa.setLayout(new PatternLayout(fileLayoutPattern));
+            fa.setThreshold(fileLogLevel);
+            fa.setAppend(true);
+            fa.activateOptions();
+            rootLogger.addAppender(fa);
+        } else {
+            System.out.println(logToFile);
+        }
 
         System.setErr(new PrintStream(new LoggingOutputStream(rootLogger, Level.ERROR)));
 
