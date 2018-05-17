@@ -33,23 +33,10 @@ public class Main {
 
             /** ingestor **/
             ChainNodeManager chainNodeManager = new ChainNodeManager(properties);
+            ConnectionPool connectionPool = DatabaseUtils.getConnectionPool(jdbcUrl, databaseUser, databasePassword, databaseMaxPoolSize);
 
-            String[] blockchainCodes = properties.getProperty(ChainNodeIngestor.BLOCKCHAIN_CODES_PROPERTY).split(",");
-            for (String blockchainCode : blockchainCodes) {
-                LOGGER.info(String.format("[%s] Starting chainNodeIngestor.", blockchainCode));
-
-                Connection connection = DatabaseUtils.getConnection(properties);
-                ChainNode chainNode = chainNodeManager.getChainNode(connection, blockchainCode);
-
-                if (chainNode != null) {
-                    ChainNodeIngestor chainNodeIngestor = new ChainNodeIngestor(properties, chainNode, connection);
-                    chainNode.addChainNodeListener(chainNodeIngestor);
-                    chainNode.fetchNewBlocks();
-                    chainNodeIngestor.synchronizeChain();
-                } else {
-                    LOGGER.error(String.format("[%s] No chainNode found.", blockchainCode));
-                }
-            }
+            ChainNodeIngestorManager chainNodeIngestorManager = new ChainNodeIngestorManager(connectionPool, chainNodeManager);
+	    chainNodeIngestorManager.startActiveNodeWatcher();
         } catch (IOException | SQLException | OperationFailedException e) {
             LOGGER.error("Exception caught in com.swatt.chainNode.Main: ", e);
         }
