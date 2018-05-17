@@ -2,6 +2,7 @@
 *.class
 /target/
 /.sts4-cache/
+/.settings/
 
 .DS_Store
 *.log
