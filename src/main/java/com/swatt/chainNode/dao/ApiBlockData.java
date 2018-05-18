@@ -107,18 +107,12 @@ public class ApiBlockData {
         return transactionCount;
     }
 
-    private static String getStandardProcedureName(boolean List) {
-        if (List)
-            return "GetBlocks";
-        else
-            return "GetBlock";
+    private static String getStandardProcedureName() {
+        return "GetBlock(?, ?)";
     }
 
-    private static String getProcedureParamMask(boolean List) {
-        if (List)
-            return "?, ?, ?";
-        else
-            return "?, ?";
+    private static String getListProcedureName() {
+        return "GetBlocks(?, ?, ?)";
     }
 
     public ApiBlockData(ResultSet rs) throws SQLException {
@@ -144,17 +138,31 @@ public class ApiBlockData {
         largestTxAmount = rs.getDouble(18);
     }
 
-    private static String CALL_QUERY = "CALL " + getStandardProcedureName(false) + "(" + getProcedureParamMask(false)
-            + ")";
-    private static String LIST_QUERY = "CALL " + getStandardProcedureName(true) + "(" + getProcedureParamMask(true)
-            + ")";
+    private static String BY_HASH_QUERY = "CALL GetBlockByHash(?, ?)";
+    private static String BY_HEIGHT_QUERY = "CALL GetBlockByHeight(?, ?)";
+    private static String LIST_QUERY = "CALL GetBlocks(?, ?, ?)";
 
-    public static ApiBlockData call(Connection connection, String blockchainCode, String blockHash)
+    public static ApiBlockData fetchByHash(Connection connection, String blockchainCode, String blockHash)
             throws SQLException {
-        CallableStatement cs = connection.prepareCall(CALL_QUERY);
+        CallableStatement cs = connection.prepareCall(BY_HASH_QUERY);
 
         cs.setString(1, blockchainCode);
         cs.setString(2, blockHash);
+
+        ResultSet rs = cs.executeQuery();
+
+        if (rs.next())
+            return new ApiBlockData(rs);
+        else
+            return null;
+    }
+
+    public static ApiBlockData fetchByHeight(Connection connection, String blockchainCode, long blockHeight)
+            throws SQLException {
+        CallableStatement cs = connection.prepareCall(BY_HEIGHT_QUERY);
+
+        cs.setString(1, blockchainCode);
+        cs.setLong(2, blockHeight);
 
         ResultSet rs = cs.executeQuery();
 
