@@ -11,8 +11,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.swatt.chainNode.ChainNode;
-import com.swatt.chainNode.dao.BlockchainNodeInfo;
-import com.swatt.util.general.OperationFailedException;;
+import com.swatt.chainNode.dao.BlockchainNodeInfo;;
 
 public class ChainNodeManager {
     private HashMap<String, ChainNode> chainNodes = new HashMap<>();
@@ -30,7 +29,7 @@ public class ChainNodeManager {
             overridePorts = stream(properties.getProperty("chainNode.overridePort").split(",")).collect(toMap(s -> s.split("=")[0], s -> parseInt(s.split("=")[1])));
     }
     
-    private ChainNode createChainNode(BlockchainNodeInfo blockchainNodeInfo) throws OperationFailedException {
+    private ChainNode createChainNode(BlockchainNodeInfo blockchainNodeInfo) {
         try {
             Class<?> clazz = Class.forName(blockchainNodeInfo.getClassName());
             ChainNode chainNode = (ChainNode)clazz.newInstance();
@@ -38,10 +37,11 @@ public class ChainNodeManager {
             chainNode.init();
             return chainNode;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw new OperationFailedException(e);
         }
+
+        return null;
     }
-    
+
     private void applyProperties(BlockchainNodeInfo blockchainNodeInfo) {
         if (overrideIps.containsKey(blockchainNodeInfo.getCode()))
             blockchainNodeInfo.setIp(overrideIps.get(blockchainNodeInfo.getCode()));
@@ -50,7 +50,7 @@ public class ChainNodeManager {
             blockchainNodeInfo.setPort(overridePorts.get(blockchainNodeInfo.getCode()));
     }
     
-    public ChainNode getChainNode(Connection connection, String blockchainCode) throws OperationFailedException {
+    public ChainNode getChainNode(Connection connection, String blockchainCode) {
         ChainNode chainNode = chainNodes.get(blockchainCode);
         blockchainCode = blockchainCode.toUpperCase();
 
@@ -59,9 +59,10 @@ public class ChainNodeManager {
                 BlockchainNodeInfo blockchainNodeInfo = BlockchainNodeInfo.getBlockchainNodeInfo(connection, blockchainCode);
                 applyProperties(blockchainNodeInfo);
                 chainNode = createChainNode(blockchainNodeInfo);
-                chainNodes.put(blockchainCode, chainNode);
+
+                if (chainNode != null)
+                    chainNodes.put(blockchainCode, chainNode);
             } catch (SQLException e) {
-                throw new OperationFailedException(e);
             }
         }
 

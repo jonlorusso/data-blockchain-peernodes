@@ -22,11 +22,13 @@ import com.swatt.chainNode.ChainNodeTransaction;
 import com.swatt.chainNode.dao.BlockData;
 import com.swatt.util.general.OperationFailedException;
 
+import rx.Observable;
+import rx.Subscriber;
+
 public class EthereumChainNode extends ChainNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(EthereumChainNode.class.getName());
     
     private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
-    private static Web3j web3j;
 
     public static final int POWX_ETHER_WEI = 18;
     public static final int POWX_ETHER_KWEI = 15;
@@ -39,6 +41,9 @@ public class EthereumChainNode extends ChainNode {
     public static final int POWX_ETHER_METHER = -6;
     public static final int POWX_ETHER_GETHER = -9;
     public static final int POWX_ETHER_TETHER = -12;
+
+    private Web3j web3j;
+    private Observable<EthBlock> blockObservable;
 
     @Override
     public void init() {
@@ -209,8 +214,28 @@ public class EthereumChainNode extends ChainNode {
 
     @Override
     public void fetchNewBlocks() {
-        LOGGER.info("ethy Starting fetchNewBlocks thread.");
-        web3j.blockObservable(true).subscribe(b -> chainNodeListeners.stream().forEach(c -> c.newBlockAvailable(this, toBlockData(b))));
+        if (blockObservable != null) {
+            return;
+        }
+
+        LOGGER.info("Starting fetchNewBlocks thread.");
+
+        blockObservable = web3j.blockObservable(true);
+        blockObservable.subscribe(new Subscriber<EthBlock>() {
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                blockObservable = null;
+            }
+
+            @Override
+            public void onNext(EthBlock b) {
+                chainNodeListeners.stream().forEach(c -> c.newBlockAvailable(EthereumChainNode.this, toBlockData(b)));
+            }
+        });
     }
 
     @Override

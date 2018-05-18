@@ -40,16 +40,19 @@ public abstract class ChainNode {
     // Fetches directly from the Blockchain Node
     public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate) throws OperationFailedException;
 
-    // This will only return items that are already in the DB
-    public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException {
-        return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), blockHash);
+    public final ApiBlockData fetchBlockDataByHash(Connection conn, String blockHash) throws SQLException {
+        return ApiBlockData.fetchByHash(conn, blockchainNodeInfo.getCode(), blockHash);
     }
 
-    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+    public final ApiBlockData fetchBlockDataByHeight(Connection conn, long blockHeight) throws SQLException {
+        return ApiBlockData.fetchByHeight(conn, blockchainNodeInfo.getCode(), blockHeight);
+    }
+
+    public final ArrayList<ApiBlockData> fetchBlocks(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+    public final ArrayList<ApiBlockDataByDay> fetchBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockDataByDay.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
