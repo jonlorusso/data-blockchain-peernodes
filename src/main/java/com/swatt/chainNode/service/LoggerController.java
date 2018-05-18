@@ -16,6 +16,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
+import com.swatt.util.environment.Environment;
+import com.swatt.util.log.LoggingOutputStream;
+
 public class LoggerController {
     public static final String LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME = "logger.console";
     public static final String LOGGER_CONSOLE_PROPERTY = "logger.console";
@@ -42,8 +45,8 @@ public class LoggerController {
             e.printStackTrace();
         }
 
-        boolean logToConsole = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
-        boolean logToFile = Boolean.parseBoolean(getEnvironmentVariableValueOrDefault(LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
+        boolean logToConsole = Boolean.parseBoolean(Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
+        boolean logToFile = Boolean.parseBoolean(Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
 
         Logger rootLogger = LogManager.getRootLogger();
         rootLogger.getLoggerRepository().resetConfiguration();
@@ -51,8 +54,8 @@ public class LoggerController {
         BasicConfigurator.configure();
 
         if (logToConsole) {
-            String consoleLayoutPattern = getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
-            Level consoleLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
+            String consoleLayoutPattern = Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
+            Level consoleLogLevel = Level.toLevel(Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
 
             ConsoleAppender console = new ConsoleAppender();
             console.setLayout(new PatternLayout(consoleLayoutPattern));
@@ -62,11 +65,9 @@ public class LoggerController {
         }
 
         if (logToFile) {
-            String filePathRoot = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties);
-            String fileLayoutPattern = getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATTERN_PROPERTY, properties);
-            Level fileLogLevel = Level.toLevel(getEnvironmentVariableValueOrDefault(LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_LEVEL_PROPERTY, properties));
-
-            System.out.println(getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties));
+            String filePathRoot = Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties);
+            String fileLayoutPattern = Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATTERN_PROPERTY, properties);
+            Level fileLogLevel = Level.toLevel(Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_LEVEL_PROPERTY, properties));
 
             String logFilePath = filePathRoot + sdf.format(new Date()) + server.getHostName() + ".log";
 
@@ -78,20 +79,10 @@ public class LoggerController {
             fa.setAppend(true);
             fa.activateOptions();
             rootLogger.addAppender(fa);
-        } else {
-            System.out.println(logToFile);
         }
 
         System.setErr(new PrintStream(new LoggingOutputStream(rootLogger, Level.ERROR)));
 
         return null;
-    }
-
-    private static String getEnvironmentVariableValueOrDefault(String environmentVariableName, String propertyName, Properties properties) {
-        String value = System.getenv().get(environmentVariableName);
-        if (value == null) {
-            value = properties.getProperty(propertyName);
-        }
-        return value;
     }
 }
