@@ -24,6 +24,7 @@ public class BitcoinChainNode extends ChainNode {
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
+    private Thread blockListener;
     private Socket blockSubscriber;
 
     public BitcoinChainNode() {
@@ -245,7 +246,10 @@ public class BitcoinChainNode extends ChainNode {
 
     @Override
     public void fetchNewBlocks() {
-        Thread blockListener = new Thread(() -> {
+        if (blockListener != null)
+            return;
+
+        blockListener = new Thread(() -> {
             LOGGER.info("Starting fetchNewBlocks thread.");
 
             while (true) {
@@ -262,6 +266,13 @@ public class BitcoinChainNode extends ChainNode {
             }
 
         }, "BlockListener-" + getCode());
+
+        blockListener.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                blockListener = null;
+            }
+        });
 
         blockListener.start();
     }
