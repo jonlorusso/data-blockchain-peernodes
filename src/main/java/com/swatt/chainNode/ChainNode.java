@@ -38,26 +38,22 @@ public abstract class ChainNode {
     public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException;
 
     // Fetches directly from the Blockchain Node
-    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException;
+    public abstract ChainNodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate) throws OperationFailedException;
 
     // This will only return items that are already in the DB
     public final ApiBlockData getBlockDataByHash(Connection conn, String blockHash) throws SQLException {
         return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), blockHash);
     }
 
-    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ArrayList<ApiBlockData> getBlocks(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ArrayList<ApiBlockDataByDay> getBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockDataByDay.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
@@ -73,8 +69,7 @@ public abstract class ChainNode {
 
     public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
-    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
-            throws SQLException {
+    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount) throws SQLException {
         UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);
     }
 
