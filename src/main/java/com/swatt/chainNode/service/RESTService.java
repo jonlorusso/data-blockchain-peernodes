@@ -3,7 +3,6 @@ package com.swatt.chainNode.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,6 @@ import com.swatt.chainNode.dao.ApiBlockDataByDay;
 import com.swatt.chainNode.dao.ApiBlockDataByInterval;
 import com.swatt.chainNode.dao.ApiTime;
 import com.swatt.chainNode.dao.ApiUser;
-import com.swatt.chainNode.util.DatabaseUtils;
 import com.swatt.util.sql.ConnectionPool;
 
 import io.javalin.Context;
@@ -23,8 +21,6 @@ import io.javalin.Javalin;
 
 public class RESTService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
-
-    private static final String PORT_PROPERTY = "servicePort";
 
     private Javalin app;
 
@@ -45,13 +41,6 @@ public class RESTService {
         this.chainNodeManager = chainNodeManager;
         this.port = port;
         this.connectionPool = connectionPool;
-    }
-
-    public RESTService(Properties properties) {
-        chainNodeManager = new ChainNodeManager(properties);
-
-        port = Integer.parseInt(properties.getProperty(PORT_PROPERTY));
-        connectionPool = DatabaseUtils.getConnectionPool(properties);
     }
 
     public void init() {

@@ -1,45 +1,53 @@
 package com.swatt.chainNode.util;
 
+import static com.swatt.util.environment.Environment.getEnvironmentVariableValueOrDefault;
+
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Properties;
 
-import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.sql.ConnectionPool;
-import com.swatt.util.sql.SqlUtilities;
 
 public class DatabaseUtils {
+    
+    private static final String databaseType = "mysql"; 
+    
+    private static final String DATABASE_HOST_ENV_VAR_NAME = "DATABASE_HOST";
+    private static final String DATABASE_PORT_ENV_VAR_NAME = "DATABASE_PORT";
+    private static final String DATABASE_USER_ENV_VAR_NAME = "DATABASE_USER";
+    private static final String DATABASE_PASSWORD_ENV_VAR_NAME = "DATABASE_PASSWORD";
+    private static final String DATABASE_NAME_ENV_VAR_NAME = "DATABASE_NAME";
+    private static final String DATABASE_MAX_POOL_SIZE_ENV_VAR_NAME = "DATABASE_MAX_POOL_SIZE";
 
-    public static final String DATABASE_URL_PROPERTY = "database.url";
-    public static final String DATABASE_USER_PROPERTY = "database.user";
-    public static final String DATABASE_PASSWORD_PROPERTY = "database.password";
-    public static final String DATABASE_MAX_POOL_SIZE_PROPERTY = "database.maxPoolSize";
-    
+    private static final String DATABASE_PORT_PROPERTY = "database.port";
+    private static final String DATABASE_USER_PROPERTY = "database.user";
+    private static final String DATABASE_NAME_PROPERTY = "database.name";
+    private static final String DATABASE_MAX_POOL_SIZE_PROPERTY = "database.maxPoolSize";
+
     private static ConnectionPool connectionPool;
-    
-    public static ConnectionPool getConnectionPool(String propertiesFileName) throws IOException {
-        return getConnectionPool(CollectionsUtilities.loadProperties(propertiesFileName));
+
+    public static String getJdbcUrl(String databaseType, String host, String port, String databaseName) {
+        return String.format("jdbc:%s://%s:%s/%s", databaseType, host, port, databaseName);
     }
-    
-    public static ConnectionPool getConnectionPool(Properties properties) {
+
+    public static ConnectionPool getConnectionPool(String url, String user, String password, int maxSize) {
         if (connectionPool == null) {
-            String url = properties.getProperty(DATABASE_URL_PROPERTY);
-            String user = properties.getProperty(DATABASE_USER_PROPERTY);
-            String password = properties.getProperty(DATABASE_PASSWORD_PROPERTY);
-            int maxSize = Integer.valueOf(properties.getProperty(DATABASE_MAX_POOL_SIZE_PROPERTY));
-            
             connectionPool = new ConnectionPool(url, user, password, maxSize);
         }
-        
+
         return connectionPool;
     }
-    
-    public static Connection getConnection(Properties properties) throws SQLException {
-        String url = properties.getProperty(DATABASE_URL_PROPERTY);
-        String user = properties.getProperty(DATABASE_USER_PROPERTY);
-        String password = properties.getProperty(DATABASE_PASSWORD_PROPERTY);
+
+    public static ConnectionPool configureConnectionPoolFromEnvironment(Properties properties) throws IOException {
+        String databaseHost = System.getenv(DATABASE_HOST_ENV_VAR_NAME);
+        String databasePort = getEnvironmentVariableValueOrDefault(DATABASE_PORT_ENV_VAR_NAME, DATABASE_PORT_PROPERTY, properties);
         
-        return SqlUtilities.getConnection(url, user, password);
+        String databaseUser = getEnvironmentVariableValueOrDefault(DATABASE_USER_ENV_VAR_NAME, DATABASE_USER_PROPERTY, properties);
+        String databasePassword = System.getenv().get(DATABASE_PASSWORD_ENV_VAR_NAME);
+        
+        String databaseName = getEnvironmentVariableValueOrDefault(DATABASE_NAME_ENV_VAR_NAME, DATABASE_NAME_PROPERTY, properties);
+        String jdbcUrl = DatabaseUtils.getJdbcUrl(databaseType, databaseHost, databasePort, databaseName); 
+
+        int databaseMaxPoolSize = Integer.parseInt(getEnvironmentVariableValueOrDefault(DATABASE_MAX_POOL_SIZE_ENV_VAR_NAME, DATABASE_MAX_POOL_SIZE_PROPERTY, properties));
+        return DatabaseUtils.getConnectionPool(jdbcUrl, databaseUser, databasePassword, databaseMaxPoolSize);
     }
 }
