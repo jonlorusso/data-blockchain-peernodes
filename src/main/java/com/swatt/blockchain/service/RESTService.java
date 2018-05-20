@@ -11,19 +11,23 @@ import com.swatt.blockchain.entity.ApiBlockDataByInterval;
 import com.swatt.blockchain.entity.ApiTime;
 import com.swatt.blockchain.entity.ApiUser;
 import com.swatt.blockchain.node.Node;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.swatt.util.sql.ConnectionPool;
 
 import io.javalin.Context;
 import io.javalin.Javalin;
 
 public class RESTService {
-//    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RESTService.class);
 
     private Javalin app;
 
+    private NodeManager nodeManager;
     private int port;
     private ConnectionPool connectionPool;
-    private NodeManager nodeManager;
 
     /*
      * TODO re-enable SSL private static SslContextFactory getSslContextFactory() {

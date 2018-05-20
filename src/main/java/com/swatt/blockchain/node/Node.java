@@ -40,8 +40,7 @@ public abstract class Node {
     public abstract BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException;
 
     // Fetches directly from the Blockchain Node
-    public abstract NodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate)
-            throws OperationFailedException;
+    public abstract NodeTransaction fetchTransactionByHash(String transactionHash, boolean calculate) throws OperationFailedException;
 
     public final ApiBlockData fetchBlockDataByHash(Connection conn, String blockHash) throws SQLException {
         return ApiBlockData.fetchByHash(conn, blockchainNodeInfo.getCode(), blockHash);
@@ -51,18 +50,15 @@ public abstract class Node {
         return ApiBlockData.fetchByHeight(conn, blockchainNodeInfo.getCode(), blockHeight);
     }
 
-    public final ArrayList<ApiBlockData> fetchBlocks(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ArrayList<ApiBlockData> fetchBlocks(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockData.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ArrayList<ApiBlockDataByDay> fetchBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ArrayList<ApiBlockDataByDay> fetchBlocksByDay(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockDataByDay.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp)
-            throws SQLException {
+    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
         return ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
@@ -78,8 +74,7 @@ public abstract class Node {
 
     public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
 
-    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount)
-            throws SQLException {
+    public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount) throws SQLException {
         UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);
     }
 
