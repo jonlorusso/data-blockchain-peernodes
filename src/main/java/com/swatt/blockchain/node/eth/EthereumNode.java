@@ -17,9 +17,9 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 
-import com.swatt.blockchain.NodeTransaction;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.util.general.OperationFailedException;
 
 import rx.Observable;

@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.Properties;
 
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -45,26 +44,22 @@ public class LoggerController {
             e.printStackTrace();
         }
 
-        boolean logToConsole = Boolean.parseBoolean(Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PROPERTY, properties));
         boolean logToFile = Boolean.parseBoolean(Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PROPERTY, properties));
 
         Logger rootLogger = LogManager.getRootLogger();
         rootLogger.getLoggerRepository().resetConfiguration();
-        
+
         BasicConfigurator.configure();
 
-        rootLogger.setLevel(Level.INFO);
-        
-        if (logToConsole) {
-            String consoleLayoutPattern = Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
-            Level consoleLogLevel = Level.toLevel(Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
+        Level consoleLogLevel = Level.toLevel(Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_LEVEL_ENVIRONMENT_VARIABLE_NAME, LOGGER_CONSOLE_LEVEL_PROPERTY, properties));
 
-            ConsoleAppender console = new ConsoleAppender();
-            console.setLayout(new PatternLayout(consoleLayoutPattern));
-            console.setThreshold(consoleLogLevel);
-            console.activateOptions();
-            rootLogger.addAppender(console);
-        }
+        rootLogger.setLevel(consoleLogLevel);
+
+        // String consoleLayoutPattern =
+        // Environment.getEnvironmentVariableValueOrDefault(LOGGER_CONSOLE_PATTERN_ENVIRONMENT_VARIABLE_NAME,
+        // LOGGER_CONSOLE_PATTERN_PROPERTY, properties);
+        // ConsoleAppender console = new ConsoleAppender();
+        // console.setLayout(new PatternLayout(consoleLayoutPattern));
 
         if (logToFile) {
             String filePathRoot = Environment.getEnvironmentVariableValueOrDefault(LOGGER_FILE_PATH_ENVIRONMENT_VARIABLE_NAME, LOGGER_FILE_PATH_PROPERTY, properties);
@@ -82,7 +77,7 @@ public class LoggerController {
             fa.activateOptions();
             rootLogger.addAppender(fa);
         }
-        
+
         System.setErr(new PrintStream(new LoggingOutputStream(rootLogger, Level.ERROR)));
 
         return null;

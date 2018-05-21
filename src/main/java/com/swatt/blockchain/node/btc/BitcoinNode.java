@@ -10,9 +10,9 @@ import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMsg;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.swatt.blockchain.NodeTransaction;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 

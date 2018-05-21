@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.swatt.blockchain.NodeSummaryData;
-import com.swatt.blockchain.NodeTransaction;
 import com.swatt.blockchain.entity.ApiBlockData;
 import com.swatt.blockchain.entity.ApiBlockDataByDay;
 import com.swatt.blockchain.entity.ApiBlockDataByInterval;
