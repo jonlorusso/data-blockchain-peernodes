@@ -9,7 +9,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 
-import com.swatt.blockchain.NodeTransaction;
+import com.swatt.blockchain.node.NodeTransaction;
 
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.EthTransaction;

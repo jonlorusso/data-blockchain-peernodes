@@ -14,8 +14,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swatt.blockchain.NodeTransaction;
 import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.HttpClientPool;
 

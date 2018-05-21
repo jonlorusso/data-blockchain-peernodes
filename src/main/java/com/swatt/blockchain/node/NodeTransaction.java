@@ -1,4 +1,4 @@
-package com.swatt.blockchain;
+package com.swatt.blockchain.node;
 
 public class NodeTransaction {
     private String hash;
