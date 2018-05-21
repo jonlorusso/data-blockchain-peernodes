@@ -199,32 +199,41 @@ public class CrudRepository<T extends Entity> extends Repository<T> {
     }
 
     public List<T> findAll() throws OperationFailedException, SQLException {
-        List<T> result = new ArrayList<>(INITIAL_SIZE);
-        
-        try (Connection connection = connectionPool.getConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(buildSelectQuery())) {
-                try (ResultSet resultSet = ps.executeQuery()) {
-                    while (resultSet.next()) 
-                        result.add(forResultSet(resultSet));
-                }
-            }
-        }
-        
-        return result;
+        return findAllBy(null);
     }
     
+    private Map<String, String> findAllByQueryCache = new HashMap<>();
+    
     public List<T> findAllBy(Map<String, Object> parameters) throws OperationFailedException, SQLException {
-        List<String> keys = parameters.keySet().stream().collect(Collectors.toList());
-        String whereClause = String.join(" AND ", keys.stream().map(k -> toBindableValue(k)).collect(Collectors.toList()));
-        String selectQuery = buildSelectQueryWithWhereClause(whereClause);
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        String caller = stackTraceElements[2].getMethodName();
+        
+        List<String> keys = null;
+        String selectQuery;
+        
+        if (parameters != null) {
+            keys = parameters.keySet().stream().collect(Collectors.toList());
+            
+            if (findAllByQueryCache.get(caller) != null) {
+                selectQuery = findAllByQueryCache.get(caller);
+            } else {
+                String whereClause = String.join(" AND ", keys.stream().map(k -> toBindableValue(k)).collect(Collectors.toList()));
+                selectQuery = buildSelectQueryWithWhereClause(whereClause);
+                findAllByQueryCache.put(caller, selectQuery);
+            }
+        } else {
+            selectQuery = buildSelectQuery();
+        }
         
         List<T> result = new ArrayList<>(INITIAL_SIZE);
         
         try (Connection connection = connectionPool.getConnection()) {
             try (PreparedStatement ps = connection.prepareStatement(selectQuery)) {
-                int parameterIndex = 1;
-                for (String key : keys) {
-                    ps.setObject(parameterIndex++, parameters.get(key));
+                if (parameters != null) {
+                    int parameterIndex = 1;
+                    for (String key : keys) {
+                        ps.setObject(parameterIndex++, parameters.get(key));
+                    }
                 }
                 
                 try (ResultSet resultSet = ps.executeQuery()) {

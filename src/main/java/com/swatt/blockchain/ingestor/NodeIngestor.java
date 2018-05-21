@@ -36,6 +36,10 @@ public class NodeIngestor implements NodeListener {
         node.addNodeListener(this);
     }
     
+    public void setOverwriteExisting(boolean overwriteExisting) {
+        this.overwriteExisting = overwriteExisting;
+    }
+
     public Node getNode() {
         return node;
     }

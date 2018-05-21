@@ -27,11 +27,17 @@ public class NodeIngestorManager {
     
     private Map<String, NodeIngestor> nodeIngestors = new HashMap<>();
     
+    private boolean overwriteExisting = false;
+    
     public NodeIngestorManager(NodeManager nodeManager, ConnectionPool connectionPool, BlockchainNodeInfoRepository blockchainNodeInfoRepository, BlockDataRepository blockDataRepository) {
     		this.nodeManager = nodeManager;
     		this.connectionPool = connectionPool;
     		this.blockchainNodeInfoRepository = blockchainNodeInfoRepository;
     		this.blockDataRepository = blockDataRepository;
+    }
+
+    public void setOverwriteExisting(boolean overwriteExisting) {
+        this.overwriteExisting = overwriteExisting;
     }
 
     public void startNodeIngestor(Node node) {
@@ -41,6 +47,7 @@ public class NodeIngestorManager {
                 LOGGER.info("Starting NodeIngestor for " + node.getCode());
                 
                 nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+                nodeIngestor.setOverwriteExisting(overwriteExisting);
                 nodeIngestors.put(node.getBlockchainCode(), nodeIngestor);
             }
             

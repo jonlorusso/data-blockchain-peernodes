@@ -25,11 +25,4 @@ public class BlockDataRepository extends CrudRepository<BlockData> {
         
         return findBy(parameters);
     }
-    
-    public static void main(String[] args) throws Exception {
-        Properties properties = loadProperties("config.properties");
-        ConnectionPool connectionPool = DatabaseUtils.getConnectionPool(properties);
-        BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-        blockDataRepository.findByBlockchainCodeAndHeight("ETH", 5643572);
-    }
 }

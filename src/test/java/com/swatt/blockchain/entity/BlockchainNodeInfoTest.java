@@ -1,23 +1,20 @@
-package com.swatt.chainNode.dao;
+package com.swatt.blockchain.entity;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-public class BlockDataTest extends DaoTest {
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
 
-    public BlockDataTest() {
-        super(BlockData.class);
+@RunWith(MockitoJUnitRunner.class)
+public class BlockchainNodeInfoTest extends EntityTest {
+
+    public BlockchainNodeInfoTest() {
+        super(BlockchainNodeInfo.class);
     }
 
     @Test
     public void testConstructorGettersAndSetters() throws Exception {
         super.testConstructorGettersAndSetters();
-    }
-    
-    @Test
-    public void testInsert() throws Exception {
-        super.testInsert();
     }
 }

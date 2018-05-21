@@ -1,6 +1,8 @@
 package com.swatt.blockchain;
 
-import static com.swatt.util.general.CollectionsUtilities.loadProperties;
+import static com.swatt.util.environment.Environment.getEnvironmentVariableValueOrDefault;
+import static com.swatt.util.general.CollectionsUtilities.loadPropertiesFromClasspath;
+import static com.swatt.util.general.CollectionsUtilities.mergeProperties;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -15,6 +17,7 @@ import com.swatt.blockchain.service.LoggerController;
 import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.service.RESTService;
 import com.swatt.blockchain.util.DatabaseUtils;
+import com.swatt.util.general.StringUtilities;
 import com.swatt.util.sql.ConnectionPool;
 
 public class Main {
@@ -27,13 +30,13 @@ public class Main {
     private static final String API_PORT_PROPERTY = "api.port";
 
     private static final String INGESTOR_ENABLED_PROPERTY = "ingestor.enabled";
-    private static final String JSON_POOL_SIZE_PROPERTY = "jsonPoolSize"; // TODO move to db
+//    private static final String JSON_POOL_SIZE_PROPERTY = "jsonPoolSize"; // TODO move to db
     private static final String INGESTOR_OVERWRITE_EXISTING_PROPERTY = "ingestor.overwriteExisting"; // not-implemented yet
 
     // Configurable via environment variables
-    private static final String INGESTOR_ENABLED_ENV_VAR_NAME = "INGESTOR_ENABLED";
     private static final String API_ENABLED_ENV_VAR_NAME = "API_ENABLED";
     private static final String API_PORT_ENV_VAR_NAME = "API_PORT";
+    private static final String INGESTOR_ENABLED_ENV_VAR_NAME = "INGESTOR_ENABLED";
 
     private static final String NODE_OVERRIDE_IP_ENV_VAR_NAME = "NODE_OVERRIDE_IP";
     private static final String NODE_OVERRIDE_PORTS_ENV_VAR_NAME = "NODE_OVERRIDE_PORTS";
@@ -44,9 +47,22 @@ public class Main {
         return mergeProperties(loadPropertiesFromClasspath(filename));
     }
 
-    private static boolean isTrueOrDefault(String flag, String defaultValueString) {
-        boolean defaultValue = Boolean.valueOf(defaultValueString);
-        return StringUtilities.isNullOrAllWhiteSpace(flag) ? defaultValue : (flag.equalsIgnoreCase("true") || flag.equals("1"));
+    private static boolean getBooleanValue(Properties properties, String name) {
+        String value = properties.getProperty(name);
+        return Boolean.valueOf(value);
+    }
+
+    private static boolean isEnabled(String environmentValue, boolean defaultValue) {
+        if (StringUtilities.isNullOrAllWhiteSpace(environmentValue))
+            return defaultValue;
+        
+        if (environmentValue.equalsIgnoreCase("true") || environmentValue.equals("1")) 
+            return true;
+        
+        if (environmentValue.equalsIgnoreCase("false") || environmentValue.equals("0")) 
+            return false;
+        
+        return defaultValue;
     }
 
     public static void main(String[] args) {
@@ -71,19 +87,25 @@ public class Main {
                     nodeManager.setOverridePort(keyValue[0], Integer.parseInt(keyValue[1]));
                 }
             }
+            
+            
 
             /** logger **/
-            if (isTrueOrDefault(System.getenv(API_ENABLED_ENV_VAR_NAME), properties.getProperty(API_ENABLED_PROPERTY))) {
+            LoggerController.init(properties);
+            
+            /** api **/
+            if (isEnabled(System.getenv(API_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, API_ENABLED_PROPERTY))) {
                 String apiPortValue = getEnvironmentVariableValueOrDefault(API_PORT_ENV_VAR_NAME, API_PORT_PROPERTY, properties);
-                RESTService restService = new RESTService(chainNodeManager, Integer.parseInt(apiPortValue), connectionPool);
+                RESTService restService = new RESTService(nodeManager, Integer.parseInt(apiPortValue), connectionPool);
                 restService.init();
                 restService.start();
             }
 
             /** ingestor **/
-            if (isTrueOrDefault(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), properties.getProperty(INGESTOR_ENABLED_PROPERTY))) {
-		NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
-		nodeIngestorManager.startActiveNodeWatcher();
+            if (isEnabled(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, INGESTOR_ENABLED_PROPERTY))) {
+            		NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
+            		nodeIngestorManager.setOverwriteExisting(getBooleanValue(properties, INGESTOR_OVERWRITE_EXISTING_PROPERTY));
+            		nodeIngestorManager.startActiveNodeWatcher();
             }
         } catch (IOException e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);

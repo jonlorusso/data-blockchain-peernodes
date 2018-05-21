@@ -1,11 +1,10 @@
-package com.swatt.chainNode.dao;
+package com.swatt.blockchain.entity;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,13 +12,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import org.mockito.Mock;
 
-import com.google.common.base.CaseFormat;
-
-public class DaoTest {
+public class EntityTest {
 
     private Class<?> classUnderTest;
 
@@ -32,7 +28,7 @@ public class DaoTest {
     @Mock
     private ResultSet resultSet;
     
-    public DaoTest(Class<?> clazz) {
+    public EntityTest(Class<?> clazz) {
         this.classUnderTest = clazz;
     }
 
@@ -97,35 +93,5 @@ public class DaoTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void testInsert() throws Exception {
-        Object instance = createInstance();
-        
-        String primaryKey = classUnderTest.getDeclaredFields()[0].getName();
-        
-        String insertMethodName = format("insert%s", classUnderTest.getSimpleName()); 
-        Method insertMethod = classUnderTest.getDeclaredMethod(insertMethodName, Connection.class, classUnderTest);
-
-        Method columnListMethod = classUnderTest.getDeclaredMethod("getSqlColumnList");
-        String columnList = (String)columnListMethod.invoke(classUnderTest);
-        String[] columns = columnList.split(", ");
-        
-        if (primaryKey.equals("id")) {
-            columns = Arrays.copyOfRange(columns, 1, columns.length);
-            columnList = String.join(", ", Arrays.stream(columns).collect(Collectors.toList()));
-        }
-        
-        String parameters = String.join(", ", Arrays.stream(columns).map(c -> "?").collect(Collectors.toList()));
-        String tableName = UPPER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, classUnderTest.getSimpleName());
-        
-        String insertSql = format("INSERT INTO %s (%s) VALUES (%s)", tableName, columnList, parameters);
-        when(connection.prepareStatement(insertSql)).thenReturn(preparedStatement);
-        
-        String maxIdSql = String.format("Select MAX(%s) FROM %s", primaryKey.toUpperCase(), tableName);
-        when(connection.prepareStatement(maxIdSql)).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        
-        insertMethod.invoke(classUnderTest, connection, instance);
     }
 }
