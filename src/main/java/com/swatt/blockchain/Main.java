@@ -88,8 +88,6 @@ public class Main {
                 }
             }
             
-            
-
             /** logger **/
             LoggerController.init(properties);
             
@@ -105,7 +103,7 @@ public class Main {
             if (isEnabled(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, INGESTOR_ENABLED_PROPERTY))) {
             		NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             		nodeIngestorManager.setOverwriteExisting(getBooleanValue(properties, INGESTOR_OVERWRITE_EXISTING_PROPERTY));
-            		nodeIngestorManager.startActiveNodeWatcher();
+                        nodeIngestorManager.start();
             }
         } catch (IOException e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);

@@ -1,28 +1,29 @@
 package com.swatt.blockchain.repository;
 
-import static com.swatt.util.general.CollectionsUtilities.loadProperties;
-
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.sql.ConnectionPool;
 
-public class BlockDataRepository extends CrudRepository<BlockData> {
+public class BlockDataRepository extends Repository {
 
+    private static final String GET_BY_CODE_AND_HEIGHT_WHERE_CLAUSE = "BLOCKCHAIN_CODE = ? AND HEIGHT = ?";
+    
     public BlockDataRepository(ConnectionPool connectionPool) {
         super(connectionPool);
     }
 
     public BlockData findByBlockchainCodeAndHeight(String blockchainCode, long height) throws OperationFailedException, SQLException {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("BLOCKCHAIN_CODE", blockchainCode);
-        parameters.put("HEIGHT", height);
-        
-        return findBy(parameters);
+        try (Connection connection = this.connectionPool.getConnection()) {
+            return BlockData.getFirstBlockData(connection, GET_BY_CODE_AND_HEIGHT_WHERE_CLAUSE, blockchainCode, Long.valueOf(height));
+        }
+    }
+
+    public BlockData insert(BlockData blockData) throws SQLException {
+        try (Connection connection = this.connectionPool.getConnection()) {
+            return BlockData.insertBlockData(connection, blockData);
+        }
     }
 }

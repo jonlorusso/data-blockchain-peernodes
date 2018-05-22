@@ -44,6 +44,8 @@ public class RESTService {
     }
 
     public void init() {
+        LOGGER.debug("Initializing RESTService.");
+        
         app = Javalin.create().port(port).enableCorsForOrigin("*").enableStandardRequestLogging();
 
         app.get("/time", ctx -> {

@@ -1,7 +1,12 @@
 package com.swatt.blockchain.repository;
 
-import com.swatt.blockchain.entity.Entity;
+import com.swatt.util.sql.ConnectionPool;
 
-public class Repository<T extends Entity> {
+public class Repository {
 
+    protected ConnectionPool connectionPool;
+    
+    public Repository(ConnectionPool connectionPool) {
+        this.connectionPool = connectionPool;
+    }
 }

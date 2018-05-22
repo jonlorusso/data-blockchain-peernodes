@@ -200,11 +200,6 @@ public class MoneroNode extends Node {
 	}
 
     @Override
-    public void fetchNewTransactions() {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
-    @Override
     public void fetchNewBlocks() {
         throw new UnsupportedOperationException("Not implemented yet.");
     }

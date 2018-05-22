@@ -238,9 +238,4 @@ public class EthereumNode extends Node {
             }
         });
     }
-
-    @Override
-    public void fetchNewTransactions() {
-        web3j.pendingTransactionObservable().subscribe(t -> nodeListeners.forEach(c -> c.newTransactionsAvailable(this, new NodeTransaction[] { new EthereumTransaction(web3j, t) })));
-    }
 }

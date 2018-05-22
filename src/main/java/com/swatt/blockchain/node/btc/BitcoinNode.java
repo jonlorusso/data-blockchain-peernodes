@@ -240,11 +240,6 @@ public class BitcoinNode extends Node {
     }
 
     @Override
-    public void fetchNewTransactions() {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
-    @Override
     public void fetchNewBlocks() {
         if (blockListener != null)
             return;
@@ -252,27 +247,23 @@ public class BitcoinNode extends Node {
         blockListener = new Thread(() -> {
             LOGGER.info("Starting fetchNewBlocks thread.");
 
-            while (true) {
-                ZMsg message = ZMsg.recvMsg(blockSubscriber, 0);
-                String topic = message.popString();
+            try {
+                while (true) {
+                    ZMsg message = ZMsg.recvMsg(blockSubscriber, 0);
+                    String topic = message.popString();
 
-                if (topic.equals("hashblock")) {
-                    try {
-                        handleIncomingRawBlock(message);
-                    } catch (OperationFailedException e) {
-                        LOGGER.error("Exception caught processing new block: " + e.getMessage());
+                    if (topic.equals("hashblock")) {
+                        try {
+                            handleIncomingRawBlock(message);
+                        } catch (OperationFailedException e) {
+                            LOGGER.error("Exception caught processing new block: " + e.getMessage());
+                        }
                     }
                 }
-            }
-
-        }, "BlockListener-" + getCode());
-
-        blockListener.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
+            } catch (Throwable t) {
                 blockListener = null;
             }
-        });
+        }, "BlockListener-" + getCode());
 
         blockListener.start();
     }

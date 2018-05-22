@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
@@ -40,38 +41,38 @@ public class NodeIngestorManager {
         this.overwriteExisting = overwriteExisting;
     }
 
-    public void startNodeIngestor(Node node) {
+    public void enableNodeIngestion(String code) {
+        Node node = nodeManager.getNode(code);
         if (node != null) {
             NodeIngestor nodeIngestor = nodeIngestors.get(node.getCode());
             if (nodeIngestor == null) {
                 LOGGER.info("Starting NodeIngestor for " + node.getCode());
-                
+
                 nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
                 nodeIngestor.setOverwriteExisting(overwriteExisting);
                 nodeIngestors.put(node.getBlockchainCode(), nodeIngestor);
             }
-            
-            nodeIngestor.startHistoricalIngestion();
-            nodeIngestor.startNewBlockIngestion();
+
+            nodeIngestor.start();
         }
     }
 	
-	// FIXME all active nodes will be started in each process
-	public void startActiveNodeWatcher() {
+	// FIXME all enabled nodes will have an ingestor started in each process
+	public void start() {
 		new Thread(() -> {
-			LOGGER.info("Starting ActiveNodeWatcher Thread.");
+			LOGGER.info("Starting EnabledNodeWatcher Thread.");
 
-			while (true) {
+			while (true) { // poll (60s) BLOCKCHAIN_NODE_INFO table for newly enabled nodes.
 			    try {
-			        blockchainNodeInfoRepository.findAllByEnabled(true).stream()
-			            .map(b -> b.getCode())
-			            .forEach(c -> startNodeIngestor(nodeManager.getNode(c)));
+			        for (BlockchainNodeInfo blockchainNodeInfo : blockchainNodeInfoRepository.findAllByEnabled(true)) {
+			            enableNodeIngestion(blockchainNodeInfo.getCode());
+			        }
 			    } catch (SQLException | OperationFailedException e) {
 			        LOGGER.error("SQLException caught in activeNodeWatcher thread.", e);
 			    }
 			    
 			    ConcurrencyUtilities.sleep(ACTIVE_NODE_WATCHER_SLEEP_TIME);
 			}
-		}, "ActiveNodeWatcher").start();
+		}, "EnabledNodeWatcher").start();
 	}
 }

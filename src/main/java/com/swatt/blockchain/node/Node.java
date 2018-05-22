@@ -64,8 +64,6 @@ public abstract class Node {
         return CheckProgress.call(conn, blockchainCode);
     }
 
-    public abstract void fetchNewTransactions();
-
     public abstract void fetchNewBlocks();
 
     public abstract long fetchBlockCount() throws OperationFailedException;

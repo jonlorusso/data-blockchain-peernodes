@@ -32,7 +32,7 @@ public class EntityTest {
         this.classUnderTest = clazz;
     }
 
-    private Object createInstance() throws Exception {
+    public Object createInstance() throws Exception {
         Object instance = classUnderTest.newInstance();
 
         Arrays.stream(classUnderTest.getDeclaredFields()).forEach(f -> {
