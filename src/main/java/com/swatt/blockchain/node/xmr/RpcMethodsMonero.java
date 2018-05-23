@@ -4,4 +4,5 @@ class RpcMethodsMonero {
     static final String GET_BLOCK = "getblock";
     static final String GET_TRANSACTIONS = "gettransactions";
     static final String GET_BLOCK_HEADER = "getblockheaderbyhash";
+    static final String GET_LAST_BLOCK = "getlastblockheader";
 }

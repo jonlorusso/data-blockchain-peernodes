@@ -59,12 +59,7 @@ public class BlockData implements DataStreamSerializable {
     public BlockData() {
     }
 
-    public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, long difficulty,
-            int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size,
-            String versionHex, long nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale,
-            long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount,
-            int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale,
-            int indexingDuration) {
+    public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale, int indexingDuration) {
         this.id = id;
         this.blockchainCode = blockchainCode;
         this.hash = hash;
@@ -466,7 +461,7 @@ public class BlockData implements DataStreamSerializable {
     }
 
     // TODO close prepared statements elsewhere
-    public static ArrayList<BlockData> getBlockDatas(Connection connection, String where, Object...params) throws SQLException {
+    public static ArrayList<BlockData> getBlockDatas(Connection connection, String where, Object... params) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -496,7 +491,7 @@ public class BlockData implements DataStreamSerializable {
         return getBlockDatas(rs, max);
     }
 
-    public static BlockData getFirstBlockData(Connection connection, String where, Object...params) throws SQLException {
+    public static BlockData getFirstBlockData(Connection connection, String where, Object... params) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -521,8 +516,7 @@ public class BlockData implements DataStreamSerializable {
         return results;
     }
 
-    public static ArrayList<BlockData> getBlockDatas(String jndiName, String where)
-            throws SQLException, NamingException {
+    public static ArrayList<BlockData> getBlockDatas(String jndiName, String where) throws SQLException, NamingException {
         InitialContext ctx = new InitialContext();
         DataSource dataSource = (DataSource) ctx.lookup(jndiName);
         return getBlockDatas(dataSource, where);
@@ -536,19 +530,13 @@ public class BlockData implements DataStreamSerializable {
         return getBlockDatas(dataSource, null);
     }
 
-    public static BlockData insertBlockData(Connection connection, String blockchainCode, String hash,
-            int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale,
-            String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash,
-            String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed,
-            String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale,
-            long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
+    public static BlockData insertBlockData(Connection connection, String blockchainCode, String hash, int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
-        PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
@@ -594,20 +582,11 @@ public class BlockData implements DataStreamSerializable {
             connection.setAutoCommit(true);
         }
 
-        return new BlockData(autoGeneratedKey, blockchainCode, hash, transactionCount, height, difficulty,
-                difficultyScale, reward, rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash,
-                nextHash, avgFee, avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount,
-                largestTxAmountScale, largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
+        return new BlockData(autoGeneratedKey, blockchainCode, hash, transactionCount, height, difficulty, difficultyScale, reward, rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount, largestTxAmountScale, largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
     }
 
-    public static BlockData updateBlockData(Connection connection, int id, String blockchainCode, String hash,
-            int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale,
-            String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash,
-            String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed,
-            String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale,
-            long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
+    public static BlockData updateBlockData(Connection connection, int id, String blockchainCode, String hash, int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size, String versionHex, long nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale, int indexingDuration) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockchainCode);
         ps.setString(2, hash);
@@ -640,10 +619,7 @@ public class BlockData implements DataStreamSerializable {
         ps.setInt(29, indexingDuration);
         ps.executeUpdate();
 
-        return new BlockData(id, blockchainCode, hash, transactionCount, height, difficulty, difficultyScale, reward,
-                rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee,
-                avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount, largestTxAmountScale,
-                largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
+        return new BlockData(id, blockchainCode, hash, transactionCount, height, difficulty, difficultyScale, reward, rewardScale, merkleRoot, timestamp, bits, size, versionHex, nonce, prevHash, nextHash, avgFee, avgFeeScale, avgFeeRate, avgFeeRateScale, indexed, largestTxHash, largestTxAmount, largestTxAmountScale, largestFee, largestFeeScale, smallestFee, smallestFeeScale, indexingDuration);
     }
 
     public static BlockData insertBlockData(Connection connection, BlockData blockData) throws SQLException {
@@ -683,20 +659,20 @@ public class BlockData implements DataStreamSerializable {
             ps.setInt(28, blockData.smallestFeeScale);
             ps.setLong(29, blockData.indexingDuration);
             ps.executeUpdate();
-            
+
             int autoGeneratedKey = 0;
-            
-            try(PreparedStatement ps2 = connection.prepareStatement("Select MAX(ID) FROM BLOCK_DATA")) {
-                ResultSet rs = ps.executeQuery();
-                
+
+            try (PreparedStatement ps2 = connection.prepareStatement("Select MAX(ID) FROM BLOCK_DATA")) {
+                ResultSet rs = ps2.executeQuery();
+
                 if (rs.next())
                     autoGeneratedKey = rs.getInt(1);
-                
+
                 if (storedAutoCommitValue) {
                     connection.commit();
                     connection.setAutoCommit(true);
                 }
-                
+
                 blockData.id = autoGeneratedKey;
                 return blockData;
             }
@@ -709,8 +685,7 @@ public class BlockData implements DataStreamSerializable {
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
-        PreparedStatement ps = connection.prepareStatement(
-                "REPLACE INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement ps = connection.prepareStatement("REPLACE INTO BLOCK_DATA (BLOCKCHAIN_CODE, HASH, TRANSACTION_COUNT, HEIGHT, DIFFICULTY, DIFFICULTY_SCALE, REWARD, REWARD_SCALE, MERKLE_ROOT, TIMESTAMP, BITS, SIZE, VERSION_HEX, NONCE, PREV_HASH, NEXT_HASH, AVG_FEE, AVG_FEE_SCALE, AVG_FEE_RATE, AVG_FEE_RATE_SCALE, INDEXED, LARGEST_TX_HASH, LARGEST_TX_AMOUNT, LARGEST_TX_AMOUNT_SCALE, LARGEST_FEE, LARGEST_FEE_SCALE, SMALLEST_FEE, SMALLEST_FEE_SCALE, INDEXING_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);
@@ -761,8 +736,7 @@ public class BlockData implements DataStreamSerializable {
     }
 
     public static BlockData updateBlockData(Connection connection, BlockData blockData) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
+        PreparedStatement ps = connection.prepareStatement("UPDATE BLOCK_DATA SET BLOCKCHAIN_CODE = ?, HASH = ?, TRANSACTION_COUNT = ?, HEIGHT = ?, DIFFICULTY = ?, DIFFICULTY_SCALE = ?, REWARD = ?, REWARD_SCALE = ?, MERKLE_ROOT = ?, TIMESTAMP = ?, BITS = ?, SIZE = ?, VERSION_HEX = ?, NONCE = ?, PREV_HASH = ?, NEXT_HASH = ?, AVG_FEE = ?, AVG_FEE_SCALE = ?, AVG_FEE_RATE = ?, AVG_FEE_RATE_SCALE = ?, INDEXED = ?, LARGEST_TX_HASH = ?, LARGEST_TX_AMOUNT = ?, LARGEST_TX_AMOUNT_SCALE = ?, LARGEST_FEE = ?, LARGEST_FEE_SCALE = ?, SMALLEST_FEE = ?, SMALLEST_FEE_SCALE = ?, INDEXING_DURATION = ? WHERE ID = ?");
 
         ps.setString(1, blockData.blockchainCode);
         ps.setString(2, blockData.hash);

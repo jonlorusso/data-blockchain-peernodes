@@ -30,7 +30,8 @@ public class MoneroNode extends Node {
 
     @Override
     public void init() {
-        String url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
+        url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
+
         jsonRpcHttpClientPool = new JsonRpcHttpClientPool(url + RPC_URL_SUFFIX, null, null, JSON_RPC_POOL);
     }
 
@@ -47,7 +48,7 @@ public class MoneroNode extends Node {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlock(jsonRpcHttpClient, 0, hash, true);
+            return fetchBlock(jsonRpcHttpClient, 0, hash, false, true);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
@@ -57,19 +58,34 @@ public class MoneroNode extends Node {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlock(jsonRpcHttpClient, blockHeight, null, calculate);
+            return fetchBlock(jsonRpcHttpClient, blockHeight, null, false, calculate);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
     }
 
-    private BlockData fetchBlock(JsonRpcHttpClient jsonrpcClient, long blockHeight, String blockHash, boolean calculate) throws OperationFailedException {
+    public BlockData fetchLatestBlock(long blockHeight, boolean calculate) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return fetchBlock(jsonRpcHttpClient, 0, null, true, calculate);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
+
+    private BlockData fetchBlock(JsonRpcHttpClient jsonrpcClient, long blockHeight, String blockHash, boolean latest, boolean calculate) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
             RpcResultBlock rpcBlock = null;
 
-            if (blockHash != null) {
+            if (latest) {
+                RpcBlockHashCall blockCallHash = new RpcBlockHashCall();
+                blockCallHash.hash = blockHash;
+
+                rpcBlock = jsonrpcClient.invoke(RpcMethodsMonero.GET_LAST_BLOCK, blockCallHash, RpcResultBlock.class);
+            } else if (blockHash != null) {
                 RpcBlockHashCall blockCallHash = new RpcBlockHashCall();
                 blockCallHash.hash = blockHash;
 
@@ -127,7 +143,7 @@ public class MoneroNode extends Node {
     }
 
     @Override
-    public NodeTransaction fetchTransactionByHash(String hash, boolean calculate)  throws OperationFailedException {
+    public NodeTransaction fetchTransactionByHash(String hash, boolean calculate) throws OperationFailedException {
         try {
             return new MoneroTransaction(this, url, hash, true);
         } catch (Throwable t) {
@@ -189,18 +205,37 @@ public class MoneroNode extends Node {
         blockData.setLargestTxHash(largestTxHash);
     }
 
-	@Override
-	public long fetchBlockCount() throws OperationFailedException {
-	    throw new UnsupportedOperationException("Not implemented yet.");
-	}
+    @Override
+    public long fetchBlockCount() throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
-	@Override
-	public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
-	    throw new UnsupportedOperationException("Not implemented yet.");
-	}
+        try {
+            BlockData latestBlock = fetchBlock(jsonRpcHttpClient, 0, null, true, false);
+            return latestBlock.getHeight();
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
+
+    @Override
+    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return fetchBlock(jsonRpcHttpClient, blockNumber, null, false, true);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
+    }
 
     @Override
     public void fetchNewBlocks() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        // TODO this now!!
+        try {
+            long blockCount = fetchBlockCount();
+            System.out.println(blockCount);
+        } catch (OperationFailedException e) {
+            e.printStackTrace();
+        }
     }
 }
