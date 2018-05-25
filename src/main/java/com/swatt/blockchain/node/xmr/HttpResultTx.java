@@ -9,4 +9,6 @@ public class HttpResultTx {
     public boolean in_pool;
     public List<Integer> output_indices = null;
     public String tx_hash;
+    public long block_timestamp;
+    public boolean double_spend_seen;
 }
