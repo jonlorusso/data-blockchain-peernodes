@@ -4,4 +4,5 @@ import java.util.List;
 
 public class HttpResultMGs {
     public List<List<String>> ss = null;
+    public String cc;
 }

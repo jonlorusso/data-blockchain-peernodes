@@ -1,11 +1,6 @@
 package com.swatt.blockchain.node.xmr;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,54 +9,30 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.io.IoUtilities;
 import com.swatt.util.json.HttpClientPool;
 
 public class MoneroTransaction extends NodeTransaction {
 	private static final Logger LOGGER = Logger.getLogger(MoneroTransaction.class.getName());
 
-	private static final String TXN_URL_SUFFIX = "/gettransactions";
-	private static final int HTTP_POOL = 10; // TODO: Should get from chainNodeConfig
-
-	private String url;
     private long blockHeight;
-
-    private MoneroNode node;
-    private HttpClientPool httpClientPool;
-
-    public MoneroTransaction(MoneroNode node, String url, String hash, boolean calculateTimestamp) {
+    
+    public MoneroTransaction(String url, String hash, HttpClientPool httpClientPool) {
         super(hash);
-
-        this.node = node;
-        this.url = url + TXN_URL_SUFFIX;
-
-        httpClientPool = new HttpClientPool(this.url, HTTP_POOL);
-
-        try {
-            HttpResultTransaction httpTransaction = fetchFromBlockchain(hash);
-
-            if (calculateTimestamp)
-                calculateTimestamp();
-        } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        fetchFromBlockchain(url, hash, httpClientPool);
     }
-
-    private HttpResultTransaction fetchFromBlockchain(String transactionHash)
-            throws URISyntaxException, UnsupportedEncodingException, IOException {
+    
+    public long getHeight() {
+        return blockHeight;
+    }
+    
+    private void fetchFromBlockchain(String url, String transactionHash, HttpClientPool httpClientPool) {
         try {
-            String params = "{\"txs_hashes\":[\"" + transactionHash + "\"], \"decode_as_json\": true} ";
+            String params = "{\"txs_hashes\":[\"" + transactionHash + "\"], \"decode_as_json\": true}";
 
-            CloseableHttpResponse response = httpClientPool.execute(params);
+            CloseableHttpResponse response = httpClientPool.execute(url, params);
             String responseString = readResponse(response);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -71,12 +42,10 @@ public class MoneroTransaction extends NodeTransaction {
             long outAmount = 0;
 
             for (String transactionJSON : httpResultTransaction.txs_as_json) {
-                HttpResultTransactionInternal httpResultTransactionInternal = mapper.readValue(transactionJSON,
-                        HttpResultTransactionInternal.class);
+                HttpResultTransactionInternal httpResultTransactionInternal = mapper.readValue(transactionJSON, HttpResultTransactionInternal.class);
 
                 for (HttpResultVin vin : httpResultTransactionInternal.vin) {
                     inAmount += vin.key.amount;
-                    ;
                 }
 
                 for (HttpResultVout vout : httpResultTransactionInternal.vout) {
@@ -90,59 +59,23 @@ public class MoneroTransaction extends NodeTransaction {
             double fee = inAmountXmr - outAmountXmr;
 
             this.blockHeight = httpResultTransaction.txs.get(0).block_height;
-            String blockHash = Long.toString(blockHeight);
-
-            setBlockHash(blockHash);
+            
             setFee(fee);
             setFeeRate(fee);
             setAmount(outAmountXmr);
-
-            return null;
-
-        } catch (
-
-        Throwable t) {
-            OperationFailedException e = new OperationFailedException(
-                    "Error fetching transaction from Blockchain: " + transactionHash, t);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw t;
+        } catch (Throwable t) {
+            LOGGER.log(Level.SEVERE, t.toString(), t);
         }
     }
 
-    private String readResponse(CloseableHttpResponse response) {
-        String responseString = "";
-
-        // int statusCode = response.getStatusLine().getStatusCode();
-        // String message = response.getStatusLine().getReasonPhrase();
-
-        HttpEntity responseHttpEntity = response.getEntity();
-
-        InputStream content;
+    private String readResponse(CloseableHttpResponse response) throws OperationFailedException {
         try {
-            content = responseHttpEntity.getContent();
-            BufferedReader buffer = new BufferedReader(new InputStreamReader(content));
-            String line;
-
-            while ((line = buffer.readLine()) != null) {
-                responseString += line;
-            }
-
+            HttpEntity responseHttpEntity = response.getEntity();
+            String responseString = IoUtilities.streamToString(responseHttpEntity.getContent());
             EntityUtils.consume(responseHttpEntity);
+            return responseString;
         } catch (UnsupportedOperationException | IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        return responseString;
-    }
-
-    private void calculateTimestamp() {
-        BlockData block;
-        try {
-            block = node.fetchBlockDataByHeight(this.blockHeight, false);
-            setTimestamp(block.getTimestamp());
-        } catch (OperationFailedException e) {
-            e.printStackTrace();
+            throw new OperationFailedException(e);
         }
     }
 }
