@@ -10,7 +10,7 @@
 
 	<name>swatt-blockchain-data</name>
 	<artifactId>blockchain-data</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1.1-SNAPSHOT</version>
 
 	<properties>
 	</properties>
@@ -117,7 +117,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 		                <version>1.2.1</version>
 				<configuration>
-					<mainClass>com.swatt.chainNode.Main</mainClass>
+					<mainClass>com.swatt.blockchain.Main</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
