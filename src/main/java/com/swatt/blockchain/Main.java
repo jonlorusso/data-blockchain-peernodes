@@ -101,9 +101,6 @@ public class Main {
                 restService.start();
             }
 
-            // MoneroNode xmrNode = new MoneroNode();
-            // xmrNode.fetchNewBlocks();
-
             /** ingestor **/
             if (isEnabled(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, INGESTOR_ENABLED_PROPERTY))) {
                 NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
