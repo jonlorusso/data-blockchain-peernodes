@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 import com.swatt.blockchain.ingestor.NodeIngestorManager;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
-import com.swatt.blockchain.service.LoggerController;
 import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.service.RESTService;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.StringUtilities;
+import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class Main {
