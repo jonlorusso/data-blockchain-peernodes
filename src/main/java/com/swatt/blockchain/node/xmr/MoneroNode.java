@@ -116,7 +116,7 @@ public class MoneroNode extends Node {
         blockData.setSize(rpcResultBlock.block_header.block_size);
         blockData.setHeight(rpcResultBlock.block_header.height);
         blockData.setTimestamp(rpcResultBlock.block_header.timestamp);
-        blockData.setNonce(rpcResultBlock.block_header.nonce);
+        blockData.setNonce(String.valueOf(rpcResultBlock.block_header.nonce));
         blockData.setDifficulty(rpcResultBlock.block_header.difficulty);
         blockData.setPrevHash(rpcResultBlock.block_header.prev_hash);
 

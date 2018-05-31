@@ -118,7 +118,7 @@ public class EthereumNode extends Node {
         blockData.setTransactionCount(block.getTransactions().size());
         blockData.setHeight(block.getNumber().longValue());
         blockData.setTimestamp(block.getTimestamp().longValue());
-        blockData.setNonce(block.getNonce().longValue());
+        blockData.setNonce(block.getNonce().toString());
         blockData.setDifficultyBase(block.getDifficulty().doubleValue());
         blockData.setPrevHash(block.getParentHash());
         blockData.setBlockchainCode(blockchainNodeInfo.getCode());

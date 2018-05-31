@@ -71,7 +71,7 @@ public class SteemChainNode extends Node {
             blockData.setVersionHex(rpcBlock.versionHex);
             blockData.setMerkleRoot(rpcBlock.merkleroot);
             blockData.setTimestamp(rpcBlock.time);
-            blockData.setNonce(rpcBlock.nonce);
+            blockData.setNonce(rpcBlock.nonce.toString());
             blockData.setBits(rpcBlock.bits);
             blockData.setDifficultyBase(rpcBlock.difficulty);
             blockData.setPrevHash(rpcBlock.previousblockhash);
