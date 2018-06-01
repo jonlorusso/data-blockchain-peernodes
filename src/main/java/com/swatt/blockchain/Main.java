@@ -70,6 +70,9 @@ public class Main {
     public static void main(String[] args) {
         try {
             Properties properties = loadProperties(PROPERTIES_FILENAME);
+            
+            /** logger **/
+            LoggerController.init(properties);
 
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
 
@@ -89,9 +92,6 @@ public class Main {
                     nodeManager.setOverridePort(keyValue[0], Integer.parseInt(keyValue[1]));
                 }
             }
-
-            /** logger **/
-            LoggerController.init(properties);
 
             /** api **/
             if (isEnabled(System.getenv(API_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, API_ENABLED_PROPERTY))) {
