@@ -1,6 +1,5 @@
 package com.swatt.blockchain;
 
-import static com.swatt.util.environment.Environment.getEnvironmentVariableValueOrDefault;
 import static com.swatt.util.general.CollectionsUtilities.loadPropertiesFromClasspath;
 import static com.swatt.util.general.CollectionsUtilities.mergeProperties;
 
@@ -14,7 +13,6 @@ import com.swatt.blockchain.ingestor.NodeIngestorManager;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
 import com.swatt.blockchain.service.NodeManager;
-import com.swatt.blockchain.service.RESTService;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.StringUtilities;
 import com.swatt.util.log.LoggerController;
@@ -26,17 +24,12 @@ public class Main {
     // Defaults are stored in config.properties
     private static final String PROPERTIES_FILENAME = "config.properties";
 
-    private static final String API_ENABLED_PROPERTY = "api.enabled";
-    private static final String API_PORT_PROPERTY = "api.port";
-
     private static final String INGESTOR_ENABLED_PROPERTY = "ingestor.enabled";
     // private static final String JSON_POOL_SIZE_PROPERTY = "jsonPoolSize"; // TODO
     // move to db
     private static final String INGESTOR_OVERWRITE_EXISTING_PROPERTY = "ingestor.overwriteExisting"; // not-implemented yet
 
     // Configurable via environment variables
-    private static final String API_ENABLED_ENV_VAR_NAME = "API_ENABLED";
-    private static final String API_PORT_ENV_VAR_NAME = "API_PORT";
     private static final String INGESTOR_ENABLED_ENV_VAR_NAME = "INGESTOR_ENABLED";
 
     private static final String NODE_OVERRIDE_IP_ENV_VAR_NAME = "NODE_OVERRIDE_IP";
@@ -92,14 +85,6 @@ public class Main {
 
             /** logger **/
             LoggerController.init(properties);
-
-            /** api **/
-            if (isEnabled(System.getenv(API_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, API_ENABLED_PROPERTY))) {
-                String apiPortValue = getEnvironmentVariableValueOrDefault(API_PORT_ENV_VAR_NAME, API_PORT_PROPERTY, properties);
-                RESTService restService = new RESTService(nodeManager, Integer.parseInt(apiPortValue), connectionPool);
-                restService.init();
-                restService.start();
-            }
 
             /** ingestor **/
             if (isEnabled(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, INGESTOR_ENABLED_PROPERTY))) {

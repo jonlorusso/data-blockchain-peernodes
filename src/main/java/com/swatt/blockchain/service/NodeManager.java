@@ -1,9 +1,5 @@
 package com.swatt.blockchain.service;
 
-import static java.lang.Integer.parseInt;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toMap;
-
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +11,12 @@ import com.swatt.util.general.OperationFailedException;;
 
 public class NodeManager {
     private HashMap<String, Node> nodes = new HashMap<>();
-    
 
     private String nodeOverrideIp;
     private Map<String, Integer> nodeOverridePorts = new HashMap<>();
-    
+
     private BlockchainNodeInfoRepository blockchainNodeInfoRepository;
-    
+
     public NodeManager(BlockchainNodeInfoRepository blockchainNodeInfoRepository) {
         super();
 
@@ -29,18 +24,17 @@ public class NodeManager {
     }
 
     public void setOverrideIp(String nodeOverrideIp) {
-       this.nodeOverrideIp = nodeOverrideIp;
+        this.nodeOverrideIp = nodeOverrideIp;
     }
 
     public void setOverridePort(String blockchainCode, int port) {
-       nodeOverridePorts.put(blockchainCode, port);
+        nodeOverridePorts.put(blockchainCode, port);
     }
 
-    
     private Node createNode(BlockchainNodeInfo blockchainNodeInfo) {
         try {
             Class<?> clazz = Class.forName(blockchainNodeInfo.getClassName());
-            Node node = (Node)clazz.newInstance();
+            Node node = (Node) clazz.newInstance();
             node.setBlockchainNodeInfo(blockchainNodeInfo);
             node.init();
             return node;

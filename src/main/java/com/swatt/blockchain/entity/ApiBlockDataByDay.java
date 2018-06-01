@@ -13,10 +13,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class ApiBlockDataByDay {
+    private static final String QUERY = "CALL DailyBlockDataByDay(?, ?, ?)";
+
     private String blockchainName;
     private double avgReward;
     private double avgFee;
     private double avgFeeRate;
+    private double avgDifficulty;
     private double largestFee;
     private double smallestFee;
     private int transactionCount;
@@ -40,6 +43,10 @@ public class ApiBlockDataByDay {
 
     public final double getAvgFeeRate() {
         return avgFeeRate;
+    }
+
+    public final double getAvgDifficulty() {
+        return avgDifficulty;
     }
 
     public final double getFromTimestamp() {
@@ -74,14 +81,6 @@ public class ApiBlockDataByDay {
         return blockCount;
     }
 
-    private static String getStandardProcedureName() {
-        return "DailyBlockDataByInterval";
-    }
-
-    private static String getProcedureParamMask() {
-        return "?, ?, ?";
-    }
-
     public ApiBlockDataByDay(ResultSet rs) throws SQLException {
         blockchainName = rs.getString(1);
         dayTimestamp = rs.getInt(2);
@@ -93,13 +92,11 @@ public class ApiBlockDataByDay {
         transactionCount = rs.getInt(8);
         avgTransactionCount = rs.getInt(9);
         blockCount = rs.getInt(10);
+        avgDifficulty = rs.getDouble(11);
     }
 
-    private static String CALL_QUERY = "CALL " + getStandardProcedureName() + "(" + getProcedureParamMask() + ")";
-
-    public static ArrayList<ApiBlockDataByDay> call(Connection connection, String blockchainCode, long fromTimestamp,
-            long toTimestamp) throws SQLException {
-        CallableStatement cs = connection.prepareCall(CALL_QUERY);
+    public static ArrayList<ApiBlockDataByDay> call(Connection connection, String blockchainCode, long fromTimestamp, long toTimestamp) throws SQLException {
+        CallableStatement cs = connection.prepareCall(QUERY);
 
         cs.setString(1, blockchainCode);
         cs.setLong(2, fromTimestamp);

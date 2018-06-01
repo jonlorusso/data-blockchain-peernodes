@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import com.swatt.blockchain.entity.ApiBlockData;
 import com.swatt.blockchain.entity.ApiBlockDataByDay;
-import com.swatt.blockchain.entity.ApiBlockDataByInterval;
+import com.swatt.blockchain.entity.ApiBlockDataByHour;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.entity.CheckProgress;
@@ -56,9 +56,16 @@ public abstract class Node {
         return ApiBlockDataByDay.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    public final ApiBlockDataByInterval getDataForInterval(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
-        return ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
+    public final ArrayList<ApiBlockDataByHour> fetchBlocksByHour(Connection conn, long fromTimestamp, long toTimestamp) throws SQLException {
+        return ApiBlockDataByHour.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
+
+    /*
+     * public final ApiBlockDataByInterval getDataForInterval(Connection conn, long
+     * fromTimestamp, long toTimestamp) throws SQLException { return
+     * ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(),
+     * fromTimestamp, toTimestamp); }
+     */
 
     public final CheckProgress getCheckProgress(Connection conn, String blockchainCode) throws SQLException {
         return CheckProgress.call(conn, blockchainCode);

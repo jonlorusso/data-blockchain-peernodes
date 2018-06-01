@@ -3,7 +3,6 @@
 	<name>swatt-blockchain-data</name>
 	<comment></comment>
 	<projects>
-		<project>swatt-common-library</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
