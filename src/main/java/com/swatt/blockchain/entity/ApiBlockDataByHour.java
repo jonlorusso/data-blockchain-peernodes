@@ -25,7 +25,7 @@ public class ApiBlockDataByHour {
     private int transactionCount;
     private int avgTransactionCount;
     private int blockCount;
-    private int dayTimestamp;
+    private String hourTimestamp;
     private int fromTimestamp;
     private int toTimestamp;
 
@@ -49,8 +49,8 @@ public class ApiBlockDataByHour {
         return fromTimestamp;
     }
 
-    public final double getDay() {
-        return dayTimestamp;
+    public final String getDatetime() {
+        return hourTimestamp;
     }
 
     public final double getToTimestamp() {
@@ -83,7 +83,7 @@ public class ApiBlockDataByHour {
 
     public ApiBlockDataByHour(ResultSet rs) throws SQLException {
         blockchainName = rs.getString(1);
-        dayTimestamp = rs.getInt(2);
+        hourTimestamp = rs.getString(2);
         fromTimestamp = rs.getInt(3);
         toTimestamp = rs.getInt(4);
         avgReward = rs.getDouble(5);

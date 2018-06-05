@@ -25,7 +25,7 @@ public class ApiBlockDataByDay {
     private int transactionCount;
     private int avgTransactionCount;
     private int blockCount;
-    private int dayTimestamp;
+    private String dayTimestamp;
     private int fromTimestamp;
     private int toTimestamp;
 
@@ -53,7 +53,7 @@ public class ApiBlockDataByDay {
         return fromTimestamp;
     }
 
-    public final double getDay() {
+    public final String getDatetime() {
         return dayTimestamp;
     }
 
@@ -83,7 +83,7 @@ public class ApiBlockDataByDay {
 
     public ApiBlockDataByDay(ResultSet rs) throws SQLException {
         blockchainName = rs.getString(1);
-        dayTimestamp = rs.getInt(2);
+        dayTimestamp = rs.getString(2);
         fromTimestamp = rs.getInt(3);
         toTimestamp = rs.getInt(4);
         avgReward = rs.getDouble(5);
