@@ -31,11 +31,10 @@ public class BitcoinTransaction extends NodeTransaction {
 
         // Compute Size
 
-        if (rpcTransaction.vsize != null) {
+        if (rpcTransaction.vsize != null)
             setSize(rpcTransaction.vsize);
-        } else {
+        if (rpcTransaction.size != null)
             setSize(rpcTransaction.size);
-        }
 
         super.setBlockHash(rpcTransaction.blockhash);
 

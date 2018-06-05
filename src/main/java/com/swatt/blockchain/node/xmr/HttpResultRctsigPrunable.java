@@ -5,6 +5,6 @@ import java.util.List;
 public class HttpResultRctsigPrunable {
 
     public List<HttpResultRangeSig> rangeSigs = null;
-    public HttpResultMGs MGs;
+    public List<HttpResultMGs> MGs;
 
 }

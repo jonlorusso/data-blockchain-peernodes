@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RpcResultBlock {
     // Simple container object to receive results of JSONRPC call - public
     // properties poulated using introspection by jsonrpcClient
@@ -20,7 +23,7 @@ public class RpcResultBlock {
     public List<String> tx = null;
     public Long time;
     public int mediantime;
-    public Long nonce;
+    public String nonce;
     public String bits;
     public double difficulty;
     public String chainwork;

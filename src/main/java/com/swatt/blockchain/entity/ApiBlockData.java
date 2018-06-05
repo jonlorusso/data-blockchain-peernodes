@@ -162,6 +162,8 @@ public class ApiBlockData {
         cs.setString(1, blockchainCode);
         cs.setLong(2, blockHeight);
 
+        System.out.println("3" + blockchainCode);
+
         ResultSet rs = cs.executeQuery();
 
         if (rs.next())
@@ -176,6 +178,8 @@ public class ApiBlockData {
         cs.setString(1, blockchainCode);
         cs.setLong(2, fromTimestamp);
         cs.setLong(3, toTimestamp);
+
+        System.out.println(blockchainCode);
 
         ResultSet rs = cs.executeQuery();
 

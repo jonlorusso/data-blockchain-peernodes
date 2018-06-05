@@ -39,9 +39,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
     public BlockchainNodeInfo() {
     }
 
-    public BlockchainNodeInfo(String code, String forkCode, String name, String description, String units,
-            String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className,
-            int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling, int zmqPort, boolean enabled) {
+    public BlockchainNodeInfo(String code, String forkCode, String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling, int zmqPort, boolean enabled) {
         this.code = code;
         this.forkCode = forkCode;
         this.name = name;
@@ -211,7 +209,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
     }
 
     private final static String primaryKeySelect = "SELECT CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED FROM BLOCKCHAIN_NODE_INFO WHERE CODE = ?";
-    
+
     public static String getStandardTableName() {
         return "BLOCKCHAIN_NODE_INFO";
     }
@@ -275,13 +273,12 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         return getBlockchainNodeInfos(connection, null);
     }
 
-    public static ArrayList<BlockchainNodeInfo> getAllBlockchainNodeInfos(Connection connection, int max)
-            throws SQLException {
+    public static ArrayList<BlockchainNodeInfo> getAllBlockchainNodeInfos(Connection connection, int max) throws SQLException {
         return getBlockchainNodeInfos(connection, null, max);
     }
 
     // TODO close prepared statements elsewhere
-    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(Connection connection, String where, Object...params) throws SQLException {
+    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(Connection connection, String where, Object... params) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -298,9 +295,8 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
             }
         }
     }
-    
-    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(Connection connection, String where, int max)
-            throws SQLException {
+
+    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(Connection connection, String where, int max) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -312,8 +308,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         return getBlockchainNodeInfos(rs, max);
     }
 
-    public static BlockchainNodeInfo getFirstBlockchainNodeInfo(Connection connection, String where)
-            throws SQLException {
+    public static BlockchainNodeInfo getFirstBlockchainNodeInfo(Connection connection, String where) throws SQLException {
         String query = SELECT_ALL_QUERY;
 
         if (where != null)
@@ -325,23 +320,20 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         return getNextBlockchainNodeInfo(rs);
     }
 
-    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(DataSource dataSource, String where)
-            throws SQLException {
+    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(DataSource dataSource, String where) throws SQLException {
         Connection connection = dataSource.getConnection();
         ArrayList<BlockchainNodeInfo> results = getBlockchainNodeInfos(connection, where);
         connection.close();
         return results;
     }
 
-    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(String jndiName, String where)
-            throws SQLException, NamingException {
+    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(String jndiName, String where) throws SQLException, NamingException {
         InitialContext ctx = new InitialContext();
         DataSource dataSource = (DataSource) ctx.lookup(jndiName);
         return getBlockchainNodeInfos(dataSource, where);
     }
 
-    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(String jndiName)
-            throws SQLException, NamingException {
+    public static ArrayList<BlockchainNodeInfo> getBlockchainNodeInfos(String jndiName) throws SQLException, NamingException {
         return getBlockchainNodeInfos(jndiName, null);
     }
 
@@ -349,17 +341,13 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         return getBlockchainNodeInfos(dataSource, null);
     }
 
-    public static BlockchainNodeInfo insertBlockchainNodeInfo(Connection connection, String code, String forkCode,
-            String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort,
-            String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling,
-            int amountScaling, int zmqPort, boolean enabled) throws SQLException {
+    public static BlockchainNodeInfo insertBlockchainNodeInfo(Connection connection, String code, String forkCode, String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling, int zmqPort, boolean enabled) throws SQLException {
         boolean storedAutoCommitValue = connection.getAutoCommit();
 
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
-        PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, code);
         ps.setString(2, forkCode);
@@ -377,7 +365,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         ps.setInt(14, rewardScaling);
         ps.setInt(15, feeScaling);
         ps.setInt(16, amountScaling);
-        ps.setInt(17,  zmqPort);
+        ps.setInt(17, zmqPort);
         ps.setBoolean(18, enabled);
         ps.executeUpdate();
 
@@ -394,16 +382,11 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
             connection.setAutoCommit(true);
         }
 
-        return new BlockchainNodeInfo(code, forkCode, name, description, units, txFeeUnits, ip, port, forwardedPort,
-                rpcUn, rpcPw, className, difficultyScaling, rewardScaling, feeScaling, amountScaling, zmqPort, enabled);
+        return new BlockchainNodeInfo(code, forkCode, name, description, units, txFeeUnits, ip, port, forwardedPort, rpcUn, rpcPw, className, difficultyScaling, rewardScaling, feeScaling, amountScaling, zmqPort, enabled);
     }
 
-    public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection, String code, String forkCode,
-            String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort,
-            String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling,
-            int amountScaling, int zmqPort, boolean enabled) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ?, ZMQ_PORT = ?, ENABLED = ? WHERE CODE = ?");
+    public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection, String code, String forkCode, String name, String description, String units, String txFeeUnits, String ip, int port, int forwardedPort, String rpcUn, String rpcPw, String className, int difficultyScaling, int rewardScaling, int feeScaling, int amountScaling, int zmqPort, boolean enabled) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ?, ZMQ_PORT = ?, ENABLED = ? WHERE CODE = ?");
 
         ps.setString(1, forkCode);
         ps.setString(2, name);
@@ -434,8 +417,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
-        PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainNodeInfo.code);
         ps.setString(2, blockchainNodeInfo.forkCode);
@@ -474,8 +456,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         if (storedAutoCommitValue)
             connection.setAutoCommit(false);
 
-        PreparedStatement ps = connection.prepareStatement(
-                "REPLACE INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement ps = connection.prepareStatement("REPLACE INTO BLOCKCHAIN_NODE_INFO (CODE, FORK_CODE, NAME, DESCRIPTION, UNITS, TX_FEE_UNITS, IP, PORT, FORWARDED_PORT, RPC_UN, RPC_PW, CLASS_NAME, DIFFICULTY_SCALING, REWARD_SCALING, FEE_SCALING, AMOUNT_SCALING, ZMQ_PORT, ENABLED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         ps.setString(1, blockchainNodeInfo.code);
         ps.setString(2, blockchainNodeInfo.forkCode);
@@ -509,8 +490,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
     }
 
     public static BlockchainNodeInfo updateBlockchainNodeInfo(Connection connection, BlockchainNodeInfo blockchainNodeInfo) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(
-                "UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ?, ZMQ_PORT = ?, ENABLED = ? WHERE CODE = ?");
+        PreparedStatement ps = connection.prepareStatement("UPDATE BLOCKCHAIN_NODE_INFO SET FORK_CODE = ?, NAME = ?, DESCRIPTION = ?, UNITS = ?, TX_FEE_UNITS = ?, IP = ?, PORT = ?, FORWARDED_PORT = ?, RPC_UN = ?, RPC_PW = ?, CLASS_NAME = ?, DIFFICULTY_SCALING = ?, REWARD_SCALING = ?, FEE_SCALING = ?, AMOUNT_SCALING = ?, ZMQ_PORT = ?, ENABLED = ? WHERE CODE = ?");
 
         ps.setString(1, blockchainNodeInfo.forkCode);
         ps.setString(2, blockchainNodeInfo.name);
@@ -544,6 +524,7 @@ public class BlockchainNodeInfo implements DataStreamSerializable {
         PreparedStatement ps = connection.prepareStatement(primaryKeySelect);
 
         ps.setString(1, code);
+
         ResultSet rs = ps.executeQuery();
 
         if (rs.next())

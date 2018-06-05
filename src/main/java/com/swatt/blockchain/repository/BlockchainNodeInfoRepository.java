@@ -11,11 +11,11 @@ import com.swatt.util.sql.ConnectionPool;
 public class BlockchainNodeInfoRepository extends Repository {
 
     private static final String GET_BY_ENABLED_WHERE_CLAUSE = "ENABLED = ?";
-    
+
     public BlockchainNodeInfoRepository(ConnectionPool connectionPool) {
         super(connectionPool);
     }
-    
+
     public List<BlockchainNodeInfo> findAllByEnabled(boolean enabled) throws OperationFailedException, SQLException {
         try (Connection connection = this.connectionPool.getConnection()) {
             return BlockchainNodeInfo.getBlockchainNodeInfos(connection, GET_BY_ENABLED_WHERE_CLAUSE, enabled);

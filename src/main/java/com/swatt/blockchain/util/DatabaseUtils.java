@@ -5,9 +5,14 @@ import static com.swatt.util.environment.Environment.getEnvironmentVariableValue
 import java.io.IOException;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.swatt.blockchain.Main;
 import com.swatt.util.sql.ConnectionPool;
 
 public class DatabaseUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseUtils.class);
     
     private static final String databaseType = "mysql"; 
     
@@ -31,6 +36,7 @@ public class DatabaseUtils {
 
     public static ConnectionPool getConnectionPool(String url, String user, String password, int maxSize) {
         if (connectionPool == null) {
+            LOGGER.info(String.format("Connecting to database: %s", url));
             connectionPool = new ConnectionPool(url, user, password, maxSize);
         }
 

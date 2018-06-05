@@ -7,4 +7,5 @@ public class HttpResultRctSignatures {
     public long txnFee;
     public List<HttpResultEcdhInfo> ecdhInfo = null;
     public List<String> outPk = null;
+    public List<String> pseudoOuts = null;
 }

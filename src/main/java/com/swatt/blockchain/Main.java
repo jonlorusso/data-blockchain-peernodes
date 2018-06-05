@@ -64,6 +64,9 @@ public class Main {
         try {
             Properties properties = loadProperties(PROPERTIES_FILENAME);
 
+            /** logger **/
+            LoggerController.init(properties);
+
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
 
             BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
@@ -82,9 +85,6 @@ public class Main {
                     nodeManager.setOverridePort(keyValue[0], Integer.parseInt(keyValue[1]));
                 }
             }
-
-            /** logger **/
-            LoggerController.init(properties);
 
             /** ingestor **/
             if (isEnabled(System.getenv(INGESTOR_ENABLED_ENV_VAR_NAME), getBooleanValue(properties, INGESTOR_ENABLED_PROPERTY))) {

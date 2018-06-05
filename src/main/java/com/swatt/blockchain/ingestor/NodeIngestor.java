@@ -11,6 +11,7 @@ import com.swatt.blockchain.entity.CheckProgress;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.repository.BlockDataRepository;
+import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
@@ -38,12 +39,19 @@ public class NodeIngestor implements NodeListener {
         this.overwriteExisting = overwriteExisting;
     }
 
+    private boolean existsBlockData(long height) throws OperationFailedException, SQLException {
+        return blockDataRepository.findByBlockchainCodeAndHeight(node.getBlockchainCode(), height) != null;
+    }
+
     @Override
     public void newBlockAvailable(Node node, BlockData blockData) {
         try {
-            blockDataRepository.insert(blockData);
-            LOGGER.info(String.format("Synced new block: %d", blockData.getHeight()));
-        } catch (SQLException e) {
+            if (!existsBlockData(blockData.getHeight()) || overwriteExisting) {
+                blockDataRepository.insert(blockData);
+                LOGGER.info(String.format("Synced new block: %d", blockData.getHeight()));
+            }
+        } catch (OperationFailedException | SQLException e) {
+            // FIXME
             LOGGER.error("Exception caught while storing new block: " + e.getMessage());
         }
     }
@@ -60,13 +68,13 @@ public class NodeIngestor implements NodeListener {
                         LOGGER.info(String.format("Historical ingestion running for blocks: %d through %s", height, stopHeight));
                     
                     while (height > stopHeight) {
-                        BlockData blockData = blockDataRepository.findByBlockchainCodeAndHeight(node.getBlockchainCode(), height);
-                        if (blockData != null && !overwriteExisting) {
+                        if (existsBlockData(height) && !overwriteExisting) {
                             height = height - 1;
+                            LOGGER.debug(String.format("Skipping existing block: %s", height));
                             continue;
                         }
                         
-                        blockData = node.fetchBlockData(height);
+                        BlockData blockData = node.fetchBlockData(height);
                         blockDataRepository.insert(blockData);
                         
                         LOGGER.info(String.format("Ingested old block: %d", height));

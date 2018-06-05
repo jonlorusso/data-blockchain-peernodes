@@ -11,4 +11,6 @@ public class RpcResultBlock {
     public String json;
     public String status;
     public List<String> tx_hashes = null;
+    public String untrusted;
+    public String miner_tx_hash;
 }

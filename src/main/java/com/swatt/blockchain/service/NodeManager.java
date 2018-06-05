@@ -52,8 +52,10 @@ public class NodeManager {
         if (node == null) {
             try {
                 BlockchainNodeInfo blockchainNodeInfo = blockchainNodeInfoRepository.findByCode(code);
-                blockchainNodeInfo.setIp(nodeOverrideIp);
-                blockchainNodeInfo.setPort(nodeOverridePorts.get(code) != null ? nodeOverridePorts.get(code) : blockchainNodeInfo.getPort());
+                if (nodeOverrideIp != null) {
+                    blockchainNodeInfo.setIp(nodeOverrideIp);
+                    blockchainNodeInfo.setPort(nodeOverridePorts.get(code) != null ? nodeOverridePorts.get(code) : blockchainNodeInfo.getPort());
+                }
                 node = createNode(blockchainNodeInfo);
 
                 if (node != null)
