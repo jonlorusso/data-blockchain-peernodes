@@ -1,14 +1,12 @@
-FROM openjdk:8-jre
+FROM openjdk:8-jdk-alpine
 MAINTAINER jon@swatt.exchange
 
-ARG INSTALL_DIR
-WORKDIR ${INSTALL_DIR}
+WORKDIR /root
 
-ENTRYPOINT ["/usr/bin/java", "-jar", "blockchain-java.jar" ]
+COPY target/lib /root/lib
 
-# Add Maven dependencies (not shaded into the artifact; Docker-cached)
-ADD target/lib ${INSTALL_DIR}/lib
-
-# Add the service itself
 ARG JAR_FILE
-ADD target/${JAR_FILE} ${INSTALL_DIR}/blockchain-java.jar
+COPY target/${JAR_FILE} /root/${JAR_FILE}
+
+ENV JAR_FILE ${JAR_FILE}
+ENTRYPOINT [ "sh", "-c", "/usr/bin/java -jar $JAR_FILE" ]
