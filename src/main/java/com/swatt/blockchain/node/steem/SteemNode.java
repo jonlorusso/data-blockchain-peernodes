@@ -1,6 +1,7 @@
 package com.swatt.blockchain.node.steem;
 
 import java.time.Instant;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,14 +14,14 @@ import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
-public class SteemChainNode extends Node {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SteemChainNode.class.getName());
+public class SteemNode extends Node {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SteemNode.class.getName());
     private static final int TRANSACTION_BUFFER_SIZE = 1000;
     private static KeepNewestHash transactions;
 
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
 
-    public SteemChainNode() {
+    public SteemNode() {
         transactions = new KeepNewestHash(TRANSACTION_BUFFER_SIZE);
     }
 
@@ -146,10 +147,23 @@ public class SteemChainNode extends Node {
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
     }
+    
+    private static class MapType extends HashMap<String, String> {
+        private static final long serialVersionUID = 1L;
+    }
 
 	@Override
 	public long fetchBlockCount() throws OperationFailedException {
-	    throw new UnsupportedOperationException("Not implemented yet.");
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+        
+        try {
+            MapType mapType = jsonRpcHttpClient.invoke("get_dynamic_global_properties", new Object[] {}, MapType.class);
+            return Long.valueOf(mapType.get("head_block_number"));
+        } catch (Throwable e) {
+            throw new OperationFailedException("Error fetching block count", e);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
 	}
 
 	@Override
