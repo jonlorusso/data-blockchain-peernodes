@@ -8,5 +8,7 @@ COPY target/lib /root/lib
 ARG JAR_FILE
 COPY target/${JAR_FILE} /root/${JAR_FILE}
 
+COPY config.properties .
+
 ENV JAR_FILE ${JAR_FILE}
 ENTRYPOINT [ "sh", "-c", "/usr/bin/java -jar $JAR_FILE" ]
