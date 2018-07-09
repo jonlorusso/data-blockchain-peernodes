@@ -8,7 +8,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.swatt.blockchain.Main;
 import com.swatt.util.sql.ConnectionPool;
 
 public class DatabaseUtils {

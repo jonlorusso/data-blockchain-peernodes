@@ -16,55 +16,34 @@ public class BitcoinTransaction extends NodeTransaction {
 
     private List<RpcResultVout> vout;
 
-    BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, String transactionHash, boolean calculateFee) throws OperationFailedException {
-        super(transactionHash);
-
-        RpcResultTransaction rpcTransaction = fetchFromBlockchain(jsonrpcClient, transactionHash);
+    public BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, Object transaction, boolean calculateFee) throws OperationFailedException {
+        super(transaction instanceof RpcResultTransaction ? ((RpcResultTransaction)transaction).hash : (String)transaction);
         
-        this.vout = rpcTransaction.vout;
-
-        // Compute amount
-        double amount = vout.stream().mapToDouble(v -> v.value).sum();
-
-        setAmount(amount);
-//        setTimestamp(rpcTransaction.time);
-
-        // Compute Size
-
-        if (rpcTransaction.vsize != null)
-            setSize(rpcTransaction.vsize);
-        if (rpcTransaction.size != null)
-            setSize(rpcTransaction.size);
-
-        super.setBlockHash(rpcTransaction.blockhash);
-
-        if (calculateFee)
-            calculateFee(jsonrpcClient, rpcTransaction);
-    }
-    
-    BitcoinTransaction(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction, boolean calculateFee) throws OperationFailedException {
-        super(rpcTransaction.txid);
-
-        this.vout = rpcTransaction.vout;
-
-        // Compute amount
-        double amount = vout.stream().mapToDouble(v -> v.value).sum();
-
-        setAmount(amount);
-//        setTimestamp(rpcTransaction.time);
-
-        // Compute Size
-
-        if (rpcTransaction.vsize != null) {
-            setSize(rpcTransaction.vsize);
+        RpcResultTransaction rpcResultTransaction;
+        String transactionHash;
+        
+        if (transaction instanceof RpcResultTransaction) {
+            rpcResultTransaction = (RpcResultTransaction)transaction;
+            transactionHash = rpcResultTransaction.hash;
         } else {
-            setSize(rpcTransaction.size);
+            transactionHash = (String)transaction;
+            rpcResultTransaction = fetchFromBlockchain(jsonrpcClient, transactionHash);
         }
 
-        super.setBlockHash(rpcTransaction.blockhash);
+        this.vout = rpcResultTransaction.vout;
+
+        double amount = vout.stream().mapToDouble(v -> v.value).sum();
+        setAmount(amount);
+
+        if (rpcResultTransaction.vsize != null)
+            setSize(rpcResultTransaction.vsize);
+        if (rpcResultTransaction.size != null)
+            setSize(rpcResultTransaction.size);
+
+        super.setBlockHash(rpcResultTransaction.blockhash);
 
         if (calculateFee)
-            calculateFee(jsonrpcClient, rpcTransaction);
+            calculateFee(jsonrpcClient, rpcResultTransaction);
     }
 
     public static RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)throws OperationFailedException {

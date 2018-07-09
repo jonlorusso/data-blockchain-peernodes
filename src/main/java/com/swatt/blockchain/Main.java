@@ -19,8 +19,6 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     private static final String PROPERTIES_FILENAME = "config.properties";
-    private static final String NODE_OVERRIDE_IP_ENV_VAR_NAME = "NODE_OVERRIDE_IP";
-    private static final String NODE_OVERRIDE_PORTS_ENV_VAR_NAME = "NODE_OVERRIDE_PORTS";
 
     public static void main(String[] args) {
         try {
@@ -30,24 +28,11 @@ public class Main {
             LoggerController.init(properties);
 
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
-
             BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
             BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
+            
             NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-
-            String nodeOverrideIp = System.getenv(NODE_OVERRIDE_IP_ENV_VAR_NAME);
-            if (nodeOverrideIp != null) {
-                nodeManager.setOverrideIp(nodeOverrideIp);
-            }
-
-            String nodeOverridePortsValue = System.getenv(NODE_OVERRIDE_PORTS_ENV_VAR_NAME);
-            if (nodeOverridePortsValue != null) {
-                for (String pair : nodeOverridePortsValue.split(",")) {
-                    String[] keyValue = pair.split("=");
-                    nodeManager.setOverridePort(keyValue[0], Integer.parseInt(keyValue[1]));
-                }
-            }
-
+            
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             nodeIngestorManager.start();
         } catch (IOException e) {

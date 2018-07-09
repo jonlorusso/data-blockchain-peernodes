@@ -23,7 +23,7 @@ public class BitcoinNode extends Node {
 
     private static final double BITCOIN_BLOCK_REWARD_BTC = 12.5;
 
-    private JsonRpcHttpClientPool jsonRpcHttpClientPool;
+    protected JsonRpcHttpClientPool jsonRpcHttpClientPool;
     private Thread blockListener;
     private Socket blockSubscriber;
 
@@ -51,8 +51,7 @@ public class BitcoinNode extends Node {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return blockHash == null ? fetchLatestBlock(jsonRpcHttpClient)
-                    : fetchBlockByHash(jsonRpcHttpClient, blockHash);
+            return blockHash == null ? fetchLatestBlock(jsonRpcHttpClient) : fetchBlockByHash(blockHash);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
@@ -91,8 +90,7 @@ public class BitcoinNode extends Node {
                                                                         // don't double catch exceptions on this call
     }
 
-    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber)
-            throws OperationFailedException {
+    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber) throws OperationFailedException {
         String blockHash = null;
 
         try {
@@ -104,28 +102,40 @@ public class BitcoinNode extends Node {
 
         // We keep this out of the above try/catch so we don't double catch exceptions
         // on this call
-        return fetchBlockByHash(jsonrpcClient, blockHash);
+        return fetchBlockByHash(blockHash);
+    }
+    
+    protected RpcResultBlock getBlock(String hash) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
+
+        try {
+            return jsonRpcHttpClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { hash, true }, RpcResultBlock.class);
+        } catch (Throwable t) {
+            throw new OperationFailedException(t);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
+        }
     }
 
-    private BlockData fetchBlockByHash(JsonRpcHttpClient jsonrpcClient, String blockHash) throws OperationFailedException {
+    protected BlockData fetchBlockByHash(String blockHash) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
-            RpcResultBlock rpcBlock = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK, new Object[] { blockHash, true }, RpcResultBlock.class);
+            RpcResultBlock rpcBlock = getBlock(blockHash);
 
             BlockData blockData = new BlockData();
             blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
-            blockData.setHash(rpcBlock.hash);
-            blockData.setSize(rpcBlock.size);
-            blockData.setHeight(rpcBlock.height);
-            blockData.setVersionHex(rpcBlock.versionHex);
-            blockData.setMerkleRoot(rpcBlock.merkleroot);
-            blockData.setTimestamp(rpcBlock.time);
-            blockData.setNonce(rpcBlock.nonce);
-            blockData.setBits(rpcBlock.bits);
-            blockData.setDifficultyBase(rpcBlock.difficulty);
-            blockData.setPrevHash(rpcBlock.previousblockhash);
-            blockData.setNextHash(rpcBlock.nextblockhash);
+            blockData.setHash(rpcBlock.getHash());
+            blockData.setSize(rpcBlock.getSize());
+            blockData.setHeight(rpcBlock.getHeight());
+            blockData.setVersionHex(rpcBlock.getVersionHex());
+            blockData.setMerkleRoot(rpcBlock.getMerkleroot());
+            blockData.setTimestamp(rpcBlock.getTime());
+            blockData.setNonce(rpcBlock.getNonce());
+            blockData.setBits(rpcBlock.getBits());
+            blockData.setDifficultyBase(rpcBlock.getDifficulty());
+            blockData.setPrevHash(rpcBlock.getPreviousblockhash());
+            blockData.setNextHash(rpcBlock.getNextblockhash());
 
             blockData.setRewardBase(BITCOIN_BLOCK_REWARD_BTC);
 
@@ -133,7 +143,7 @@ public class BitcoinNode extends Node {
 
             // LOGGER.info("Calculating block: " + rpcBlock.hash);
 
-            calculate(jsonrpcClient, blockData, rpcBlock);
+            calculate(blockData, rpcBlock);
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -150,52 +160,58 @@ public class BitcoinNode extends Node {
         }
     }
 
-    private void calculate(JsonRpcHttpClient jsonrpcClient, BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
-        double totalFee = 0.0;
-        double totalFeeRate = 0.0;
+    protected void calculate(BlockData blockData, RpcResultBlock rpcBlock) throws OperationFailedException {
+        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
-        double largestFee = 0.0;
-        double smallestFee = Double.MAX_VALUE;
-        double largestTxAmount = 0.0;
-        String largestTxHash = null;
-
-        int transactionCount = 1; // rpcBlock.tx.size();
-        for (String transactionHash : rpcBlock.tx) {
-            BitcoinTransaction transaction = new BitcoinTransaction(jsonrpcClient, transactionHash, true);
-
-            if (!transaction.getCoinbase()) {
-                double transactionFee = transaction.getFee();
-                double transactionAmount = transaction.getAmount();
-
-                largestFee = Math.max(largestFee, transactionFee);
-                smallestFee = Math.min(smallestFee, transactionFee);
-
-                transactionCount++;
-                totalFee += transactionFee;
-                totalFeeRate += transaction.getFeeRate();
-
-                if (transactionAmount > largestTxAmount) {
-                    largestTxAmount = transactionAmount;
-                    largestTxHash = transactionHash;
+        try {
+            double totalFee = 0.0;
+            double totalFeeRate = 0.0;
+    
+            double largestFee = 0.0;
+            double smallestFee = Double.MAX_VALUE;
+            double largestTxAmount = 0.0;
+            String largestTxHash = null;
+    
+            int transactionCount = 1; // rpcBlock.tx.size();
+            for (Object transaction : rpcBlock.getTransactions()) {
+                BitcoinTransaction bitcoinTransaction = new BitcoinTransaction(jsonRpcHttpClient, transaction, true);
+    
+                if (!bitcoinTransaction.getCoinbase()) {
+                    double transactionFee = bitcoinTransaction.getFee();
+                    double transactionAmount = bitcoinTransaction.getAmount();
+    
+                    largestFee = Math.max(largestFee, transactionFee);
+                    smallestFee = Math.min(smallestFee, transactionFee);
+    
+                    transactionCount++;
+                    totalFee += transactionFee;
+                    totalFeeRate += bitcoinTransaction.getFeeRate();
+    
+                    if (transactionAmount > largestTxAmount) {
+                        largestTxAmount = transactionAmount;
+                        largestTxHash = bitcoinTransaction.getHash();
+                    }
                 }
             }
+    
+            if (smallestFee == Double.MAX_VALUE)
+                smallestFee = 0;
+    
+            double averageFee = totalFee / transactionCount;
+            double averageFeeRate = totalFeeRate / transactionCount;
+    
+            blockData.setTransactionCount(transactionCount);
+            blockData.setAvgFeeBase(averageFee);
+            blockData.setAvgFeeRateBase(averageFeeRate);
+    
+            blockData.setSmallestFeeBase(smallestFee);
+            blockData.setLargestFeeBase(largestFee);
+    
+            blockData.setLargestTxAmountBase(largestTxAmount);
+            blockData.setLargestTxHash(largestTxHash);
+        } finally {
+            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
-
-        if (smallestFee == Double.MAX_VALUE)
-            smallestFee = 0;
-
-        double averageFee = totalFee / transactionCount;
-        double averageFeeRate = totalFeeRate / transactionCount;
-
-        blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFeeBase(averageFee);
-        blockData.setAvgFeeRateBase(averageFeeRate);
-
-        blockData.setSmallestFeeBase(smallestFee);
-        blockData.setLargestFeeBase(largestFee);
-
-        blockData.setLargestTxAmountBase(largestTxAmount);
-        blockData.setLargestTxHash(largestTxHash);
     }
 
     @Override

@@ -1,41 +1,73 @@
 package com.swatt.blockchain.node.btc;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RpcResultBlock {
-    // Simple container object to receive results of JSONRPC call - public
-    // properties poulated using introspection by jsonrpcClient
-    // All fields in feed must be defined, even if not needed
-    public String hash;
-    public int confirmations;
-    public int strippedsize;
-    public int size;
-    public int weight;
-    public int height;
-    public int version;
-    public String versionHex;
-    public String merkleroot;
-    public List<String> tx = null;
-    public Long time;
-    public int mediantime;
-    public String nonce;
-    public String bits;
-    public double difficulty;
-    public String chainwork;
-    public String previousblockhash;
-    public String nextblockhash;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private String hash;
+    private int size;
+    private int height;
+    private String versionHex;
+    private String merkleroot;
+    
+    @JsonProperty("tx")
+    private List<String> transactions;
+    
+    private Long time;
+    private String nonce;
+    private String bits;
+    private double difficulty;
+    private String previousblockhash;
+    private String nextblockhash;
 
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
+    public int getHeight() {
+        return height;
     }
 
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+    public String getHash() {
+        return hash;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public String getVersionHex() {
+        return versionHex;
+    }
+
+    public String getMerkleroot() {
+        return merkleroot;
+    }
+
+    public List<String> getTransactions() {
+        return transactions;
+    }
+
+    public Long getTime() {
+        return time;
+    }
+
+    public String getNonce() {
+        return nonce;
+    }
+
+    public String getBits() {
+        return bits;
+    }
+
+    public double getDifficulty() {
+        return difficulty;
+    }
+
+    public String getPreviousblockhash() {
+        return previousblockhash;
+    }
+
+    public String getNextblockhash() {
+        return nextblockhash;
     }
 }
