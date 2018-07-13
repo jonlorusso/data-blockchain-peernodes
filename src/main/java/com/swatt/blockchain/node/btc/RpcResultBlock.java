@@ -43,7 +43,7 @@ public class RpcResultBlock {
         return merkleroot;
     }
 
-    public List<String> getTransactions() {
+    public List<?> getTransactions() {
         return transactions;
     }
 

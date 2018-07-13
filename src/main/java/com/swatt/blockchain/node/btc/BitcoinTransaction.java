@@ -20,14 +20,14 @@ public class BitcoinTransaction extends NodeTransaction {
         super(transaction instanceof RpcResultTransaction ? ((RpcResultTransaction)transaction).hash : (String)transaction);
         
         RpcResultTransaction rpcResultTransaction;
-        String transactionHash;
         
         if (transaction instanceof RpcResultTransaction) {
             rpcResultTransaction = (RpcResultTransaction)transaction;
-            transactionHash = rpcResultTransaction.hash;
+            setHash(rpcResultTransaction.hash == null ? rpcResultTransaction.txid : rpcResultTransaction.hash);
         } else {
-            transactionHash = (String)transaction;
-            rpcResultTransaction = fetchFromBlockchain(jsonrpcClient, transactionHash);
+            String hash = (String)transaction;
+            setHash(hash);
+            rpcResultTransaction = fetchFromBlockchain(jsonrpcClient, hash);
         }
 
         this.vout = rpcResultTransaction.vout;
@@ -76,12 +76,11 @@ public class BitcoinTransaction extends NodeTransaction {
         return this.coinbase;
     }
 
-    public final void setCoinbase(boolean coninbase) {
-//        this.coinbase = coinbase;
+    public final void setCoinbase(boolean coinbase) {
+        this.coinbase = coinbase;
     }
 
     private void calculateFee(JsonRpcHttpClient jsonrpcClient, RpcResultTransaction rpcTransaction) throws OperationFailedException {
-
         // Perform Calculations
 
         double amount = getAmount();
