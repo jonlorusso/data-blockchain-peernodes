@@ -1,5 +1,6 @@
 package com.swatt.blockchain.ingestor;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -17,6 +18,7 @@ import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
@@ -100,5 +102,37 @@ public class NodeIngestor implements NodeListener {
         }
 
         node.fetchNewBlocks();
+    }
+
+    public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
+        String code = args[0];
+        long start = Long.valueOf(args[1]);
+
+        Properties properties = CollectionsUtilities.loadProperties("config.properties");
+
+        LoggerController.init(properties);
+
+        ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
+        BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
+        BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
+
+        NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
+        Node node = nodeManager.getNode(code);
+
+        long end = start;
+        if (args.length > 2) {
+            end = Long.valueOf(args[2]);
+        } else {
+            end = node.fetchBlockCount();
+        }
+
+        LOGGER.info("Ingesting " + code + " blocks: " + start + " to " + end);
+
+        NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+        for (long height = start; height < end; height++) {
+            nodeIngestor.ingestBlock(height);
+        }
+
+        System.exit(0);
     }
 }
