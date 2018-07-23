@@ -1,38 +1,50 @@
 package com.swatt.blockchain.node.steem;
 
-import java.util.HashMap;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.swatt.util.general.OperationFailedException;
+
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class RpcResultBlock {
-    // Simple container object to receive results of JSONRPC call - public
-    // properties poulated using introspection by jsonrpcClient
-    // All fields in feed must be defined, even if not needed
+
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    
+    @JsonProperty("block_id")
     public String hash;
-    public int confirmations;
-    public int strippedsize;
-    public int size;
-    public int weight;
-    public int height;
-    public int version;
-    public String versionHex;
+    
+    public int size = 0;
+    public String versionHex = EMPTY;
+
+    @JsonProperty("transaction_merkle_root")
     public String merkleroot;
-    public List<String> tx = null;
-    public Long time;
-    public int mediantime;
-    public Long nonce;
-    public String bits;
-    public double difficulty;
-    public String chainwork;
+
+    @JsonProperty("transaction_ids")
+    public List<String> transactionIds;
+    
+    @JsonProperty("transactions")
+    public List<RpcResultTransaction> transactions;
+
+    public String timestamp;
+    public Long nonce = 0L;
+    public String bits = StringUtils.EMPTY;
+    public double difficulty = 0.0;
+    
+    @JsonProperty("previous")
     public String previousblockhash;
-    public String nextblockhash;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+    public long getTime() throws OperationFailedException {
+        try {
+            return simpleDateFormat.parse(timestamp).getTime();
+        } catch (ParseException e) {
+            throw new OperationFailedException(e);
+        }
     }
 }

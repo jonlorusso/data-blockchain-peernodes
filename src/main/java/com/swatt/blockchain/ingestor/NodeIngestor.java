@@ -103,23 +103,23 @@ public class NodeIngestor implements NodeListener {
 
         node.fetchNewBlocks();
     }
-    
+
     public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
         String code = args[0];
         long start = Long.valueOf(args[1]);
-        
+
         Properties properties = CollectionsUtilities.loadProperties("config.properties");
-        
+
         LoggerController.init(properties);
-        
+
         ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
         BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
         BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-        
+
         NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
         Node node = nodeManager.getNode(code);
-        
-        long end = start; 
+
+        long end = start;
         if (args.length > 2) {
             end = Long.valueOf(args[2]);
         } else {
