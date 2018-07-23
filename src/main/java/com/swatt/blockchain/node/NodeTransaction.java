@@ -61,4 +61,9 @@ public class NodeTransaction {
     public final void setAmount(double amount) {
         this.amount = amount;
     }
+
+    @Override
+    public String toString() {
+        return "NodeTransaction [hash=" + hash + ", timestamp=" + timestamp + ", fee=" + fee + ", feeRate=" + feeRate + ", amount=" + amount + ", blockHash=" + blockHash + "]";
+    }
 }

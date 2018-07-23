@@ -58,6 +58,11 @@
 			<version>3.3.1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.github.Stellar</groupId>
+			<artifactId>java-stellar-sdk</artifactId>
+			<version>0.2.1</version>
+		</dependency>
+		<dependency>
 			<groupId>com.thetransactioncompany</groupId>
 			<artifactId>jsonrpc2-base</artifactId>
 			<version>1.38.1</version>
@@ -129,4 +134,11 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 </project>
