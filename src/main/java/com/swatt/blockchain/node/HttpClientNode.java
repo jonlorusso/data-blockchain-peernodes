@@ -134,23 +134,10 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
         }
     }
     
-//    protected <V> V fetchList(String path, Class<V> clazz) throws OperationFailedException {
-//        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
-//
-//        try {
-//            return objectMapper.readValues(readResponse(response), clazz);
-//        } catch (IOException e) {
-//            throw new OperationFailedException(e);
-//        }
-//    }
-    
-//    protected <V> Iterator<V> execute(String path, ) 
-    
     private String readResponse(CloseableHttpResponse response) throws OperationFailedException {
         try {
             HttpEntity responseHttpEntity = response.getEntity();
             String responseString = IoUtilities.streamToString(responseHttpEntity.getContent());
-            System.out.println(responseString);
             EntityUtils.consume(responseHttpEntity);
             return responseString;
         } catch (UnsupportedOperationException | IOException e) {

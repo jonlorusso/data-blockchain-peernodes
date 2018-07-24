@@ -2,6 +2,10 @@ package com.swatt.blockchain.node.lsk;
 
 import static java.lang.String.format;
 
+import java.time.Instant;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.entity.BlockchainNodeInfo;
@@ -16,7 +20,9 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
     @Override
     protected BlockData toBlockData(HttpResultBlock httpResultBlock) throws OperationFailedException {
         BlockData blockData = new BlockData();
-        blockData.setAvgFee(httpResultBlock.totalFee / httpResultBlock.numberOfTransactions);
+        
+        if (httpResultBlock.numberOfTransactions > 0)
+            blockData.setAvgFee(httpResultBlock.totalFee / httpResultBlock.numberOfTransactions);
         
         blockData.setBlockchainCode(blockchainNodeInfo.getCode());
         blockData.setHash(httpResultBlock.id);
@@ -30,7 +36,7 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
         
         int transactionCount = 0;
       
-        MappingIterator<HttpResultTransaction> httpResultTransactions = fetchIterator(String.format("/api/transactions?blockId=%s", httpResultBlock.id), HttpResultTransaction.class);
+        MappingIterator<HttpResultTransaction> httpResultTransactions = fetchIterator(String.format("/api/transactions?blockId=%s", httpResultBlock.id), "/transactions", HttpResultTransaction.class);
         while (httpResultTransactions.hasNext()) {
             HttpResultTransaction httpResultTransaction = httpResultTransactions.next();
         
@@ -88,7 +94,8 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
 
     @Override
     public long fetchBlockCount() throws OperationFailedException {
-        return fetch("/api/node/status", HttpResultNodeStatus.class).height;
+        Map<String, String> nodeStatus = fetch("api/loader/status/sync", new TypeReference<Map<String, String>>() {});
+        return Long.valueOf(nodeStatus.get("height"));
     }
 
     @Override
@@ -96,23 +103,37 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
         return format("/api/blocks?height=%d&limit=1", height);
     }
     
-    public static void main(String[] args) throws OperationFailedException {
-        BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
-        blockchainNodeInfo.setIp("127.0.0.1");
-        blockchainNodeInfo.setPort(2014);
-        
-        LiskNode liskNode = new LiskNode();
-        liskNode.setBlockchainNodeInfo(blockchainNodeInfo);
-        liskNode.init();
-        
-        liskNode.addNodeListener(new NodeListener() {
-            @Override
-            public void newBlockAvailable(Node node, BlockData blockData) {
-                System.out.println(blockData);
-            }
-        });
-        
-        liskNode.fetchNewBlocks();
-        System.out.println(liskNode.fetchBlockCount());
+    @Override
+    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+        long start = Instant.now().getEpochSecond();
+        MappingIterator<HttpResultBlock> httpResultBlocks = fetchIterator(getBlockByHeightUrl(blockNumber), "/blocks", HttpResultBlock.class);
+        BlockData blockData = toBlockData(httpResultBlocks.next());
+        blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
+        blockData.setIndexed(Instant.now().toEpochMilli());
+        return blockData;
+    }
+    
+    public static void main(String[] args) {
+        try {
+            BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
+            blockchainNodeInfo.setIp("127.0.0.1");
+            blockchainNodeInfo.setPort(2014);
+            blockchainNodeInfo.setCode("LSK");
+
+            LiskNode liskNode = new LiskNode();
+            liskNode.setBlockchainNodeInfo(blockchainNodeInfo);
+            liskNode.init();
+
+            liskNode.addNodeListener(new NodeListener() {
+                @Override
+                public void newBlockAvailable(Node node, BlockData blockData) {
+                    System.out.println(blockData);
+                }
+            });
+
+            liskNode.fetchNewBlocks();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
