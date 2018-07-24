@@ -45,13 +45,14 @@ public class StellarNode extends Node {
     
     private BlockData toBlockData(LedgerResponse ledgerResponse) {
         BlockData blockData = new BlockData();
-
+        
+        blockData.setBlockchainCode(getCode());
         blockData.setHash(ledgerResponse.getHash());
         blockData.setTransactionCount(ledgerResponse.getTransactionCount());
         blockData.setHeight(ledgerResponse.getSequence());
 
         try {
-            blockData.setTimestamp(simpleDateFormat.parse(ledgerResponse.getClosedAt()).getTime());
+            blockData.setTimestamp(simpleDateFormat.parse(ledgerResponse.getClosedAt()).getTime() / 1000);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
