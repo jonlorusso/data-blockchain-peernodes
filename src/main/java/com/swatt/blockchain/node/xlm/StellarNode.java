@@ -198,12 +198,10 @@ public class StellarNode extends Node {
         stellarNode.addNodeListener(new NodeListener() {
             @Override
             public void newBlockAvailable(Node node, BlockData blockData) {
-                System.out.print("avgFee: " + blockData.getAvgFee() + ", largestFee: " + blockData.getLargestFee());
-                System.out.println(" LargestTx: " + blockData.getLargestTxAmount() + ", smallestFee: " + blockData.getSmallestFee());
+                System.out.println(blockData);
             }
         });
         
         stellarNode.fetchNewBlocks();
-        System.out.println(stellarNode.fetchBlockCount());
     }
 }
