@@ -132,7 +132,7 @@ public class NodeIngestor implements NodeListener {
         for (long height = start; height < end; height++) {
             nodeIngestor.ingestBlock(height);
         }
-        
+
         System.exit(0);
     }
 }

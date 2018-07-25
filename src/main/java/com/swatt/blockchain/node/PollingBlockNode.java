@@ -27,7 +27,6 @@ public abstract class PollingBlockNode extends Node {
                 
                 while (true) {
                     long newHeight = fetchBlockCount();
-                    System.out.println(newHeight);
                     
                     if (newHeight > height) {
                         BlockData blockData = fetchBlockData(newHeight);

@@ -77,7 +77,6 @@ public class SteemNode extends JsonRpcHttpClientNode<RpcResultBlock, RpcResultTr
 
     @Override
     public long fetchBlockCount() throws OperationFailedException {
-        System.out.println("fetching BlockCount");
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
@@ -106,6 +105,5 @@ public class SteemNode extends JsonRpcHttpClientNode<RpcResultBlock, RpcResultTr
         });
         
         steemNode.fetchNewBlocks();
-        System.out.println(steemNode.fetchBlockCount());
     }
 }

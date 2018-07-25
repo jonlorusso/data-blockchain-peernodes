@@ -31,7 +31,6 @@ public class RpcResultTransaction {
             @SuppressWarnings("unchecked")
             Map<String, Object> amount = (Map<String, Object>)transfer.get("amount");
             long transactionAmount = (long)amount.get("amount");
-            System.out.println("transactionAmount: " + transactionAmount);
             return transactionAmount;
         }
         return 0;
