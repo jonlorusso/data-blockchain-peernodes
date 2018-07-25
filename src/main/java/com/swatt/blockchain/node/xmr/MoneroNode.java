@@ -17,6 +17,7 @@ import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.HttpClientPool;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
+// TODO exten PollingNode and/or JsonRpcHttpClientNode
 public class MoneroNode extends Node {
     private static final Logger LOGGER = Logger.getLogger(MoneroNode.class.getName());
 

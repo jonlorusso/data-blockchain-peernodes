@@ -838,4 +838,9 @@ public class BlockData implements DataStreamSerializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return "BlockData [id=" + id + ", blockchainCode=" + blockchainCode + ", hash=" + hash + ", transactionCount=" + transactionCount + ", height=" + height + ", difficulty=" + difficulty + ", difficultyScale=" + difficultyScale + ", reward=" + reward + ", rewardScale=" + rewardScale + ", merkleRoot=" + merkleRoot + ", timestamp=" + timestamp + ", bits=" + bits + ", size=" + size + ", versionHex=" + versionHex + ", nonce=" + nonce + ", prevHash=" + prevHash + ", nextHash=" + nextHash + ", avgFee=" + avgFee + ", avgFeeScale=" + avgFeeScale + ", avgFeeRate=" + avgFeeRate + ", avgFeeRateScale=" + avgFeeRateScale + ", indexed=" + indexed + ", largestTxHash=" + largestTxHash + ", largestTxAmount=" + largestTxAmount + ", largestTxAmountScale=" + largestTxAmountScale + ", largestFee=" + largestFee + ", largestFeeScale=" + largestFeeScale + ", smallestFee=" + smallestFee + ", smallestFeeScale=" + smallestFeeScale + ", indexingDuration=" + indexingDuration + "]";
+    }
+
 }
