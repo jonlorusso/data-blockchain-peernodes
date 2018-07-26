@@ -7,15 +7,16 @@ pipeline {
         }
     }
     environment {
-	JOB = "Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
+        JOB = "Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
+        VERSION = readMavenPom().getVersion()
     }
     stages {
 
-	stage ('Start') {
-	    steps {
-		slackSend (color: '#FFFF00', message: "STARTED: ${JOB}")
-	    }
-	}
+        stage ('Start') {
+            steps {
+                slackSend (color: '#FFFF00', message: "STARTED: ${JOB}")
+            }
+        }
 
         stage('Test') {
             steps {
@@ -33,16 +34,16 @@ pipeline {
                 branch 'develop'
             }
             steps {
-                sh 'mvn clean deploy --activate-profiles jenkins'
+                sh 'mvn clean deploy -Ddockerfile.tag=${VERSION}.${env.BUILD_NUMBER} --activate-profiles jenkins'
             }
         }
     }
     post {
-	success {
-	    slackSend (color: '#00FF00', message: "SUCCESSFUL: ${JOB}")
-	}
-	failure {
-	    slackSend (color: '#FF0000', message: "FAILED: ${JOB}")
-	}
+        success {
+            slackSend (color: '#00FF00', message: "SUCCESSFUL: ${JOB}")
+        }
+        failure {
+            slackSend (color: '#FF0000', message: "FAILED: ${JOB}")
+        }
     }
 }
