@@ -30,11 +30,8 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                branch 'develop'
-            }
             steps {
-                sh 'mvn clean deploy -Ddockerfile.tag=${VERSION}.${env.BUILD_NUMBER} --activate-profiles jenkins'
+                sh 'mvn clean deploy -Ddockerfile.tag=${env.BRANCH_NAME}-${VERSION}.${env.BUILD_NUMBER} --activate-profiles jenkins'
             }
         }
     }
