@@ -116,9 +116,11 @@ public class StellarNode extends Node {
             ArrayList<OperationResponse> operationResponses = server.payments().forTransaction(hash).execute().getRecords();
             
             for (OperationResponse operationResponse : operationResponses) {
-                PaymentOperationResponse paymentOperationResponse = (PaymentOperationResponse)operationResponse;
-                if (paymentOperationResponse.getAsset().getType().equals("native")) {
-                    nodeTransaction.setAmount(nodeTransaction.getAmount() + Double.valueOf(paymentOperationResponse.getAmount()));
+                if (operationResponse instanceof PaymentOperationResponse) {
+                    PaymentOperationResponse paymentOperationResponse = (PaymentOperationResponse)operationResponse;
+                    if (paymentOperationResponse.getAsset().getType().equals("native")) {
+                        nodeTransaction.setAmount(nodeTransaction.getAmount() + Double.valueOf(paymentOperationResponse.getAmount()));
+                    }
                 }
             }
         } catch (Exception e) {
