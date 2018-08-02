@@ -88,7 +88,11 @@ public class NodeIngestor implements NodeListener {
                         LOGGER.info(String.format("Historical ingestion running for blocks: %d through %s", height, stopHeight));
                     
                     while (height > stopHeight) {
-                        ingestBlock(height);
+                        try {
+                            ingestBlock(height);
+                        } catch (Exception e) {
+                            LOGGER.error("Node ingestion failed, skipping: " + height + " " + e.getMessage());
+                        }
                         height = height - 1;
                     }
                     
