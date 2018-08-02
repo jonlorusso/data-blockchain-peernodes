@@ -1,3 +1,9 @@
+def String makeDockerTag(String input) {
+    return input
+        .replaceFirst('^[#\\.]', '') // delete the first letter if it is a period or dash
+        .replaceAll('[^a-zA-Z0-9_#\\.]', '_'); // replace everything that's not allowed with an underscore
+}
+
 pipeline {
     agent {
         docker {
@@ -31,7 +37,10 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'mvn clean deploy -Ddockerfile.tag=${env.BRANCH_NAME}-${VERSION}.${env.BUILD_NUMBER} --activate-profiles jenkins'
+                script {
+                    tag = makeDockerTag("${env.BRANCH_NAME}")
+                    sh "mvn clean deploy -Ddockerfile.tag=${tag}-${VERSION}.${env.BUILD_NUMBER} --activate-profiles docker"
+                }
             }
         }
     }
