@@ -12,12 +12,15 @@ import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
 import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
+import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
+    
     private static final String PROPERTIES_FILENAME = "config.properties";
 
     public static void main(String[] args) {
@@ -34,6 +37,11 @@ public class Main {
             NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
             
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
+            
+            String overwriteExistingValue = SystemUtilities.getEnv(OVERWRITE_EXISTING_ENV_VAR, "false");
+            boolean overwriteExisting = overwriteExistingValue.equalsIgnoreCase("true");
+            nodeIngestorManager.setOverwriteExisting(overwriteExisting);
+            
             nodeIngestorManager.start();
         } catch (IOException e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);

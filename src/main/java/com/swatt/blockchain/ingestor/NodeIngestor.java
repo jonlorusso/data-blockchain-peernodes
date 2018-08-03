@@ -18,6 +18,7 @@ import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
@@ -131,8 +132,13 @@ public class NodeIngestor implements NodeListener {
         }
             
         LOGGER.info("Ingesting " + code + " blocks: " + start + " to " + end);
-        
+
         NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+        
+        String overwriteExistingValue = SystemUtilities.getEnv("OVERWRITE_EXISTING", "false");
+        boolean overwriteExisting = overwriteExistingValue.equalsIgnoreCase("true");
+        nodeIngestor.setOverwriteExisting(overwriteExisting);
+        
         for (long height = start; height < end; height++) {
             nodeIngestor.ingestBlock(height);
         }
