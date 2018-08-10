@@ -21,6 +21,7 @@ import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
@@ -120,7 +121,7 @@ public class NodeIngestor implements NodeListener {
         LoggerController.init(properties);
         
         ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
-        
+
         int blocksPerThread = Math.abs(start - end) / numberOfThreads;
         LOGGER.info("Blocks per thread: " + blocksPerThread);
                 
@@ -141,6 +142,7 @@ public class NodeIngestor implements NodeListener {
                     Node node = nodeManager.getNode(code);
     
                     NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+                    nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
                     
                     for (long height = (threadNumber * blocksPerThread); height < ((threadNumber + 1) * blocksPerThread); height++) {
                         try {
@@ -149,7 +151,7 @@ public class NodeIngestor implements NodeListener {
                                 long now = Instant.now().toEpochMilli();
                                 System.out.println("blocks/second: " + (blocksIngested / ((now - startms) / 1000)));
                             }
-                        } catch (OperationFailedException | SQLException e) {
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         }
                     }
@@ -172,6 +174,7 @@ public class NodeIngestor implements NodeListener {
                     Node node = nodeManager.getNode(code);
     
                     NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+                    nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
 
                     for (long height = (threadNumber * blocksPerThread - 1); height > ((threadNumber - 1) * blocksPerThread); height--) {
                         try {
@@ -180,7 +183,7 @@ public class NodeIngestor implements NodeListener {
                                 long now = Instant.now().toEpochMilli();
                                 System.out.println("blocks/second: " + (blocksIngested / ((now - startms) / 1000)));
                             }
-                        } catch (OperationFailedException | SQLException e) {
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         }
                     }
