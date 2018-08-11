@@ -1,11 +1,15 @@
 package com.swatt.blockchain.ingestor;
 
+import static java.util.stream.IntStream.range;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +23,6 @@ import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
 import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
@@ -116,80 +119,49 @@ public class NodeIngestor implements NodeListener {
         node.fetchNewBlocks();
     }
     
+    static IntStream reverseRange(int from, int to) {
+        return IntStream.range(from, to).map(i -> to - i + from - 1);
+    }
+    
     public static void ingest(String code, int start, int end, int numberOfThreads) throws IOException {
         Properties properties = CollectionsUtilities.loadProperties("config.properties");
         LoggerController.init(properties);
         
         ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
 
-        int blocksPerThread = Math.abs(start - end) / numberOfThreads;
-        LOGGER.info("Blocks per thread: " + blocksPerThread);
-                
-        if (start < end) {
-            for (int i = 0; i < numberOfThreads; i++) {
-                final int threadNumber = i;
-                
-                ConcurrencyUtilities.startThread(() -> {
-                    long startms = Instant.now().toEpochMilli();
-                    long blocksIngested = 0;
-                    
-                    LOGGER.info("Start nodeIngestion thread: " + (threadNumber * blocksPerThread) + " -> " + ((threadNumber + 1) * blocksPerThread - 1));
-                    
-                    BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
-                    BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-                    
-                    NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-                    Node node = nodeManager.getNode(code);
-    
-                    NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
-                    nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
-                    
-                    for (long height = (threadNumber * blocksPerThread); height < ((threadNumber + 1) * blocksPerThread); height++) {
-                        try {
-                            if (nodeIngestor.ingestBlock(height)) {
-                                blocksIngested++;
-                                long now = Instant.now().toEpochMilli();
-                                System.out.println("blocks/second: " + (blocksIngested / ((now - startms) / 1000)));
-                            }
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        } else {
-            for (int i = numberOfThreads; i > 0; i--) {
-                final int threadNumber = i;
-                
-                ConcurrencyUtilities.startThread(() -> {
-                    long startms = Instant.now().toEpochMilli();
-                    long blocksIngested = 0;
-                    
-                    LOGGER.info("Start nodeIngestion thread: " + (threadNumber * blocksPerThread - 1) + " -> " + ((threadNumber - 1) * blocksPerThread));
-                    
-                    BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
-                    BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-                    
-                    NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-                    Node node = nodeManager.getNode(code);
-    
-                    NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
-                    nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
+        	private int i = 0;
 
-                    for (long height = (threadNumber * blocksPerThread - 1); height > ((threadNumber - 1) * blocksPerThread); height--) {
-                        try {
-                            if (nodeIngestor.ingestBlock(height)) {
-                                blocksIngested++;
-                                long now = Instant.now().toEpochMilli();
-                                System.out.println("blocks/second: " + (blocksIngested / ((now - startms) / 1000)));
-                            }
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        }
+        	@Override
+			public Thread newThread(Runnable r) {
+				i++;
+				return new Thread(r, code + "-NodeIngestor-" + i);
+			}
+		});
+        
+        BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
+        BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
+        
+        NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
+        Node node = nodeManager.getNode(code);
+
+        NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
+        nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
+        
+        IntStream intStream = start < end ? range(start, end) : reverseRange(end, start);
+		intStream.forEach(height -> {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						nodeIngestor.ingestBlock(height);
+					} catch (Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		});
+		
     }
     
     public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
