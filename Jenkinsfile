@@ -13,79 +13,51 @@ pipeline {
   }
     environment {
       JOB = "Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
-        VERSION = readMavenPom().getVersion().replace('-SNAPSHOT', '')
+        VERSION = readMavenPom().getVersion().replace("-SNAPSHOT", "")
         ARTIFACT_ID = readMavenPom().getArtifactId()
-
-        // DOCKER env
-	REGISTRY = "docker.dev.ruvpfs.swatt.exchange" 
-        branchTag = makeDockerTag("${env.BRANCH_NAME}")
-        IMAGE_NAME ="${REGISTRY}/${ARTIFACT_ID}"
-        IMAGE_TAG = "${tag}-${VERSION}.${env.BUILD_NUMBER}"
-
-// TODO git_password is being echo'd to jenkins console, suppress output with:
-// Pass custom shebang line without -x: sh('#!/bin/sh -e\n' + 'echo shellscript.sh arg1 arg2')TODO git_password is being echo'd to jenkins console, suppress output with:
-// Pass custom shebang line without -x: sh('#!/bin/sh -e\n' + 'echo shellscript.sh arg1 arg2')
-        // GIT env
-	GIT_CREDENTIALS = credentials('80610dce-f3b7-428e-b69f-956eb087225d')
-	GIT_USERNAME = "${env.GIT_CREDENTIALS_USR}"
-	GIT_PASSWORD = java.net.URLEncoder.encode("${env.GIT_CREDENTIALS_PSW}", "UTF-8")
-        ORIGIN = "https://${GIT_USERNAME}:${GIT_PASSWORD}@${scmUrl}"
-
+        DOCKER_FRIENDLY_BRANCH_NAME = makeDockerTag("${env.BRANCH_NAME}")
+        TAG = "${DOCKER_FRIENDLY_BRANCH_NAME}-${VERSION}.${env.BUILD_NUMBER}"
     }
   stages {
 
     stage ('Start') {
       steps {
-	slackSend (color: '#FFFF00', message: "STARTED: ${JOB}")
-      }
-    }
-
-    stage('Test') {
-      steps {
-	sh 'mvn clean package'
-      }
-      post {
-	always {
-	  junit(allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml')
-	}
+        slackSend (color: '#FFFF00', message: "STARTED: ${JOB}")
       }
     }
 
     stage('Deploy') {
       steps {
-	script {
-	    sh "mvn clean deploy -Ddockerfile.tag=${IMAGE_TAG} --activate-profiles docker"
-	}
+        script {
+            sh "mvn clean deploy -DskipTests -Ddockerfile.tag=${TAG} --activate-profiles docker"
+
+            // Spotify Docker plugin:
+            // mvn package -> .jar
+            // mvn deploy -> artifactory
+            // docker build -t NAME .
+            // docker push NAME
+        }
       }
     }
 
-//    state('Release Hotfix')
-//    state('Release Release')
-
-    // when a PR is merged to the develop branch,
-    // create a release candidate Docker image
     stage('Release') {
+      environment {
+        REGISTRY = "docker.dev.ruvpfs.swatt.exchange"
+          GIT_CREDENTIALS = credentials('80610dce-f3b7-428e-b69f-956eb087225d')
+          GIT_USERNAME = "${env.GIT_CREDENTIALS_USR}"
+          GIT_PASSWORD = java.net.URLEncoder.encode("${env.GIT_CREDENTIALS_PSW}", "UTF-8")
+      }
       when {
-	branch 'develop'
+        branch 'develop'
       }
       steps {
-	sh("git checkout -B release/${VERSION}")
-          sh("git push ${ORIGIN} release/${VERSION}")
+        sh("git checkout -B release/${VERSION}")
 
-	  sh('docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:release-${VERSION}.${env.BUILD_NUMBER}')
-	  sh('docker push ${IMAGE_NAME}:release-${VERSION}.${env.BUILD_NUMBER}')
-      }
-    }
+          // need to hide git password from jenkins console
+          sh("git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${scmUrl} release/${VERSION}")
 
-    // when a release/hotfix branch is merged to master,
-    // add a git tag for that specific version
-    stage('Post Release') {
-      when {
-	branch 'master'
-      }
-      steps {
-	sh("git tag -f ${VERSION}")
-	sh("git push --tags  ${VERSION}")
+          sh("docker tag ${REGISTRY}/${ARTIFACT_ID}:${TAG} ${REGISTRY}/${ARTIFACT_ID}:release-${VERSION}")
+          sh("docker push ${REGISTRY}/${ARTIFACT_ID}:release-${VERSION}")
       }
     }
   }
