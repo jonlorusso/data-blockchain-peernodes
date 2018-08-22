@@ -24,11 +24,14 @@ import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
+
+	private static final String NUMBER_OF_THREADS = "NUMBER_OF_THREADS";
 
     private ExecutorService executor;
     
@@ -53,6 +56,18 @@ public class NodeIngestor implements NodeListener {
     }
     
     public void init() {
+    	if (numberOfThreads == 1) {
+    		if (SystemUtilities.getEnv(NUMBER_OF_THREADS) != null) {
+    			String numberOfThreadsEnvVar = SystemUtilities.getEnv(NUMBER_OF_THREADS);
+    			
+    			try {
+    				numberOfThreads = Integer.parseInt(numberOfThreadsEnvVar); 
+    			} catch (Exception e) {
+    				logError("Invalid NUMBER_OF_THREADS value: " + numberOfThreadsEnvVar);
+    			}
+    		}
+    	}
+    	
     	executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
         	private int i = 0;
 
@@ -137,7 +152,7 @@ public class NodeIngestor implements NodeListener {
     }
     
     private void logInfo(String infoMessage) {
-    	LOGGER.error(String.format("[%s] %s", node.getCode(), infoMessage));
+    	LOGGER.info(String.format("[%s] %s", node.getCode(), infoMessage));
     }
     
     private void logError(String errorMessage) {
