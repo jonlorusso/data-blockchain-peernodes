@@ -4,8 +4,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.Arrays;
 
 import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.node.Node;
@@ -21,6 +23,8 @@ public class NodeIngestorManager {
     
     private static final long ACTIVE_NODE_WATCHER_SLEEP_TIME = 60 * 1000;
 
+    private String[] supportedCodes;
+    
     private NodeManager nodeManager;
     private ConnectionPool connectionPool;
     private BlockchainNodeInfoRepository blockchainNodeInfoRepository;
@@ -41,6 +45,10 @@ public class NodeIngestorManager {
         this.overwriteExisting = overwriteExisting;
     }
 
+	public void setSupportedCodes(String[] codes) {
+		this.supportedCodes = codes;
+	}
+
     public void enableNodeIngestion(String code) {
         Node node = nodeManager.getNode(code);
         if (node != null) {
@@ -50,6 +58,7 @@ public class NodeIngestorManager {
 
                 nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
                 nodeIngestor.setOverwriteExisting(overwriteExisting);
+                nodeIngestor.init();
                 nodeIngestors.put(node.getBlockchainCode(), nodeIngestor);
             }
 
@@ -57,22 +66,24 @@ public class NodeIngestorManager {
         }
     }
 	
-	// FIXME all enabled nodes will have an ingestor started in each process
 	public void start() {
-		new Thread(() -> {
+		ConcurrencyUtilities.startThread(() -> {
 			LOGGER.info("Starting EnabledNodeWatcher Thread.");
 
 			while (true) { // poll (60s) BLOCKCHAIN_NODE_INFO table for newly enabled nodes.
-			    try {
-			        for (BlockchainNodeInfo blockchainNodeInfo : blockchainNodeInfoRepository.findAllByEnabled(true)) {
-			            enableNodeIngestion(blockchainNodeInfo.getCode());
-			        }
-			    } catch (SQLException | OperationFailedException e) {
-			        LOGGER.error("SQLException caught in activeNodeWatcher thread.", e);
-			    }
-			    
-			    ConcurrencyUtilities.sleep(ACTIVE_NODE_WATCHER_SLEEP_TIME);
+				try {
+					blockchainNodeInfoRepository.findAllByEnabled(true).stream().forEach(b -> {
+						String code = b.getCode();
+						if (supportedCodes == null || (supportedCodes != null && ArrayUtils.contains(supportedCodes, code)))
+							enableNodeIngestion(code);
+					});
+				} catch (SQLException | OperationFailedException e) {
+					LOGGER.error("SQLException caught in enabledNodeWatcher thread.", e);
+				}
+
+				ConcurrencyUtilities.sleep(ACTIVE_NODE_WATCHER_SLEEP_TIME);
 			}
-		}, "EnabledNodeWatcher").start();
+		}, "EnabledNodeWatcher");
+
 	}
 }

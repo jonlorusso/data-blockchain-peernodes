@@ -1,6 +1,6 @@
 package com.swatt.blockchain.ingestor;
 
-import static java.util.stream.IntStream.range;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,19 +24,22 @@ import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
 
-    private Thread historicalIngestionThread;
+    private ExecutorService executor;
     
     private Node node;
     private ConnectionPool connectionPool;
     private BlockDataRepository blockDataRepository;
 
+    private int numberOfThreads = 1;
+    private Long startHeight;
+    private Long endHeight;
+    
     private boolean overwriteExisting = false;
     
     public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository) {
@@ -47,6 +50,30 @@ public class NodeIngestor implements NodeListener {
         this.blockDataRepository = blockDataRepository;
         
         node.addNodeListener(this);
+    }
+    
+    public void init() {
+    	executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
+        	private int i = 0;
+
+        	@Override
+    		public Thread newThread(Runnable r) {
+    			i++;
+    			return new Thread(r, node.getCode() + "-NodeIngestor-" + i);
+    		}
+    	});
+    }
+    
+    public void setNumberOfThreads(int numberOfThreads) {
+    	this.numberOfThreads = numberOfThreads;
+    }
+    
+    public void setStartHeight(Long startHeight) {
+    	this.startHeight = startHeight;
+    }
+    
+    public void setEndHeight(Long endHeight) {
+    	this.endHeight = endHeight;
     }
     
     public void setOverwriteExisting(boolean overwriteExisting) {
@@ -62,11 +89,10 @@ public class NodeIngestor implements NodeListener {
         try {
             if (!existsBlockData(blockData.getHeight()) || overwriteExisting) {
                 blockDataRepository.insert(blockData);
-                LOGGER.info(String.format("Synced new block: %d", blockData.getHeight()));
+                logInfo(format("Synced new block: %d", node.getCode(), blockData.getHeight()));
             }
         } catch (OperationFailedException | SQLException e) {
-            // FIXME
-            LOGGER.error("Exception caught while storing new block: " + e.getMessage());
+            logError(format("Exception caught while storing new block: %s", node.getCode(), e.getMessage()));
         }
     }
     
@@ -74,71 +100,63 @@ public class NodeIngestor implements NodeListener {
         if (existsBlockData(height) && overwriteExisting) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.replace(blockData);
-            LOGGER.info(String.format("Re-ingested block: %d", height));
+            logInfo(format("Re-ingested block: %d", height));
             return true;
         } else if (!existsBlockData(height)) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.insert(blockData);
-            LOGGER.info(String.format("Ingested block: %d", height));
+            logInfo(format("Ingested block: %d", height));
             return true;
         }
         
         return false;
     }
-
+    
     public void start() {
-        if (historicalIngestionThread == null) {
-            historicalIngestionThread = new Thread(() -> {
-                try (Connection connection = connectionPool.getConnection()) {
-                    
-                    long height = node.fetchBlockCount();
-                    CheckProgress checkProgress = CheckProgress.call(connection, node.getCode());
-                    long stopHeight = checkProgress.getBlockCount();
-                    
-                    if (height > stopHeight) 
-                        LOGGER.info(String.format("Historical ingestion running for blocks: %d through %s", height, stopHeight));
-                    
-                    while (height > stopHeight) {
-                        ingestBlock(height);
-                        height = height - 1;
-                    }
-                    
-                } catch (Throwable t) {
-                    LOGGER.error("[" + node.getCode() + "] Historical ingestion failed.", t);
-                    historicalIngestionThread = null;
-                }
-            }, "HistoricalIngestion-" + node.getCode());
+        try (Connection connection = connectionPool.getConnection()) {
+        	long start = startHeight != null ? startHeight : CheckProgress.call(connection, node.getCode()).getBlockCount();
+        	long end = endHeight != null ? endHeight : node.fetchBlockCount();
             
-            try {
-                historicalIngestionThread.start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            logInfo(format("Historical ingestion running for blocks: %d through %d", start, end));
+            
+            LongStream.range(start, end).forEach(height -> {
+            	executor.execute(() -> {
+            		try {
+            			ingestBlock(height);
+            		} catch (Throwable e) {
+            			logError(format("Error ingesting block %d: %s", height, e.getMessage()));
+            			e.printStackTrace(System.out);
+            		}
+            	});
+    		});
+        } catch (Throwable t) {
+        	logError(format("Historical ingestion failed: %s", t.getMessage()));
         }
-
+            
         node.fetchNewBlocks();
     }
     
-    static IntStream reverseRange(int from, int to) {
-        return IntStream.range(from, to).map(i -> to - i + from - 1);
+    private void logInfo(String infoMessage) {
+    	LOGGER.error(String.format("[%s] %s", node.getCode(), infoMessage));
     }
     
-    public static void ingest(String code, int start, int end, int numberOfThreads) throws IOException {
+    private void logError(String errorMessage) {
+    	LOGGER.error(String.format("[%s] %s", node.getCode(), errorMessage));
+    }
+    
+    public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
+        String code = args[0];
+        int numberOfThreads = Integer.valueOf(args[1]);
+        Long start = args.length > 2 ? Long.valueOf(args[2]) : null;
+        Long end = args.length > 3 ? Long.valueOf(args[3]) : null;
+
+        LOGGER.info("Ingesting " + code + " blocks: " + start + " to " + end + ", " + numberOfThreads + " threads.");
+        
         Properties properties = CollectionsUtilities.loadProperties("config.properties");
         LoggerController.init(properties);
         
         ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
 
-        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
-        	private int i = 0;
-
-        	@Override
-			public Thread newThread(Runnable r) {
-				i++;
-				return new Thread(r, code + "-NodeIngestor-" + i);
-			}
-		});
-        
         BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
         BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
         
@@ -146,35 +164,12 @@ public class NodeIngestor implements NodeListener {
         Node node = nodeManager.getNode(code);
 
         NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
-        nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
-        
-        IntStream intStream = start < end ? range(start, end) : reverseRange(end, start);
-		intStream.forEach(height -> {
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						nodeIngestor.ingestBlock(height);
-					} catch (Throwable e) {
-						e.printStackTrace();
-					}
-				}
-			});
-		});
-		
-    }
-    
-    public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
-        try {
-            String code = args[0];
-            int start = Integer.valueOf(args[1]);
-            int end = Integer.valueOf(args[2]);
-            int numberOfThreads = Integer.valueOf(args[3]);
+//        nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
+        nodeIngestor.setStartHeight(start);
+        nodeIngestor.setEndHeight(end);
+        nodeIngestor.setNumberOfThreads(numberOfThreads);
+        nodeIngestor.init();
 
-            LOGGER.info("Ingesting " + code + " blocks: " + start + " to " + end + ", " + numberOfThreads + " threads.");
-            ingest(code, start, end, numberOfThreads);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        nodeIngestor.start();
     }
 }
