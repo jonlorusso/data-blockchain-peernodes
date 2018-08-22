@@ -2,10 +2,8 @@ package com.swatt.blockchain.ingestor;
 
 import static java.lang.String.format;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -19,13 +17,8 @@ import com.swatt.blockchain.entity.CheckProgress;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.repository.BlockDataRepository;
-import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
-import com.swatt.blockchain.service.NodeManager;
-import com.swatt.blockchain.util.DatabaseUtils;
-import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.general.SystemUtilities;
-import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {

@@ -7,9 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.Arrays;
 
-import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
