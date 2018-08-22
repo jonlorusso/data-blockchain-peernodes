@@ -158,33 +158,4 @@ public class NodeIngestor implements NodeListener {
     private void logError(String errorMessage) {
     	LOGGER.error(String.format("[%s] %s", node.getCode(), errorMessage));
     }
-    
-    public static void main(String[] args) throws OperationFailedException, SQLException, IOException {
-        String code = args[0];
-        int numberOfThreads = Integer.valueOf(args[1]);
-        Long start = args.length > 2 ? Long.valueOf(args[2]) : null;
-        Long end = args.length > 3 ? Long.valueOf(args[3]) : null;
-
-        LOGGER.info("Ingesting " + code + " blocks: " + start + " to " + end + ", " + numberOfThreads + " threads.");
-        
-        Properties properties = CollectionsUtilities.loadProperties("config.properties");
-        LoggerController.init(properties);
-        
-        ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
-
-        BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
-        BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-        
-        NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-        Node node = nodeManager.getNode(code);
-
-        NodeIngestor nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository);
-//        nodeIngestor.setOverwriteExisting(SystemUtilities.getEnv("OVERWRITE_EXISTING", "false").equals("true"));
-        nodeIngestor.setStartHeight(start);
-        nodeIngestor.setEndHeight(end);
-        nodeIngestor.setNumberOfThreads(numberOfThreads);
-        nodeIngestor.init();
-
-        nodeIngestor.start();
-    }
 }
