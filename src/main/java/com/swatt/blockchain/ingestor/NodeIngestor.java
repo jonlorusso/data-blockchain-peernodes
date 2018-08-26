@@ -19,6 +19,7 @@ import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.general.SystemUtilities;
+import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
@@ -136,7 +137,7 @@ public class NodeIngestor implements NodeListener {
             			e.printStackTrace(System.out);
             		}
             	});
-    		});
+    	    });
         } catch (Throwable t) {
         	logError(format("Historical ingestion failed: %s", t.getMessage()));
         }

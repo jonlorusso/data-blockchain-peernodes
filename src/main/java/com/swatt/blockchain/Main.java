@@ -19,6 +19,8 @@ import com.swatt.util.sql.ConnectionPool;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
+    
     private static final String PROPERTIES_FILENAME = "config.properties";
 
     private static final String CODES = "CODES";
@@ -41,6 +43,11 @@ public class Main {
             
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             nodeIngestorManager.setSupportedCodes(codes);
+            
+            String overwriteExistingValue = SystemUtilities.getEnv(OVERWRITE_EXISTING_ENV_VAR, "false");
+            boolean overwriteExisting = overwriteExistingValue.equalsIgnoreCase("true");
+            nodeIngestorManager.setOverwriteExisting(overwriteExisting);
+            
             nodeIngestorManager.start();
         } catch (IOException e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);
