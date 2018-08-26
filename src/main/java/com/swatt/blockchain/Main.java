@@ -23,10 +23,15 @@ public class Main {
     
     private static final String PROPERTIES_FILENAME = "config.properties";
 
+    private static final String CODES = "CODES";
+    
     public static void main(String[] args) {
         try {
             Properties properties = CollectionsUtilities.loadProperties(PROPERTIES_FILENAME);
 
+            String codesEnvVar = SystemUtilities.getEnv(CODES);
+            String[] codes = codesEnvVar != null ? codesEnvVar.split(",") : null;
+            
             /** logger **/
             LoggerController.init(properties);
 
@@ -41,7 +46,7 @@ public class Main {
             String overwriteExistingValue = SystemUtilities.getEnv(OVERWRITE_EXISTING_ENV_VAR, "false");
             boolean overwriteExisting = overwriteExistingValue.equalsIgnoreCase("true");
             nodeIngestorManager.setOverwriteExisting(overwriteExisting);
-            
+            nodeIngestorManager.setSupportedCodes(codes);
             nodeIngestorManager.start();
         } catch (IOException e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);

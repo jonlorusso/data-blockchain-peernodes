@@ -16,6 +16,6 @@ public class RpcResultBlockHeader {
     public int num_txes;
     public boolean orphan_status;
     public String prev_hash;
-    public int reward;
+    public long reward;
     public int timestamp;
 }

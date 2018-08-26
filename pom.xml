@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>com.swatt</groupId>
 		<artifactId>swatt-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>
 
 	<name>swatt-blockchain-data</name>
 	<artifactId>blockchain-data</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 
 	<properties>
 		<mainClass>com.swatt.blockchain.Main</mainClass>
@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.swatt</groupId>
 			<artifactId>swatt-common</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>io.javalin</groupId>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>
-			<version>3.3.1</version>
+			<version>3.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.Stellar</groupId>
