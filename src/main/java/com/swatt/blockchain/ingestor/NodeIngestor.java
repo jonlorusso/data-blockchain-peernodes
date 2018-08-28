@@ -18,13 +18,10 @@ import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
-
-	private static final String NUMBER_OF_THREADS = "NUMBER_OF_THREADS";
 
     private ExecutorService executor;
     
@@ -32,36 +29,21 @@ public class NodeIngestor implements NodeListener {
     private ConnectionPool connectionPool;
     private BlockDataRepository blockDataRepository;
 
-    private int numberOfThreads = 1;
-    private Long startHeight;
-    private Long endHeight;
+    private NodeIngestorConfig nodeIngestorConfig;
     
-    private boolean overwriteExisting = false;
-    
-    public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository) {
+    public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository, NodeIngestorConfig nodeIngestorConfig) {
         super();
 
         this.node = node;
         this.connectionPool = connectionPool;
         this.blockDataRepository = blockDataRepository;
+        this.nodeIngestorConfig = nodeIngestorConfig;
         
         node.addNodeListener(this);
     }
     
     public void init() {
-    	if (numberOfThreads == 1) {
-    		if (SystemUtilities.getEnv(NUMBER_OF_THREADS) != null) {
-    			String numberOfThreadsEnvVar = SystemUtilities.getEnv(NUMBER_OF_THREADS);
-    			
-    			try {
-    				numberOfThreads = Integer.parseInt(numberOfThreadsEnvVar); 
-    			} catch (Exception e) {
-    				logError("Invalid NUMBER_OF_THREADS value: " + numberOfThreadsEnvVar);
-    			}
-    		}
-    	}
-    	
-    	executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
+    	executor = Executors.newFixedThreadPool(nodeIngestorConfig.getNumberOfThreads(), new ThreadFactory() {
         	private int i = 0;
 
         	@Override
@@ -71,22 +53,6 @@ public class NodeIngestor implements NodeListener {
     		}
     	});
     }
-    
-    public void setNumberOfThreads(int numberOfThreads) {
-    	this.numberOfThreads = numberOfThreads;
-    }
-    
-    public void setStartHeight(Long startHeight) {
-    	this.startHeight = startHeight;
-    }
-    
-    public void setEndHeight(Long endHeight) {
-    	this.endHeight = endHeight;
-    }
-    
-    public void setOverwriteExisting(boolean overwriteExisting) {
-        this.overwriteExisting = overwriteExisting;
-    }
 
     private boolean existsBlockData(long height) throws OperationFailedException, SQLException {
         return blockDataRepository.findByBlockchainCodeAndHeight(node.getBlockchainCode(), height) != null;
@@ -95,7 +61,7 @@ public class NodeIngestor implements NodeListener {
     @Override
     public void newBlockAvailable(Node node, BlockData blockData) {
         try {
-            if (!existsBlockData(blockData.getHeight()) || overwriteExisting) {
+            if (!existsBlockData(blockData.getHeight()) || nodeIngestorConfig.isOverwriteExisting()) {
                 blockDataRepository.insert(blockData);
                 logInfo(format("Synced new block: %d", node.getCode(), blockData.getHeight()));
             }
@@ -105,7 +71,7 @@ public class NodeIngestor implements NodeListener {
     }
     
     public boolean ingestBlock(long height) throws OperationFailedException, SQLException {
-        if (existsBlockData(height) && overwriteExisting) {
+        if (existsBlockData(height) && nodeIngestorConfig.isOverwriteExisting()) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.replace(blockData);
             logInfo(format("Re-ingested block: %d", height));
@@ -122,8 +88,8 @@ public class NodeIngestor implements NodeListener {
     
     public void start() {
         try (Connection connection = connectionPool.getConnection()) {
-        	long start = startHeight != null ? startHeight : CheckProgress.call(connection, node.getCode()).getBlockCount();
-        	long end = endHeight != null ? endHeight : node.fetchBlockCount();
+        	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getCode()).getBlockCount();
+        	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
             
             logInfo(format("Historical ingestion running for blocks: %d through %d", start, end));
             

@@ -1,6 +1,5 @@
 package com.swatt.blockchain;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
 import com.swatt.blockchain.service.NodeManager;
 import com.swatt.blockchain.util.DatabaseUtils;
 import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.general.SystemUtilities;
 import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
@@ -20,16 +18,11 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     private static final String PROPERTIES_FILENAME = "config.properties";
-
-    private static final String CODES = "CODES";
     
     public static void main(String[] args) {
         try {
             Properties properties = CollectionsUtilities.loadProperties(PROPERTIES_FILENAME);
 
-            String codesEnvVar = SystemUtilities.getEnv(CODES);
-            String[] codes = codesEnvVar != null ? codesEnvVar.split(",") : null;
-            
             /** logger **/
             LoggerController.init(properties);
 
@@ -38,11 +31,10 @@ public class Main {
             BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
             
             NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-            
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
-            nodeIngestorManager.setSupportedCodes(codes);
+            nodeIngestorManager.init();
             nodeIngestorManager.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);
         }
     }
