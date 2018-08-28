@@ -1,3 +1,3 @@
 @Library('SwattJenkins') _
 
-dockerMavenPipeline
+dockerMavenPipeline()
