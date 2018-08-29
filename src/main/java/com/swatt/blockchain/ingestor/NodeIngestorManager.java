@@ -57,9 +57,9 @@ public class NodeIngestorManager {
     private NodeIngestor createNodeIngestor(NodeIngestorConfig nodeIngestorConfig) {
         Node node = nodeManager.getNode(nodeIngestorConfig.getBlockchainCode());
         if (node != null) {
-            NodeIngestor nodeIngestor = nodeIngestors.get(node.getCode());
+            NodeIngestor nodeIngestor = nodeIngestors.get(node.getBlockchainCode());
             if (nodeIngestor == null) {
-                LOGGER.info("Starting NodeIngestor for " + node.getCode());
+                LOGGER.info("Starting NodeIngestor for " + node.getBlockchainCode());
                 nodeIngestor = new NodeIngestor(node, connectionPool, blockDataRepository, nodeIngestorConfig);
                 nodeIngestor.init();
                 nodeIngestors.put(node.getBlockchainCode(), nodeIngestor);

@@ -81,10 +81,6 @@ public abstract class Node {
         UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);
     }
 
-    public final String getCode() {
-        return blockchainNodeInfo.getCode();
-    }
-
     public void startMonitoringNewActivity() {
         throw new UnsupportedOperationException("NIY: Start monitoring new Activity (Blocks, pendingTransactions");
     }

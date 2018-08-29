@@ -1,6 +1,7 @@
 package com.swatt.blockchain.ingestor;
 
 import static java.lang.String.format;
+import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -49,7 +50,7 @@ public class NodeIngestor implements NodeListener {
         	@Override
     		public Thread newThread(Runnable r) {
     			i++;
-    			return new Thread(r, node.getCode() + "-NodeIngestor-" + i);
+    			return new Thread(r, node.getBlockchainCode() + "-NodeIngestor-" + i);
     		}
     	});
     }
@@ -63,20 +64,22 @@ public class NodeIngestor implements NodeListener {
         try {
             if (!existsBlockData(blockData.getHeight()) || nodeIngestorConfig.isOverwriteExisting()) {
                 blockDataRepository.insert(blockData);
-                logInfo(format("Synced new block: %d", node.getCode(), blockData.getHeight()));
+                logInfo(format("Synced new block: %d", blockData.getHeight()));
             }
         } catch (OperationFailedException | SQLException e) {
-            logError(format("Exception caught while storing new block: %s", node.getCode(), e.getMessage()));
+            logError(format("Exception caught while storing new block: %s", e.getMessage()));
         }
     }
     
     public boolean ingestBlock(long height) throws OperationFailedException, SQLException {
-        if (existsBlockData(height) && nodeIngestorConfig.isOverwriteExisting()) {
+    	boolean exists = existsBlockData(height);
+    	
+        if (exists && nodeIngestorConfig.isOverwriteExisting()) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.replace(blockData);
             logInfo(format("Re-ingested block: %d", height));
             return true;
-        } else if (!existsBlockData(height)) {
+        } else if (!exists) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.insert(blockData);
             logInfo(format("Ingested block: %d", height));
@@ -88,7 +91,7 @@ public class NodeIngestor implements NodeListener {
     
     public void start() {
         try (Connection connection = connectionPool.getConnection()) {
-        	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getCode()).getBlockCount();
+        	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getBlockchainCode()).getBlockCount();
         	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
             
             logInfo(format("Historical ingestion running for blocks: %d through %d", start, end));
@@ -99,7 +102,6 @@ public class NodeIngestor implements NodeListener {
             			ingestBlock(height);
             		} catch (Throwable e) {
             			logError(format("Error ingesting block %d: %s", height, e.getMessage()));
-            			e.printStackTrace(System.out);
             		}
             	});
     		});
@@ -111,10 +113,10 @@ public class NodeIngestor implements NodeListener {
     }
     
     private void logInfo(String infoMessage) {
-    	LOGGER.info(String.format("[%s] %s", node.getCode(), infoMessage));
+    	LOGGER.info(String.format("[%s] %s", node.getBlockchainCode(), infoMessage));
     }
     
     private void logError(String errorMessage) {
-    	LOGGER.error(String.format("[%s] %s", node.getCode(), errorMessage));
+    	LOGGER.error(String.format("[%s] %s", node.getBlockchainCode(), errorMessage));
     }
 }

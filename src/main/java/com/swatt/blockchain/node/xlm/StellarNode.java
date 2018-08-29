@@ -46,7 +46,7 @@ public class StellarNode extends Node {
     private BlockData toBlockData(LedgerResponse ledgerResponse) {
         BlockData blockData = new BlockData();
         
-        blockData.setBlockchainCode(getCode());
+        blockData.setBlockchainCode(getBlockchainCode());
         blockData.setHash(ledgerResponse.getHash());
         blockData.setTransactionCount(ledgerResponse.getTransactionCount());
         blockData.setHeight(ledgerResponse.getSequence());

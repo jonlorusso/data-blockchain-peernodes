@@ -219,7 +219,7 @@ public class MoneroNode extends Node {
             } catch (Throwable t) {
                 newBlocksThread = null;
             }
-        }, "BlockListener-" + getCode());
+        }, "BlockListener-" + getBlockchainCode());
 
         newBlocksThread.start();
     }
