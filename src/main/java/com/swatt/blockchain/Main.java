@@ -17,6 +17,8 @@ import com.swatt.util.sql.ConnectionPool;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
+    
     private static final String PROPERTIES_FILENAME = "config.properties";
     
     public static void main(String[] args) {

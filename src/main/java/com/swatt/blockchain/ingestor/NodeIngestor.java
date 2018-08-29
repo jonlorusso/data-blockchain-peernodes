@@ -1,7 +1,6 @@
 package com.swatt.blockchain.ingestor;
 
 import static java.lang.String.format;
-import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -104,7 +103,7 @@ public class NodeIngestor implements NodeListener {
             			logError(format("Error ingesting block %d: %s", height, e.getMessage()));
             		}
             	});
-    		});
+    	    });
         } catch (Throwable t) {
         	logError(format("Historical ingestion failed: %s", t.getMessage()));
         }
