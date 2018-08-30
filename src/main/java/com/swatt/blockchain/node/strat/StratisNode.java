@@ -238,6 +238,6 @@ public class StratisNode extends Node {
             } catch (Throwable t) {
                 newBlocksThread = null;
             }
-        }, "BlockListener-" + getCode());
+        }, "BlockListener-" + getBlockchainCode());
     }
 }

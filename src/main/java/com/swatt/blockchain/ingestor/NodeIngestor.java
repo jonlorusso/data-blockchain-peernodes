@@ -18,14 +18,10 @@ import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.repository.BlockDataRepository;
 import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.general.SystemUtilities;
-import com.swatt.util.log.LoggerController;
 import com.swatt.util.sql.ConnectionPool;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
-
-	private static final String NUMBER_OF_THREADS = "NUMBER_OF_THREADS";
 
     private ExecutorService executor;
     
@@ -33,60 +29,29 @@ public class NodeIngestor implements NodeListener {
     private ConnectionPool connectionPool;
     private BlockDataRepository blockDataRepository;
 
-    private int numberOfThreads = 1;
-    private Long startHeight;
-    private Long endHeight;
+    private NodeIngestorConfig nodeIngestorConfig;
     
-    private boolean overwriteExisting = false;
-    
-    public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository) {
+    public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository, NodeIngestorConfig nodeIngestorConfig) {
         super();
 
         this.node = node;
         this.connectionPool = connectionPool;
         this.blockDataRepository = blockDataRepository;
+        this.nodeIngestorConfig = nodeIngestorConfig;
         
         node.addNodeListener(this);
     }
     
     public void init() {
-    	if (numberOfThreads == 1) {
-    		if (SystemUtilities.getEnv(NUMBER_OF_THREADS) != null) {
-    			String numberOfThreadsEnvVar = SystemUtilities.getEnv(NUMBER_OF_THREADS);
-    			
-    			try {
-    				numberOfThreads = Integer.parseInt(numberOfThreadsEnvVar); 
-    			} catch (Exception e) {
-    				logError("Invalid NUMBER_OF_THREADS value: " + numberOfThreadsEnvVar);
-    			}
-    		}
-    	}
-    	
-    	executor = Executors.newFixedThreadPool(numberOfThreads, new ThreadFactory() {
+    	executor = Executors.newFixedThreadPool(nodeIngestorConfig.getNumberOfThreads(), new ThreadFactory() {
         	private int i = 0;
 
         	@Override
     		public Thread newThread(Runnable r) {
     			i++;
-    			return new Thread(r, node.getCode() + "-NodeIngestor-" + i);
+    			return new Thread(r, node.getBlockchainCode() + "-NodeIngestor-" + i);
     		}
     	});
-    }
-    
-    public void setNumberOfThreads(int numberOfThreads) {
-    	this.numberOfThreads = numberOfThreads;
-    }
-    
-    public void setStartHeight(Long startHeight) {
-    	this.startHeight = startHeight;
-    }
-    
-    public void setEndHeight(Long endHeight) {
-    	this.endHeight = endHeight;
-    }
-    
-    public void setOverwriteExisting(boolean overwriteExisting) {
-        this.overwriteExisting = overwriteExisting;
     }
 
     private boolean existsBlockData(long height) throws OperationFailedException, SQLException {
@@ -96,22 +61,24 @@ public class NodeIngestor implements NodeListener {
     @Override
     public void newBlockAvailable(Node node, BlockData blockData) {
         try {
-            if (!existsBlockData(blockData.getHeight()) || overwriteExisting) {
+            if (!existsBlockData(blockData.getHeight()) || nodeIngestorConfig.isOverwriteExisting()) {
                 blockDataRepository.insert(blockData);
-                logInfo(format("Synced new block: %d", node.getCode(), blockData.getHeight()));
+                logInfo(format("Synced new block: %d", blockData.getHeight()));
             }
         } catch (OperationFailedException | SQLException e) {
-            logError(format("Exception caught while storing new block: %s", node.getCode(), e.getMessage()));
+            logError(format("Exception caught while storing new block: %s", e.getMessage()));
         }
     }
     
     public boolean ingestBlock(long height) throws OperationFailedException, SQLException {
-        if (existsBlockData(height) && overwriteExisting) {
+    	boolean exists = existsBlockData(height);
+    	
+        if (exists && nodeIngestorConfig.isOverwriteExisting()) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.replace(blockData);
             logInfo(format("Re-ingested block: %d", height));
             return true;
-        } else if (!existsBlockData(height)) {
+        } else if (!exists) {
             BlockData blockData = node.fetchBlockData(height);
             blockDataRepository.insert(blockData);
             logInfo(format("Ingested block: %d", height));
@@ -123,8 +90,8 @@ public class NodeIngestor implements NodeListener {
     
     public void start() {
         try (Connection connection = connectionPool.getConnection()) {
-        	long start = startHeight != null ? startHeight : CheckProgress.call(connection, node.getCode()).getBlockCount();
-        	long end = endHeight != null ? endHeight : node.fetchBlockCount();
+        	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getBlockchainCode()).getBlockCount();
+        	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
             
             logInfo(format("Historical ingestion running for blocks: %d through %d", start, end));
             
@@ -134,7 +101,6 @@ public class NodeIngestor implements NodeListener {
             			ingestBlock(height);
             		} catch (Throwable e) {
             			logError(format("Error ingesting block %d: %s", height, e.getMessage()));
-            			e.printStackTrace(System.out);
             		}
             	});
     	    });
@@ -146,10 +112,10 @@ public class NodeIngestor implements NodeListener {
     }
     
     private void logInfo(String infoMessage) {
-    	LOGGER.info(String.format("[%s] %s", node.getCode(), infoMessage));
+    	LOGGER.info(String.format("[%s] %s", node.getBlockchainCode(), infoMessage));
     }
     
     private void logError(String errorMessage) {
-    	LOGGER.error(String.format("[%s] %s", node.getCode(), errorMessage));
+    	LOGGER.error(String.format("[%s] %s", node.getBlockchainCode(), errorMessage));
     }
 }
