@@ -3,7 +3,7 @@ package com.swatt.blockchain.repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Token {
+public class BlockchainToken {
 
     private String code;
     private String platformCode;
@@ -15,7 +15,7 @@ public class Token {
     private static final int COL_NAME = 3;
     private static final int COL_SMART_CONTRACT_ADDRESS = 4;
 
-    public Token(ResultSet rs) {
+    public BlockchainToken(ResultSet rs) {
         try {
             this.code = rs.getString(COL_CODE);
             this.platformCode = rs.getString(COL_PLATFORM_CODE);

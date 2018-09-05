@@ -4,7 +4,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
+import org.glassfish.grizzly.http.io.BinaryNIOInputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +57,7 @@ public class NodeIngestorManager {
     	}
     }
     
-    private NodeIngestor createNodeIngestor(NodeIngestorConfig nodeIngestorConfig) {
+    private NodeIngestor createNodeIngestor(NodeIngestorConfig nodeIngestorConfig) throws OperationFailedException, SQLException {
         Node node = nodeManager.getNode(nodeIngestorConfig.getBlockchainCode());
         if (node != null) {
             NodeIngestor nodeIngestor = nodeIngestors.get(node.getBlockchainCode());
@@ -71,10 +74,10 @@ public class NodeIngestorManager {
         return null;
     }
 
-    public void enableNodeIngestion(NodeIngestorConfig nodeIngestorConfig) {
+    public void enableNodeIngestion(NodeIngestorConfig nodeIngestorConfig) throws OperationFailedException, SQLException {
         NodeIngestor nodeIngestor = nodeIngestors.get(nodeIngestorConfig.getBlockchainCode());
         nodeIngestor = nodeIngestor != null ? nodeIngestor : createNodeIngestor(nodeIngestorConfig);
-        
+
         if (nodeIngestor != null)
         	nodeIngestor.start();
     }
@@ -95,8 +98,13 @@ public class NodeIngestorManager {
 							nodeIngestorConfig = nodeIngestorConfigs.get(b.getCode());
 						}
 						
-						if (nodeIngestorConfig != null)
-							enableNodeIngestion(nodeIngestorConfig);
+						if (nodeIngestorConfig != null) {
+							try {
+								enableNodeIngestion(nodeIngestorConfig);
+							} catch (OperationFailedException | SQLException e) {
+								LOGGER.error(String.format("Exception caught enabling %s ingestion: %s", nodeIngestorConfig.getBlockchainCode(), e.getMessage()));
+							}
+						}
 					});
 				} catch (SQLException | OperationFailedException e) {
 					LOGGER.error("SQLException caught in enabledNodeWatcher thread.", e);
@@ -105,6 +113,5 @@ public class NodeIngestorManager {
 				ConcurrencyUtilities.sleep(ACTIVE_NODE_WATCHER_SLEEP_TIME);
 			}
 		}, "EnabledNodeWatcher");
-
 	}
 }

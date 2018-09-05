@@ -2,6 +2,7 @@ package com.swatt.blockchain;
 
 import java.util.Properties;
 
+import com.swatt.blockchain.repository.BlockchainTokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,6 @@ import com.swatt.util.sql.ConnectionPool;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
-    
     private static final String PROPERTIES_FILENAME = "config.properties";
     
     public static void main(String[] args) {
@@ -31,8 +30,9 @@ public class Main {
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
             BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
             BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-            
-            NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
+            BlockchainTokenRepository tokenRepository = new BlockchainTokenRepository(connectionPool);
+
+            NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository, tokenRepository);
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             nodeIngestorManager.init();
             nodeIngestorManager.start();

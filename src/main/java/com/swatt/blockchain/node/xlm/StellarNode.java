@@ -189,22 +189,4 @@ public class StellarNode extends Node {
             throw new OperationFailedException(e);
         }
     }
-
-    public static void main(String[] args) throws Exception {
-        BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
-        blockchainNodeInfo.setIp("127.0.0.1");
-        blockchainNodeInfo.setPort(2011);
-        StellarNode stellarNode = new StellarNode();
-        stellarNode.setBlockchainNodeInfo(blockchainNodeInfo);
-        stellarNode.init();
-        
-        stellarNode.addNodeListener(new NodeListener() {
-            @Override
-            public void newBlockAvailable(Node node, BlockData blockData) {
-                System.out.println(blockData);
-            }
-        });
-        
-        stellarNode.fetchNewBlocks();
-    }
 }
