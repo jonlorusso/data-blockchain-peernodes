@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>com.github.Stellar</groupId>
 			<artifactId>java-stellar-sdk</artifactId>
-			<version>0.3.2.swatt</version>
+			<version>0.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.thetransactioncompany</groupId>
