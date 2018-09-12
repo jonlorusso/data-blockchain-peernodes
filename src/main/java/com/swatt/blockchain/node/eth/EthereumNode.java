@@ -3,10 +3,7 @@ package com.swatt.blockchain.node.eth;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.swatt.blockchain.node.PlatformNode;
 import com.swatt.blockchain.repository.BlockchainToken;
@@ -77,7 +74,7 @@ public class EthereumNode extends PlatformNode {
             long start = Instant.now().getEpochSecond();
 
             EthBlock ethBlock = web3j.ethGetBlockByHash(hash, true).send();
-            BlockData blockData = toBlockData(ethBlock);
+            BlockData blockData = toBlockData(ethBlock.getBlock());
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -97,7 +94,7 @@ public class EthereumNode extends PlatformNode {
             long start = Instant.now().getEpochSecond();
 
             EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)), true).send();
-            BlockData blockData = toBlockData(ethBlock);
+            BlockData blockData = toBlockData(ethBlock.getBlock());
 
             long indexingDuration = Instant.now().getEpochSecond() - start;
             long now = Instant.now().toEpochMilli();
@@ -120,97 +117,31 @@ public class EthereumNode extends PlatformNode {
         }
     }
 
-    private BlockData toBlockData(EthBlock ethBlock) {
-        Block block = ethBlock.getBlock();
-
-        BlockData blockData = new BlockData();
-        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
-        blockData.setHash(block.getHash());
-        blockData.setTransactionCount(block.getTransactions().size());
-        blockData.setHeight(block.getNumber().longValue());
-        blockData.setTimestamp(block.getTimestamp().longValue());
-        blockData.setNonce(block.getNonce().toString());
-        blockData.setDifficultyBase(block.getDifficulty().doubleValue());
-        blockData.setPrevHash(block.getParentHash());
-        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
-        blockData.setSize(block.getSize().intValue());
-
-        try {
-            calculate(blockData, block);
-        } catch (OperationFailedException e) {
-            // FIXME better exception handling
-            throw new IllegalStateException(e);
-        }
+    private BlockData toBlockData(Block block) {
+        BlockData blockData = initializeBlockData(block, null, null);
+        block.getTransactions().stream().map(TransactionResult<Transaction>::get).forEach(t -> processTransaction(t, blockData, null));
         return blockData;
     }
 
-    @SuppressWarnings("unchecked")
-    private void calculate(BlockData blockData, Block block) throws OperationFailedException {
-        double totalFee = 0.0;
-        double totalFeeRate = 0.0;
-
-        double largestFee = 0.0;
-        double smallestFee = Double.MAX_VALUE;
-        double largestTxAmount = 0.0;
-        String largestTxHash = null;
-
-        int transactionCount = 0; // rpcBlock.tx.size();
+    private List<BlockData> toBlockDatas(Block block) {
+        Map<BlockchainToken, BlockData> tokenBlockDatas = new HashMap<>();
 
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
             Transaction transaction = transactionResult.get();
-            String transactionHash = transaction.getHash();
-
-            EthGetTransactionReceipt ethTransactionReceipt = null;
-            try {
-                ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
-            } catch (IOException e1) {
-                throw new OperationFailedException(e1);
-            }
-
-            TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
-
-            double transactionFee = transactionReceipt.getGasUsed().doubleValue();
-
-            BigInteger priceWei = transaction.getGasPrice();
-            double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
-            double transactionFeeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
-
-            BigInteger valueWei = transaction.getValue();
-            double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
-            double transactionAmount = valueEther;
-
-            largestFee = Math.max(largestFee, transactionFee);
-            smallestFee = Math.min(smallestFee, transactionFee);
-
-            transactionCount++;
-            totalFee += transactionFee;
-            totalFeeRate += transactionFeeRate;
-
-            if (transactionAmount > largestTxAmount) {
-                largestTxAmount = transactionAmount;
-                largestTxHash = transactionHash;
-            }
+            BlockchainToken blockchainToken = tokensByAddress.get(transaction.getTo());
+            BlockData blockData = initializeBlockData(block, blockchainToken, tokenBlockDatas.get(blockchainToken));
+            tokenBlockDatas.put(blockchainToken, processTransaction(transaction, blockData, blockchainToken));
         }
 
-        double reward = ETHEREUM_BASE_BLOCK_REWARD_ETH + totalFeeRate
-                + (ETHEREUM_BASE_BLOCK_REWARD_ETH * block.getUncles().size() / 32);
-        blockData.setRewardBase(reward);
+        List<BlockData> blockDatas = new ArrayList<>();
 
-        if (smallestFee == Double.MAX_VALUE)
-            smallestFee = 0;
+        tokenBlockDatas.values().stream().forEach(b -> {
+            if (b.getSmallestFee() == Double.MAX_VALUE)
+                b.setSmallestFeeBase(0.0);
+            blockDatas.add(b);
+        });
 
-        double averageFee = totalFee / transactionCount;
-        double averageFeeRate = totalFeeRate / transactionCount;
-
-        blockData.setTransactionCount(transactionCount);
-        blockData.setAvgFeeBase(averageFee);
-        blockData.setAvgFeeRateBase(averageFeeRate);
-
-        blockData.setSmallestFeeBase(smallestFee);
-        blockData.setLargestFeeBase(largestFee);
-
-        blockData.setLargestTxAmountBase(largestTxAmount);
-        blockData.setLargestTxHash(largestTxHash);
+        return blockDatas;
     }
 
     @Override
@@ -225,9 +156,8 @@ public class EthereumNode extends PlatformNode {
 
     @Override
     public void fetchNewBlocks() {
-        if (blockObservable != null) {
+        if (blockObservable != null)
             return;
-        }
 
         LOGGER.info("Starting fetchNewBlocks thread.");
 
@@ -244,110 +174,109 @@ public class EthereumNode extends PlatformNode {
             }
 
             @Override
-            public void onNext(EthBlock b) {
-                nodeListeners.stream().forEach(c -> c.newBlockAvailable(EthereumNode.this, toBlockData(b)));
+            public void onNext(EthBlock ethBlock) {
+                nodeListeners.stream().forEach(c -> c.newBlockAvailable(EthereumNode.this, toBlockData(ethBlock.getBlock())));
+                toBlockDatas(ethBlock.getBlock()).stream().forEach(b -> nodeListeners.stream().forEach(c -> c.newBlockAvailable(EthereumNode.this, b)));
             }
         });
     }
 
-    private BlockData processTransaction(Block block, Transaction transaction, BlockData blockData) throws OperationFailedException{
-        BlockchainToken token = tokensByAddress.get(transaction.getTo());
-
-        if (blockData == null) {
-            blockData = new BlockData();
-            blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
-            blockData.setHash(block.getHash());
-            blockData.setTransactionCount(0);
-            blockData.setHeight(block.getNumber().longValue());
-            blockData.setTimestamp(block.getTimestamp().longValue());
-            blockData.setNonce(block.getNonce().toString());
-            blockData.setDifficultyBase(block.getDifficulty().doubleValue());
-            blockData.setPrevHash(block.getParentHash());
-            blockData.setBlockchainCode(token.getCode());
-            blockData.setSize(block.getSize().intValue());
-
-            blockData.setRewardBase(0.0);
-            blockData.setLargestFeeBase(0.0);
-            blockData.setSmallestFeeBase(Double.MAX_VALUE);
-            blockData.setLargestTxAmountBase(0.0);
-            blockData.setLargestTxHash(null);
-        }
-
+    private BlockData processTransaction(Transaction transaction, BlockData blockData, BlockchainToken blockchainToken) {
+        String transactionHash = transaction.getHash();
         int transactionCount = blockData.getTransactionCount();
 
-        String transactionHash = transaction.getHash();
-
-        EthGetTransactionReceipt ethTransactionReceipt = null;
         try {
-            ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
+            EthGetTransactionReceipt ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
+            TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
+
+            double transactionFee = transactionReceipt.getGasUsed().doubleValue();
+            blockData.setSmallestFeeBase(Math.min(blockData.getSmallestFee(), transactionFee));
+            blockData.setLargestFeeBase(Math.max(blockData.getLargestFee(), transactionFee));
+            blockData.setAvgFeeBase((blockData.getAvgFee() * transactionCount + transactionFee) / (transactionCount + 1));
+
+            BigInteger priceWei = transaction.getGasPrice();
+            double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
+            double transactionFeeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
+            blockData.setAvgFeeRateBase((blockData.getAvgFeeRate() * transactionCount + transactionFeeRate) / (transactionCount + 1));
+
+            double transactionAmount = tokenTransferAmount(transaction, blockchainToken);
+            if (transactionAmount > blockData.getLargestTxAmount()) {
+                blockData.setLargestTxHash(transactionHash);
+                blockData.setLargestTxAmountBase(transactionAmount);
+            }
+
+            blockData.setTransactionCount(blockData.getTransactionCount() + 1);
         } catch (IOException e) {
-            throw new OperationFailedException(e);
-        }
-        TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
-
-        double transactionFee = transactionReceipt.getGasUsed().doubleValue();
-        blockData.setSmallestFeeBase(Math.min(blockData.getSmallestFee(), transactionFee));
-        blockData.setLargestFeeBase(Math.max(blockData.getLargestFee(), transactionFee));
-        blockData.setAvgFeeBase((blockData.getAvgFee() * transactionCount + transactionFee) / (transactionCount + 1));
-
-        BigInteger priceWei = transaction.getGasPrice();
-        double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
-        double transactionFeeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
-        blockData.setAvgFeeRateBase((blockData.getAvgFeeRate() * transactionCount + transactionFeeRate) / (transactionCount + 1));
-
-        BigInteger valueWei = transaction.getValue();
-        double valueEther = valueWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
-        double transactionAmount = valueEther;
-        if (transactionAmount > blockData.getLargestTxAmount()) {
-            blockData.setLargestTxHash(transactionHash);
-            blockData.setLargestTxAmountBase(transactionAmount);
+            LOGGER.error("Exception caugh processing block transaction.", e);
         }
 
-        blockData.setTransactionCount(transactionCount + 1);
+        return blockData;
+    }
+
+    private BlockData initializeBlockData(Block block, BlockchainToken blockchainToken, BlockData blockData) {
+        if (blockData != null)
+            return blockData;
+
+        blockData = new BlockData();
+
+        if (blockchainToken != null) {
+            blockData.setBlockchainCode(blockchainToken.getCode());
+            blockData.setDifficultyBase(0);
+
+        } else {
+            blockData.setRewardBase(ETHEREUM_BASE_BLOCK_REWARD_ETH); // FIXME
+            blockData.setBlockchainCode(blockchainNodeInfo.getCode());
+            blockData.setDifficultyBase(block.getDifficulty().doubleValue());
+        }
+
+        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+        blockData.setHash(block.getHash());
+        blockData.setTransactionCount(0);
+        blockData.setHeight(block.getNumber().longValue());
+        blockData.setTimestamp(block.getTimestamp().longValue());
+        blockData.setNonce(block.getNonce().toString());
+        blockData.setPrevHash(block.getParentHash());
+        blockData.setSize(block.getSize().intValue());
+
+        blockData.setLargestFeeBase(0.0);
+        blockData.setSmallestFeeBase(Double.MAX_VALUE);
+        blockData.setLargestTxAmountBase(0.0);
+        blockData.setLargestTxHash(null);
 
         return blockData;
     }
 
     @Override
     public List<BlockData> fetchTokenBlockDatas(long blockNumber) throws OperationFailedException {
-        EthBlock ethBlock = null;
         try {
-            ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)), true).send();
-        } catch (IOException e) {
-            throw new OperationFailedException(e);
-        }
+            long start = Instant.now().getEpochSecond();
 
-        Block block = ethBlock.getBlock();
+            EthBlock ethBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(BigInteger.valueOf(blockNumber)), true).send();
+            List<BlockData> blockDatas = toBlockDatas(ethBlock.getBlock());
 
-        long start = Instant.now().getEpochSecond();
-
-        Map<BlockchainToken, BlockData> tokenBlockDatas = new HashMap<>();
-
-        for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
-            Transaction transaction = transactionResult.get();
-            BlockchainToken token = tokensByAddress.get(transaction.getTo());
-
-            if (token == null)
-                continue;
-
-            BlockData blockData = tokenBlockDatas.get(token);
-            tokenBlockDatas.put(token, processTransaction(block, transaction, blockData));
-        }
-
-        List<BlockData> blockDatas = new ArrayList<>();
-        tokenBlockDatas.values().stream().forEach(b -> {
             long indexingDuration = Instant.now().getEpochSecond() - start;
-            b.setIndexingDuration(indexingDuration);
-
             long now = Instant.now().toEpochMilli();
-            b.setIndexed(now);
 
-            if (b.getSmallestFee() == Double.MAX_VALUE)
-                b.setSmallestFeeBase(0.0);
+            for (BlockData blockData : blockDatas) {
+                blockData.setIndexed(now);
+                blockData.setIndexingDuration(indexingDuration);
+            }
 
-            blockDatas.add(b);
-        });
+            return blockDatas;
+        } catch (Throwable t) {
+            throw new OperationFailedException(t);
+        }
+    }
 
-        return blockDatas;
+    private static double tokenTransferAmount(Transaction transaction, BlockchainToken blockchainToken) {
+        if (blockchainToken != null) {
+            String input = transaction.getInput();
+
+            // the amount is always the last argument regardless of transfter method type (transfer or transferFrom)
+            BigInteger amountBigInteger = new BigInteger(input.substring(input.length() - 64), 16);
+            return amountBigInteger.doubleValue() * Math.pow(10, (-1 * blockchainToken.getDecimals()));
+        }
+
+        return transaction.getValue().doubleValue() * Math.pow(10, (-1 * POWX_ETHER_WEI));
     }
 }

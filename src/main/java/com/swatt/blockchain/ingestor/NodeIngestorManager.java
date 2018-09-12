@@ -89,7 +89,7 @@ public class NodeIngestorManager {
 			while (true) { // poll (60s) BLOCKCHAIN_NODE_INFO table for newly enabled nodes.
 				try {
 					blockchainNodeInfoRepository.findAllByEnabled(true).stream().forEach(b -> {
-						NodeIngestorConfig nodeIngestorConfig = null;
+						NodeIngestorConfig nodeIngestorConfig;
 						
 						if (nodeIngestorConfigs == null) {
 							nodeIngestorConfig = new NodeIngestorConfig();

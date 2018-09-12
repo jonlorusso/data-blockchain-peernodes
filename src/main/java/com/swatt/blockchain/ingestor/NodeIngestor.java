@@ -1,6 +1,15 @@
 package com.swatt.blockchain.ingestor;
 
-import static java.lang.String.format;
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.entity.CheckProgress;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.NodeListener;
+import com.swatt.blockchain.node.PlatformNode;
+import com.swatt.blockchain.repository.BlockDataRepository;
+import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.sql.ConnectionPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,35 +18,20 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.LongStream;
 
-import com.swatt.blockchain.entity.BlockchainNodeInfo;
-import com.swatt.blockchain.node.NodeTransaction;
-import com.swatt.blockchain.node.PlatformNode;
-import com.swatt.util.general.CollectionsUtilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.entity.CheckProgress;
-import com.swatt.blockchain.node.Node;
-import com.swatt.blockchain.node.NodeListener;
-import com.swatt.blockchain.repository.BlockDataRepository;
-import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.sql.ConnectionPool;
+import static java.lang.String.format;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
 
-    private ExecutorService executor;
-    
-    private Node node;
-    private ConnectionPool connectionPool;
     private BlockDataRepository blockDataRepository;
+    private ConnectionPool connectionPool;
 
+    private Node node;
     private NodeIngestorConfig nodeIngestorConfig;
+    private ExecutorService executor;
 
-    private List<BlockchainNodeInfo> tokens;
+    private boolean running = false;
 
     public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository, NodeIngestorConfig nodeIngestorConfig) {
         super();
@@ -48,10 +42,6 @@ public class NodeIngestor implements NodeListener {
         this.nodeIngestorConfig = nodeIngestorConfig;
         
         node.addNodeListener(this);
-    }
-
-    public void setTokens(List<BlockchainNodeInfo> tokens) {
-        this.tokens = tokens;
     }
 
     public void init() {
@@ -84,11 +74,10 @@ public class NodeIngestor implements NodeListener {
 
     private List<BlockData> fetchAllBlockDatas(long height) throws OperationFailedException {
         List<BlockData> blockDatas = new ArrayList<>();
-        blockDatas.add(node.fetchBlockData(height));
 
-        // FIXME this refetches the block and transactions.
+        blockDatas.add(node.fetchBlockData(height));
         if (node instanceof PlatformNode) {
-            blockDatas.addAll(((PlatformNode)node).fetchTokenBlockDatas(height));
+            blockDatas.addAll(((PlatformNode) node).fetchTokenBlockDatas(height));
         }
 
         return blockDatas;
@@ -117,6 +106,10 @@ public class NodeIngestor implements NodeListener {
     }
     
     public void start() {
+        if (running)
+            return;
+
+        running = true;
         try (Connection connection = connectionPool.getConnection()) {
         	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getBlockchainCode()).getBlockCount();
         	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
@@ -134,6 +127,7 @@ public class NodeIngestor implements NodeListener {
                 });
             }
         } catch (Throwable t) {
+            running = false;
         	logError(format("Historical ingestion failed: %s", t.getMessage()));
         }
             
