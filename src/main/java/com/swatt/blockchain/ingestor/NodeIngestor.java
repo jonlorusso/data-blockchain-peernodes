@@ -31,8 +31,9 @@ public class NodeIngestor implements NodeListener {
     private NodeIngestorConfig nodeIngestorConfig;
     private ExecutorService executor;
 
-    private boolean running = false;
 
+    private boolean running = false;
+    
     public NodeIngestor(Node node, ConnectionPool connectionPool, BlockDataRepository blockDataRepository, NodeIngestorConfig nodeIngestorConfig) {
         super();
 
@@ -110,6 +111,7 @@ public class NodeIngestor implements NodeListener {
             return;
 
         running = true;
+
         try (Connection connection = connectionPool.getConnection()) {
         	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getBlockchainCode()).getBlockCount();
         	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
