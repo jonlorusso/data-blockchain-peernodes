@@ -3,7 +3,9 @@ package com.swatt.blockchain.node.eth;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.concurrent.ThreadFactory;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
@@ -24,6 +26,7 @@ import com.swatt.util.general.OperationFailedException;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.internal.schedulers.NewThreadScheduler;
 
 public class EthereumNode extends Node {
     private static final Logger LOGGER = LoggerFactory.getLogger(EthereumNode.class.getName());
@@ -51,7 +54,7 @@ public class EthereumNode extends Node {
         web3j = Web3j.build(new HttpService(url));
         
         try {
-            LOGGER.info("[ETH] Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
+            LOGGER.info("[" + getBlockchainCode() + "] Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
         } catch (IOException e) {
             LOGGER.error("[ETH] Could not connect to Ethereum client: " + e.getMessage());
         }
@@ -74,6 +77,8 @@ public class EthereumNode extends Node {
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
 
+            nodeListeners.stream().forEach(n -> n.newBlockAvailable(this, blockData));
+
             return blockData;
         } catch (Throwable t) {
         		throw new OperationFailedException(t);
@@ -93,6 +98,8 @@ public class EthereumNode extends Node {
 
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
+
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
 
             return blockData;
         } catch (Throwable t) {
@@ -221,6 +228,7 @@ public class EthereumNode extends Node {
         LOGGER.info("Starting fetchNewBlocks thread.");
 
         blockObservable = web3j.blockObservable(true);
+
         blockObservable.subscribe(new Subscriber<EthBlock>() {
             @Override
             public void onCompleted() {

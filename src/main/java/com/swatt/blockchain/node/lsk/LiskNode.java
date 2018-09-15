@@ -113,30 +113,9 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
         BlockData blockData = toBlockData(httpResultBlocks.next());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
+
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
         return blockData;
-    }
-    
-    public static void main(String[] args) {
-        try {
-            BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
-            blockchainNodeInfo.setIp("127.0.0.1");
-            blockchainNodeInfo.setPort(2014);
-            blockchainNodeInfo.setCode("LSK");
-
-            LiskNode liskNode = new LiskNode();
-            liskNode.setBlockchainNodeInfo(blockchainNodeInfo);
-            liskNode.init();
-
-            liskNode.addNodeListener(new NodeListener() {
-                @Override
-                public void newBlockAvailable(Node node, BlockData blockData) {
-                    System.out.println(blockData);
-                }
-            });
-
-            liskNode.fetchNewBlocks();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

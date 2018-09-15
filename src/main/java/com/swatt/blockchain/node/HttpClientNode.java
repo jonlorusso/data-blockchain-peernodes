@@ -151,6 +151,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
         BlockData blockData = toBlockData(fetch(getBlockByHashUrl(blockHash), this.httpResultBlockClass));
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
     
@@ -165,6 +166,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
         BlockData blockData = toBlockData(fetch(getBlockByHeightUrl(blockNumber), this.httpResultBlockClass));
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
 }

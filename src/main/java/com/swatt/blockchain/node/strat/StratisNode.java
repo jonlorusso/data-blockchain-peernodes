@@ -106,6 +106,9 @@ public class StratisNode extends Node {
         BlockData blockData = toBlockData(0, fetchBlock(blockHash));
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
+
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
         return blockData;
     }
     
@@ -115,6 +118,8 @@ public class StratisNode extends Node {
         BlockData blockData = toBlockData(blockNumber, fetchBlock(blockNumber));
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
+
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
 

@@ -87,23 +87,4 @@ public class SteemNode extends JsonRpcHttpClientNode<RpcResultBlock, RpcResultTr
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
     }
-    
-    public static void main(String[] args) throws OperationFailedException {
-        BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
-        blockchainNodeInfo.setIp("127.0.0.1");
-        blockchainNodeInfo.setPort(2009);
-        
-        SteemNode steemNode = new SteemNode();
-        steemNode.setBlockchainNodeInfo(blockchainNodeInfo);
-        steemNode.init();
-        
-        steemNode.addNodeListener(new NodeListener() {
-            @Override
-            public void newBlockAvailable(Node node, BlockData blockData) {
-                System.out.println(blockData);
-            }
-        });
-        
-        steemNode.fetchNewBlocks();
-    }
 }

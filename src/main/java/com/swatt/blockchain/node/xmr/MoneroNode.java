@@ -1,27 +1,25 @@
 package com.swatt.blockchain.node.xmr;
 
-import static com.swatt.util.general.CollectionsUtilities.newHashMap;
-
-import java.time.Instant;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
-
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeTransaction;
+import com.swatt.blockchain.node.PollingBlockNode;
 import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.HttpClientPool;
 import com.swatt.util.json.JsonRpcHttpClientPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-// TODO exten PollingNode and/or JsonRpcHttpClientNode
-public class MoneroNode extends Node {
-    private static final Logger LOGGER = Logger.getLogger(MoneroNode.class.getName());
+import java.time.Instant;
+import java.util.function.Supplier;
 
-    private static final int NEW_BLOCK_POLLING_FREQ_MS = 10 * 1000;
+import static com.swatt.util.general.CollectionsUtilities.newHashMap;
+
+public class MoneroNode extends PollingBlockNode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MoneroNode.class.getName());
+
     private static final int JSON_RPC_POOL = 10; // TODO: Should get from chainNodeConfig
     private static final int HTTP_POOL = 10; // TODO: Should get from chainNodeConfig
     private static final int TRANSACTION_BUFFER_SIZE = 1000;
@@ -34,7 +32,6 @@ public class MoneroNode extends Node {
     public static final int POWX_ATOMIC_UNITS = 12;
     
     private String url;
-    private Thread newBlocksThread;
 
     private HttpClientPool httpClientPool;
     private JsonRpcHttpClientPool jsonRpcHttpClientPool;
@@ -80,6 +77,8 @@ public class MoneroNode extends Node {
 
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
+
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
 
             return blockData;
         } catch (Exception e) {
@@ -192,35 +191,5 @@ public class MoneroNode extends Node {
 
         blockData.setLargestTxAmountBase(largestTxAmount);
         blockData.setLargestTxHash(largestTxHash);
-    }
-
-    @Override
-    public void fetchNewBlocks() {
-        if (newBlocksThread != null)
-            return;
-
-        newBlocksThread = new Thread(() -> {
-            LOGGER.info("Starting fetchNewBlocks thread.");
-
-            try {
-                long height = fetchBlockCount();
-                
-                while (true) {
-                    long newHeight = fetchBlockCount();
-                    
-                    if (newHeight > height) {
-                        BlockData blockData = fetchBlockData(newHeight);
-                        nodeListeners.stream().forEach(n -> n.newBlockAvailable(this, blockData));
-                        height = blockData.getHeight();
-                    }
-
-                    ConcurrencyUtilities.sleep(NEW_BLOCK_POLLING_FREQ_MS);
-                }
-            } catch (Throwable t) {
-                newBlocksThread = null;
-            }
-        }, "BlockListener-" + getBlockchainCode());
-
-        newBlocksThread.start();
     }
 }

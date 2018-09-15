@@ -42,6 +42,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         blockData.setIndexed(Instant.now().toEpochMilli());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
 
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
     
@@ -101,6 +102,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         blockData.setIndexed(Instant.now().toEpochMilli());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
 
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
 

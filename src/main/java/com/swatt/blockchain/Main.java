@@ -1,41 +1,27 @@
 package com.swatt.blockchain;
 
-import java.util.Properties;
-
+import com.swatt.blockchain.ingestor.HistoricalBlockSync;
+import com.swatt.blockchain.ingestor.NewBlockSync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.swatt.blockchain.ingestor.NodeIngestorManager;
-import com.swatt.blockchain.repository.BlockDataRepository;
-import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
-import com.swatt.blockchain.service.NodeManager;
-import com.swatt.blockchain.util.DatabaseUtils;
-import com.swatt.util.general.CollectionsUtilities;
-import com.swatt.util.log.LoggerController;
-import com.swatt.util.sql.ConnectionPool;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
-    
-    private static final String PROPERTIES_FILENAME = "config.properties";
-    
     public static void main(String[] args) {
         try {
-            Properties properties = CollectionsUtilities.loadProperties(PROPERTIES_FILENAME);
+            ApplicationContext applicationContext = new ApplicationContext();
 
-            /** logger **/
-            LoggerController.init(properties);
+            NodeIngestorManager historicalIngestion = new NodeIngestorManager(applicationContext);
+            historicalIngestion.setBlockProducerClass(HistoricalBlockSync.HistoricalBlockProducer.class);
+            historicalIngestion.start();
 
-            ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
-            BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
-            BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-            
-            NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
-            NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
-            nodeIngestorManager.init();
-            nodeIngestorManager.start();
+            NodeIngestorManager newBlockIngestion = new NodeIngestorManager(applicationContext);
+            newBlockIngestion.setBlockProducerClass(NewBlockSync.NewBlockProducer.class);
+            newBlockIngestion.start();
+
         } catch (Exception e) {
             LOGGER.error("Exception caught in com.swatt.blockchain.Main: ", e);
         }

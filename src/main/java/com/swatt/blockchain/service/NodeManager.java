@@ -1,15 +1,23 @@
 package com.swatt.blockchain.service;
 
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
+import com.swatt.blockchain.util.LogUtils;
+import com.swatt.util.general.OperationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.swatt.blockchain.entity.BlockchainNodeInfo;
-import com.swatt.blockchain.node.Node;
-import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
-import com.swatt.util.general.OperationFailedException;;
+import static com.swatt.blockchain.util.LogUtils.error;
 
 public class NodeManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeManager.class.getName());
+
     private static final String NODE_OVERRIDE_IP_ENV_VAR_NAME = "NODE_OVERRIDE_IP";
     private static final String NODE_OVERRIDE_PORTS_ENV_VAR_NAME = "NODE_OVERRIDE_PORTS";
     
@@ -48,17 +56,22 @@ public class NodeManager {
     }
 
     private Node createNode(BlockchainNodeInfo blockchainNodeInfo) {
+        Node node = null;
+
         try {
             Class<?> clazz = Class.forName(blockchainNodeInfo.getClassName());
-            Node node = (Node) clazz.newInstance();
+            node = (Node) clazz.newInstance();
             node.setBlockchainNodeInfo(blockchainNodeInfo);
             node.init();
-            return node;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            // FIXME
+            error(LOGGER, blockchainNodeInfo, "Unable to createNode.", e);
         }
 
-        return null;
+        if (node == null) {
+            error(LOGGER, blockchainNodeInfo, "Node is null after instantiation attempt.");
+        }
+
+        return node;
     }
 
     public Node getNode(String code) {
@@ -77,7 +90,7 @@ public class NodeManager {
                 if (node != null)
                     nodes.put(code, node);
             } catch (SQLException | OperationFailedException e) {
-                // FIXME logging/exception handling
+                error(LOGGER, code, "Unable to getNode.", e);
             }
         }
 

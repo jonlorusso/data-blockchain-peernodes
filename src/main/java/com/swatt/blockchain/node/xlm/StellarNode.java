@@ -184,27 +184,10 @@ public class StellarNode extends Node {
             BlockData blockData = toBlockData(server.ledgers().ledger(blockNumber)); 
             blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
             blockData.setIndexed(Instant.now().toEpochMilli());
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
             return blockData;
         } catch (IOException e) {
             throw new OperationFailedException(e);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        BlockchainNodeInfo blockchainNodeInfo = new BlockchainNodeInfo();
-        blockchainNodeInfo.setIp("127.0.0.1");
-        blockchainNodeInfo.setPort(2011);
-        StellarNode stellarNode = new StellarNode();
-        stellarNode.setBlockchainNodeInfo(blockchainNodeInfo);
-        stellarNode.init();
-        
-        stellarNode.addNodeListener(new NodeListener() {
-            @Override
-            public void newBlockAvailable(Node node, BlockData blockData) {
-                System.out.println(blockData);
-            }
-        });
-        
-        stellarNode.fetchNewBlocks();
     }
 }
