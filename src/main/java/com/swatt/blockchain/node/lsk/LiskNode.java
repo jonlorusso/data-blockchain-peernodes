@@ -17,6 +17,8 @@ import com.swatt.util.general.OperationFailedException;
 
 public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransaction> {
 
+    private static long genesisBlockTime = 1464094800;
+
     @Override
     protected BlockData toBlockData(HttpResultBlock httpResultBlock) throws OperationFailedException {
         BlockData blockData = new BlockData();
@@ -27,7 +29,8 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
         blockData.setBlockchainCode(blockchainNodeInfo.getCode());
         blockData.setHash(httpResultBlock.id);
         blockData.setHeight(httpResultBlock.height);
-        
+        blockData.setTimestamp(genesisBlockTime + httpResultBlock.timestamp);
+
         double totalFee = 0.0;
         double largestFee = 0.0;
         double smallestFee = Double.MAX_VALUE;

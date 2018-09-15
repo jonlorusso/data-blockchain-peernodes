@@ -70,7 +70,7 @@ public class NeoNode extends BitcoinNode {
             } catch (Throwable t) {
                 blockListener = null;
             }
-        }, "BlockListener-" + getCode());
+        }, "BlockListener-" + getBlockchainCode());
 
         blockListener.start();
     }

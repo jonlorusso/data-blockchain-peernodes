@@ -46,7 +46,7 @@ public class StellarNode extends Node {
     private BlockData toBlockData(LedgerResponse ledgerResponse) {
         BlockData blockData = new BlockData();
         
-        blockData.setBlockchainCode(getCode());
+        blockData.setBlockchainCode(getBlockchainCode());
         blockData.setHash(ledgerResponse.getHash());
         blockData.setTransactionCount(ledgerResponse.getTransactionCount());
         blockData.setHeight(ledgerResponse.getSequence());
@@ -116,9 +116,11 @@ public class StellarNode extends Node {
             ArrayList<OperationResponse> operationResponses = server.payments().forTransaction(hash).execute().getRecords();
             
             for (OperationResponse operationResponse : operationResponses) {
-                PaymentOperationResponse paymentOperationResponse = (PaymentOperationResponse)operationResponse;
-                if (paymentOperationResponse.getAsset().getType().equals("native")) {
-                    nodeTransaction.setAmount(nodeTransaction.getAmount() + Double.valueOf(paymentOperationResponse.getAmount()));
+                if (operationResponse instanceof PaymentOperationResponse) {
+                    PaymentOperationResponse paymentOperationResponse = (PaymentOperationResponse)operationResponse;
+                    if (paymentOperationResponse.getAsset().getType().equals("native")) {
+                        nodeTransaction.setAmount(nodeTransaction.getAmount() + Double.valueOf(paymentOperationResponse.getAmount()));
+                    }
                 }
             }
         } catch (Exception e) {

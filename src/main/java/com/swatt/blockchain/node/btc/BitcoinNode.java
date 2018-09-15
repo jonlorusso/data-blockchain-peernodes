@@ -82,8 +82,8 @@ public class BitcoinNode extends Node {
             Object parameters[] = new Object[] {};
             blockNumber = jsonRpcHttpClient.invoke(RpcMethodsBitcoin.GET_BLOCK_COUNT, parameters, Long.class);
         } catch (Throwable t) {
-            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getCode(), t.getMessage()));
-            throw new OperationFailedException(String.format("Error fetching latest %s Block: %s", getCode(), t.getMessage()));
+            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getBlockchainCode(), t.getMessage()));
+            throw new OperationFailedException(String.format("Error fetching latest %s Block: %s", getBlockchainCode(), t.getMessage()));
         }
 
         return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber); // We keep this out of the above try/catch so we
@@ -96,7 +96,7 @@ public class BitcoinNode extends Node {
         try {
             blockHash = jsonrpcClient.invoke(RpcMethodsBitcoin.GET_BLOCK_HASH, new Object[] { blockNumber }, String.class);
         } catch (Throwable t) {
-            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getCode(), t.getMessage()));
+            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getBlockchainCode(), t.getMessage()));
             throw new OperationFailedException("Error fetching latest Block: ", t);
         }
 
@@ -139,7 +139,7 @@ public class BitcoinNode extends Node {
 
             blockData.setRewardBase(BITCOIN_BLOCK_REWARD_BTC);
 
-            blockData.setBlockchainCode(blockchainNodeInfo.getCode());
+            blockData.setBlockchainCode(getBlockchainCode());
 
             // LOGGER.info("Calculating block: " + rpcBlock.hash);
 
@@ -155,7 +155,7 @@ public class BitcoinNode extends Node {
         } catch (OperationFailedException e) {
             throw e;
         } catch (Throwable t) {
-            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getCode(), t.getMessage()));
+            LOGGER.error(String.format("[%s] Exception caught fetching block: [%s]", getBlockchainCode(), t.getMessage()));
             throw new OperationFailedException("Error fetching latest Block: ", t);
         }
     }
@@ -279,7 +279,7 @@ public class BitcoinNode extends Node {
             } catch (Throwable t) {
                 blockListener = null;
             }
-        }, "BlockListener-" + getCode());
+        }, "BlockListener-" + getBlockchainCode());
 
         blockListener.start();
     }

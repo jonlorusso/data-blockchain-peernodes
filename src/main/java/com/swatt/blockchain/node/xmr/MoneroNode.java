@@ -118,7 +118,7 @@ public class MoneroNode extends Node {
         blockData.setHeight(rpcResultBlock.block_header.height);
         blockData.setTimestamp(rpcResultBlock.block_header.timestamp);
         blockData.setNonce(String.valueOf(rpcResultBlock.block_header.nonce));
-        blockData.setDifficulty(rpcResultBlock.block_header.difficulty);
+        blockData.setDifficultyBase(rpcResultBlock.block_header.difficulty);
         blockData.setPrevHash(rpcResultBlock.block_header.prev_hash);
 
         // VERSION
@@ -128,7 +128,7 @@ public class MoneroNode extends Node {
         String versionHex = Integer.toHexString(version);
         blockData.setVersionHex(versionHex);
 
-        blockData.setReward(rpcResultBlock.block_header.reward);
+        blockData.setRewardBase(rpcResultBlock.block_header.reward);
         blockData.setTransactionCount(rpcResultBlock.block_header.num_txes);
         blockData.setBlockchainCode(getBlockchainCode());
 
@@ -219,7 +219,7 @@ public class MoneroNode extends Node {
             } catch (Throwable t) {
                 newBlocksThread = null;
             }
-        }, "BlockListener-" + getCode());
+        }, "BlockListener-" + getBlockchainCode());
 
         newBlocksThread.start();
     }
