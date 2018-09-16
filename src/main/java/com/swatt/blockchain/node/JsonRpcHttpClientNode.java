@@ -41,15 +41,23 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
 
         blockData.setIndexed(Instant.now().toEpochMilli());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
+        
+        // FIXME provide a setBlockchainNodeInfo method on BlockData which copies all relevant info
+        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
+        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
 
         return blockData;
+    }
+    
+    protected Object[] getBlockByHashRpcParameters(String hash) {
+        return new Object[] { hash };
     }
     
     protected T fetchBlock(String hash) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
         try {
-            return jsonRpcHttpClient.invoke(getBlockByHashRpcMethodName(), new Object[] { hash }, this.rpcResultBlockClass);
+            return jsonRpcHttpClient.invoke(getBlockByHashRpcMethodName(), getBlockByHashRpcParameters(hash), this.rpcResultBlockClass);
         } catch (Throwable e) {
             throw new OperationFailedException("Error fetching block", e);
         } finally {
@@ -59,11 +67,15 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     
     protected abstract String getRpcTransactionMethodName() throws OperationFailedException;
 
+    protected Object[] getTransactionRpcParameters(String hash) {
+        return new Object[] { hash };
+    }
+    
     protected S fetchTransaction(String hash) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
-
+        
         try {
-            return jsonRpcHttpClient.invoke(getRpcTransactionMethodName(), new Object[] { hash }, this.rpcResultTransasctionClass);
+            return jsonRpcHttpClient.invoke(getRpcTransactionMethodName(), getTransactionRpcParameters(hash), this.rpcResultTransasctionClass);
         } catch (Throwable e) {
             throw new OperationFailedException(e);
         } finally {
@@ -80,11 +92,15 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
 
     protected abstract String getBlockByHeightRpcMethodName() throws OperationFailedException;
     
+    protected Object[] getBlockByHeightRpcParamaters(long blockNumber) {
+        return new Object[] { blockNumber };
+    }
+    
     protected T fetchBlock(long blockNumber) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
         try {
-            return jsonRpcHttpClient.invoke(getBlockByHeightRpcMethodName(), new Object[] { blockNumber }, this.rpcResultBlockClass);
+            return jsonRpcHttpClient.invoke(getBlockByHeightRpcMethodName(), getBlockByHeightRpcParamaters(blockNumber), this.rpcResultBlockClass);
         } catch (Throwable e) {
             throw new OperationFailedException("Error fetching block", e);
         } finally {
@@ -100,7 +116,10 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
 
         blockData.setIndexed(Instant.now().toEpochMilli());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
-
+        
+        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
+        
         return blockData;
     }
 

@@ -1,24 +1,23 @@
 package com.swatt.blockchain.ingestor;
 
-import static java.lang.String.format;
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.entity.CheckProgress;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.NodeListener;
+import com.swatt.blockchain.repository.BlockDataRepository;
+import com.swatt.util.general.ConcurrencyUtilities;
+import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.sql.ConnectionPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.LongStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.entity.CheckProgress;
-import com.swatt.blockchain.node.Node;
-import com.swatt.blockchain.node.NodeListener;
-import com.swatt.blockchain.repository.BlockDataRepository;
-import com.swatt.util.general.OperationFailedException;
-import com.swatt.util.sql.ConnectionPool;
+import static java.lang.String.format;
 
 public class NodeIngestor implements NodeListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
@@ -89,36 +88,37 @@ public class NodeIngestor implements NodeListener {
         
         return false;
     }
-    
-    public void start() {
+
+	public void start() {
         if (running)
             return;
 
         running = true;
 
-        try (Connection connection = connectionPool.getConnection()) {
-        	long start = nodeIngestorConfig.getStartHeight() != null ? nodeIngestorConfig.getStartHeight() : CheckProgress.call(connection, node.getBlockchainCode()).getBlockCount();
-        	long end = nodeIngestorConfig.getEndHeight() != null ? nodeIngestorConfig.getEndHeight() : node.fetchBlockCount();
-            
-            logInfo(format("Historical ingestion running for blocks: %d through %d", start, end));
-            
-            LongStream.range(start, end).forEach(height -> {
-            	executor.execute(() -> {
-            		try {
-            			ingestBlock(height);
-            		} catch (Throwable e) {
-            			logError(format("Error ingesting block %d: %s", height, e.getMessage()));
-            		}
-            	});
-    	    });
-        } catch (Throwable t) {
-            running = false;
-        	logError(format("Historical ingestion failed: %s", t.getMessage()));
-        }
-            
-        node.fetchNewBlocks();
-    }
-    
+        ConcurrencyUtilities.startThread(() -> {
+            try (Connection connection = connectionPool.getConnection()) {
+
+                long height = node.fetchBlockCount();
+                CheckProgress checkProgress = CheckProgress.call(connection, node.getBlockchainCode());
+                long stopHeight = checkProgress.getBlockCount();
+
+                if (height > stopHeight)
+                    LOGGER.info(String.format("Historical ingestion running for blocks: %d through %s", height, stopHeight));
+
+                while (height > stopHeight) {
+                    ingestBlock(height);
+                    height = height - 1;
+                }
+
+            } catch (Throwable t) {
+                running = false;
+                LOGGER.error("[" + node.getBlockchainCode() + "] Historical ingestion failed.", t);
+            }
+        }, "HistoricalIngestion-" + node.getBlockchainCode());
+
+		node.fetchNewBlocks();
+	}
+
     private void logInfo(String infoMessage) {
     	LOGGER.info(String.format("[%s] %s", node.getBlockchainCode(), infoMessage));
     }

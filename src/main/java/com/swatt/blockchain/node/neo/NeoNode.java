@@ -22,7 +22,7 @@ public class NeoNode extends BitcoinNode {
             long blockCount = jsonRpcHttpClient.invoke("getblockcount", new Object[] { null }, Long.class); 
 
             // block cannot be retrieved by blockNumber until it is no longer the latest.
-            // we decriment here to avoid this error.
+            // we decrement here to avoid this error.
             return blockCount - 1; 
         } catch (Throwable t) {
             throw new OperationFailedException("Error fetching latest Block: ", t);
