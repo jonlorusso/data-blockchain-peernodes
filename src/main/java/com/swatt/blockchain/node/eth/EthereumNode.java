@@ -23,10 +23,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public class EthereumNode extends PlatformNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(EthereumNode.class.getName());
 
+    // FIXME can this be retrieved from the node?
     private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
 
     public static final int POWX_ETHER_WEI = 18;
@@ -38,13 +42,14 @@ public class EthereumNode extends PlatformNode {
 
     @Override
     public void init() {
-        String url = String.format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
+        String url = format("http://%s:%d", blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
         web3j = Web3j.build(new HttpService(url));
 
         try {
-            LOGGER.info("[ETH] Connected to Ethereum client version: " + web3j.web3ClientVersion().send().getWeb3ClientVersion());
+            String web3ClientVersion =  web3j.web3ClientVersion().send().getWeb3ClientVersion();
+            LOGGER.debug(format("[%s] Connected to Ethereum client version: %s", getBlockchainCode(), web3ClientVersion));
         } catch (IOException e) {
-            LOGGER.error("[ETH] Could not connect to Ethereum client: " + e.getMessage());
+            throw new IllegalStateException("Could not connect to Ethereum node.", e);
         }
 
         tokens.stream().forEach(t -> tokensByAddress.put(t.getSmartContractAddress(), t));
@@ -103,30 +108,30 @@ public class EthereumNode extends PlatformNode {
     }
 
     private BlockData toBlockData(Block block) {
-        BlockData blockData = initializeBlockData(block, null, null);
+        BlockData blockData = initializeBlockData(block, null);
         block.getTransactions().stream().map(TransactionResult<Transaction>::get).forEach(t -> processTransaction(t, blockData, null));
         return blockData;
     }
 
     private List<BlockData> toBlockDatas(Block block) {
-        Map<BlockchainNodeInfo, BlockData> tokenBlockDatas = new HashMap<>();
+        Map<String, BlockData> tokenBlockDatas = new HashMap<>();
 
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
             Transaction transaction = transactionResult.get();
-            BlockchainNodeInfo blockchainToken = tokensByAddress.get(transaction.getTo());
-            BlockData blockData = initializeBlockData(block, blockchainToken, tokenBlockDatas.get(blockchainToken));
-            tokenBlockDatas.put(blockchainToken, processTransaction(transaction, blockData, blockchainToken));
+
+            BlockchainNodeInfo tokenBlockchainNodeInfo = tokensByAddress.get(transaction.getTo());
+            if (tokenBlockchainNodeInfo != null) {
+                String tokenCode = tokenBlockchainNodeInfo.getCode();
+                BlockData blockData = tokenBlockDatas.get(tokenCode);
+                blockData = blockData != null ? blockData : initializeBlockData(block, tokenBlockchainNodeInfo);
+                tokenBlockDatas.put(tokenCode, processTransaction(transaction, blockData, tokenBlockchainNodeInfo));
+            }
         }
 
-        List<BlockData> blockDatas = new ArrayList<>();
-
-        tokenBlockDatas.values().stream().forEach(b -> {
+        return tokenBlockDatas.values().stream().peek(b -> {
             if (b.getSmallestFee() == Double.MAX_VALUE)
                 b.setSmallestFeeBase(0.0);
-            blockDatas.add(b);
-        });
-
-        return blockDatas;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -183,6 +188,7 @@ public class EthereumNode extends PlatformNode {
             double priceEther = priceWei.doubleValue() * Math.pow(10, (-1 * EthereumNode.POWX_ETHER_WEI));
             double transactionFeeRate = priceEther * transactionReceipt.getGasUsed().doubleValue();
             blockData.setAvgFeeRateBase((blockData.getAvgFeeRate() * transactionCount + transactionFeeRate) / (transactionCount + 1));
+            blockData.setRewardBase(blockData.getReward() + transactionFeeRate);
 
             double transactionAmount = tokenTransferAmount(transaction, blockchainToken);
             if (transactionAmount > blockData.getLargestTxAmount()) {
@@ -198,23 +204,18 @@ public class EthereumNode extends PlatformNode {
         return blockData;
     }
 
-    private BlockData initializeBlockData(Block block, BlockchainNodeInfo blockchainToken, BlockData blockData) {
-        if (blockData != null)
-            return blockData;
+    private BlockData initializeBlockData(Block block, BlockchainNodeInfo tokenBlockchainNodeInfo) {
+        BlockData blockData = new BlockData();
 
-        blockData = new BlockData();
+        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+        blockData.setBlockchainCode(tokenBlockchainNodeInfo != null ? tokenBlockchainNodeInfo.getCode() : blockchainNodeInfo.getCode());
+        blockData.setDifficultyBase(0);
 
-        if (blockchainToken != null) {
-            blockData.setBlockchainCode(blockchainToken.getCode());
-            blockData.setDifficultyBase(0);
-
-        } else {
-            blockData.setRewardBase(ETHEREUM_BASE_BLOCK_REWARD_ETH); // FIXME
-            blockData.setBlockchainCode(blockchainNodeInfo.getCode());
+        if (tokenBlockchainNodeInfo == null) {
+            blockData.setRewardBase(ETHEREUM_BASE_BLOCK_REWARD_ETH + (ETHEREUM_BASE_BLOCK_REWARD_ETH * block.getUncles().size() / 32));
             blockData.setDifficultyBase(block.getDifficulty().doubleValue());
         }
 
-        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
         blockData.setHash(block.getHash());
         blockData.setTransactionCount(0);
         blockData.setHeight(block.getNumber().longValue());
