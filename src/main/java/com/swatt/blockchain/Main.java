@@ -2,7 +2,6 @@ package com.swatt.blockchain;
 
 import java.util.Properties;
 
-import com.swatt.blockchain.repository.BlockchainTokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +29,9 @@ public class Main {
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
             BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
             BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-            BlockchainTokenRepository tokenRepository = new BlockchainTokenRepository(connectionPool);
 
-            NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository, tokenRepository);
+            NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
+
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             nodeIngestorManager.init();
             nodeIngestorManager.start();

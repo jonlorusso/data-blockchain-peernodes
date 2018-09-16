@@ -15,14 +15,6 @@ import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
 
-@NamedStoredProcedureQuery(
-        name = "CheckProgress", 
-        procedureName = "CheckProgress", 
-        resultClasses = { CheckProgress.class }, 
-        parameters = { 
-            @StoredProcedureParameter(name = "blockchainCode", type = String.class, mode = ParameterMode.IN),
-            @StoredProcedureParameter(name = "startingBlockHash", type = String.class, mode = ParameterMode.OUT),
-            @StoredProcedureParameter(name = "limitBlockCount", type = Integer.class, mode = ParameterMode.OUT)})
 public class CheckProgress {
     private static String startingBlockHash;
     private static int limitBlockCount;

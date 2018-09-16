@@ -1,33 +1,28 @@
 package com.swatt.blockchain.node.eth;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.*;
-
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
+import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.blockchain.node.PlatformNode;
-import com.swatt.blockchain.repository.BlockchainToken;
+import com.swatt.util.general.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 import org.web3j.protocol.core.methods.response.EthBlock.TransactionResult;
-import org.web3j.protocol.core.methods.response.EthBlockNumber;
-import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-
-import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.node.NodeTransaction;
-import com.swatt.util.general.OperationFailedException;
-
 import rx.Observable;
 import rx.Subscriber;
 
-import static java.util.stream.Collectors.toMap;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EthereumNode extends PlatformNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(EthereumNode.class.getName());
@@ -35,21 +30,11 @@ public class EthereumNode extends PlatformNode {
     private static final double ETHEREUM_BASE_BLOCK_REWARD_ETH = 3.0;
 
     public static final int POWX_ETHER_WEI = 18;
-    public static final int POWX_ETHER_KWEI = 15;
-    public static final int POWX_ETHER_MWEI = 12;
-    public static final int POWX_ETHER_GWEI = 9;
-    public static final int POWX_ETHER_SZABO = 6;
-    public static final int POWX_ETHER_FINNEY = 3;
-    public static final int POWX_ETHER_ETHER = 0;
-    public static final int POWX_ETHER_KETHER = -3;
-    public static final int POWX_ETHER_METHER = -6;
-    public static final int POWX_ETHER_GETHER = -9;
-    public static final int POWX_ETHER_TETHER = -12;
 
     private Web3j web3j;
     private Observable<EthBlock> blockObservable;
 
-    private Map<String, BlockchainToken> tokensByAddress = new HashMap<>();
+    private Map<String, BlockchainNodeInfo> tokensByAddress = new HashMap<>();
 
     @Override
     public void init() {
@@ -124,11 +109,11 @@ public class EthereumNode extends PlatformNode {
     }
 
     private List<BlockData> toBlockDatas(Block block) {
-        Map<BlockchainToken, BlockData> tokenBlockDatas = new HashMap<>();
+        Map<BlockchainNodeInfo, BlockData> tokenBlockDatas = new HashMap<>();
 
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
             Transaction transaction = transactionResult.get();
-            BlockchainToken blockchainToken = tokensByAddress.get(transaction.getTo());
+            BlockchainNodeInfo blockchainToken = tokensByAddress.get(transaction.getTo());
             BlockData blockData = initializeBlockData(block, blockchainToken, tokenBlockDatas.get(blockchainToken));
             tokenBlockDatas.put(blockchainToken, processTransaction(transaction, blockData, blockchainToken));
         }
@@ -181,7 +166,7 @@ public class EthereumNode extends PlatformNode {
         });
     }
 
-    private BlockData processTransaction(Transaction transaction, BlockData blockData, BlockchainToken blockchainToken) {
+    private BlockData processTransaction(Transaction transaction, BlockData blockData, BlockchainNodeInfo blockchainToken) {
         String transactionHash = transaction.getHash();
         int transactionCount = blockData.getTransactionCount();
 
@@ -213,7 +198,7 @@ public class EthereumNode extends PlatformNode {
         return blockData;
     }
 
-    private BlockData initializeBlockData(Block block, BlockchainToken blockchainToken, BlockData blockData) {
+    private BlockData initializeBlockData(Block block, BlockchainNodeInfo blockchainToken, BlockData blockData) {
         if (blockData != null)
             return blockData;
 
@@ -268,7 +253,7 @@ public class EthereumNode extends PlatformNode {
         }
     }
 
-    private static double tokenTransferAmount(Transaction transaction, BlockchainToken blockchainToken) {
+    private static double tokenTransferAmount(Transaction transaction, BlockchainNodeInfo blockchainToken) {
         if (blockchainToken != null) {
             String input = transaction.getInput();
 
