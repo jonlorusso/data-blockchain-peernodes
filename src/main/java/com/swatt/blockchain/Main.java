@@ -17,8 +17,6 @@ import com.swatt.util.sql.ConnectionPool;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static final String OVERWRITE_EXISTING_ENV_VAR = "OVERWRITE_EXISTING";
-    
     private static final String PROPERTIES_FILENAME = "config.properties";
     
     public static void main(String[] args) {
@@ -31,8 +29,9 @@ public class Main {
             ConnectionPool connectionPool = DatabaseUtils.configureConnectionPoolFromEnvironment(properties);
             BlockchainNodeInfoRepository blockchainNodeInfoRepository = new BlockchainNodeInfoRepository(connectionPool);
             BlockDataRepository blockDataRepository = new BlockDataRepository(connectionPool);
-            
+
             NodeManager nodeManager = new NodeManager(blockchainNodeInfoRepository);
+
             NodeIngestorManager nodeIngestorManager = new NodeIngestorManager(nodeManager, connectionPool, blockchainNodeInfoRepository, blockDataRepository);
             nodeIngestorManager.init();
             nodeIngestorManager.start();

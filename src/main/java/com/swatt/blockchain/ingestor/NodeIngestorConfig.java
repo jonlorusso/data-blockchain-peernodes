@@ -1,6 +1,7 @@
 package com.swatt.blockchain.ingestor;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NodeIngestorConfig {
@@ -13,23 +14,6 @@ public class NodeIngestorConfig {
 	
 	public NodeIngestorConfig() {
 		super();
-	}
-	
-	public NodeIngestorConfig(String blockchainCode, int numberOfThreads, boolean overwriteExisting, Long startHeight, Long endHeight) {
-		super();
-		this.blockchainCode = blockchainCode;
-		this.numberOfThreads = numberOfThreads;
-		this.overwriteExisting = overwriteExisting;
-		this.startHeight = startHeight;
-		this.endHeight = endHeight;
-	}
-	
-	public String getBlockchainCode() {
-		return blockchainCode;
-	}
-
-	public void setBlockchainCode(String blockchainCode) {
-		this.blockchainCode = blockchainCode;
 	}
 
 	public int getNumberOfThreads() {
@@ -62,5 +46,13 @@ public class NodeIngestorConfig {
 
 	public void setEndHeight(Long endHeight) {
 		this.endHeight = endHeight;
+	}
+
+	public String getBlockchainCode() {
+		return blockchainCode;
+	}
+
+	public void setBlockchainCode(String blockchainCode) {
+		this.blockchainCode = blockchainCode;
 	}
 }

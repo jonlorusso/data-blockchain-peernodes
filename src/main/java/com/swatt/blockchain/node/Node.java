@@ -3,6 +3,7 @@ package com.swatt.blockchain.node;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.swatt.blockchain.entity.ApiBlockData;
 import com.swatt.blockchain.entity.ApiBlockDataByDay;
@@ -11,6 +12,8 @@ import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.entity.CheckProgress;
 import com.swatt.blockchain.entity.UpdateProgress;
+import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
+import com.swatt.util.general.NotYetImplementedException;
 import com.swatt.util.general.OperationFailedException;
 
 public abstract class Node {
@@ -60,7 +63,7 @@ public abstract class Node {
         return ApiBlockDataByHour.call(conn, blockchainNodeInfo.getCode(), fromTimestamp, toTimestamp);
     }
 
-    /*
+    /**
      * public final ApiBlockDataByInterval getDataForInterval(Connection conn, long
      * fromTimestamp, long toTimestamp) throws SQLException { return
      * ApiBlockDataByInterval.call(conn, blockchainNodeInfo.getCode(),
