@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
