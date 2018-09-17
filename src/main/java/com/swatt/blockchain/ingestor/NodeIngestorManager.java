@@ -1,24 +1,22 @@
 package com.swatt.blockchain.ingestor;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swatt.blockchain.ApplicationContext;
+import com.swatt.blockchain.entity.BlockchainNodeInfo;
+import com.swatt.blockchain.node.Node;
+import com.swatt.util.general.ConcurrencyUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.swatt.blockchain.ApplicationContext;
-import com.swatt.blockchain.entity.BlockchainNodeInfo;
-import com.swatt.blockchain.util.LogUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swatt.blockchain.node.Node;
-import com.swatt.util.general.ConcurrencyUtilities;
-import com.swatt.util.general.OperationFailedException;
-
 import static com.swatt.blockchain.util.LogUtils.error;
+import static com.swatt.util.general.ConcurrencyUtilities.startThread;
 import static com.swatt.util.general.StringUtilities.isNullOrAllWhiteSpace;
 import static com.swatt.util.general.SystemUtilities.getEnv;
 import static java.lang.String.format;
@@ -86,7 +84,7 @@ public class NodeIngestorManager {
         if (running)
             return;
 
-		ConcurrencyUtilities.startThread(() -> {
+		startThread(() -> {
 			LOGGER.info("Starting EnabledNodeWatcher Thread.");
 
             running = true;
@@ -97,7 +95,7 @@ public class NodeIngestorManager {
 					    if (nodeIngestors.containsKey(b.getCode()))
 					        return;
 
-					    if (b.getClassName().contains("ERC"))
+					    if (b.isToken())
 					        return;
 
 						NodeIngestorConfig nodeIngestorConfig = getNodeIngestorConfig(b);
@@ -118,14 +116,14 @@ public class NodeIngestorManager {
 
                         nodeIngestors.put(b.getCode(), nodeIngestor);
 					});
-				} catch (SQLException | OperationFailedException e) {
+				} catch (SQLException e) {
                     LOGGER.error("SQLException caught in enabledNodeWatcher thread.", e);
 				    running = false;
 				}
 
 				ConcurrencyUtilities.sleep(ACTIVE_NODE_WATCHER_SLEEP_TIME);
 			}
-		}, "EnabledNodeWatcher");
+		}, format("EnabledNodeWatcher-%s", blockProducerClass.getSimpleName()));
 	}
 
 	public void stop() {

@@ -2,8 +2,6 @@ package com.swatt.blockchain.ingestor;
 
 import com.swatt.blockchain.ApplicationContext;
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.node.NodeListener;
-import com.swatt.blockchain.util.LogUtils;
 import com.swatt.util.general.ConcurrencyUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +13,6 @@ import static com.swatt.blockchain.util.LogUtils.info;
 import static java.lang.String.format;
 
 public class NodeIngestor {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeIngestor.class);
 
     private ApplicationContext applicationContext;
