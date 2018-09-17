@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType;
 import java.time.Instant;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
@@ -24,8 +25,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     private Class<S> httpResultTransasctionClass;
     
     private HttpClientPool httpClientPool;
-    private String baseUrl;
-    
+    protected String baseUrl;
     protected ObjectMapper objectMapper;
 
     @SuppressWarnings("unchecked")
@@ -39,6 +39,10 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
         httpClientPool = new HttpClientPool(maxSize);
         objectMapper = new ObjectMapper();
         baseUrl = format("http://%s:%d/",  blockchainNodeInfo.getIp(), blockchainNodeInfo.getPort());
+    }
+
+    protected HttpResponse execute(String url) {
+        return httpClientPool.execute(url);
     }
 
     protected BlockData toBlockData(long height, T resultBlock) throws OperationFailedException {
@@ -55,7 +59,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     protected abstract String getBlockByHeightUrl(long height);
     
     protected <V> V fetch(String path, Class<V> clazz) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readValue(readResponse(response), clazz);
@@ -65,7 +69,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> V fetch(String path, TypeReference<V> typeReference) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readValue(readResponse(response), typeReference);
@@ -75,7 +79,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> V fetch(String path, String jsonPath, Class<V> clazz) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(clazz).at(jsonPath).readValue(readResponse(response));
@@ -85,7 +89,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> V fetch(String path, String jsonPath, TypeReference<V> typeReference) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(typeReference).at(jsonPath).readValue(readResponse(response));
@@ -95,7 +99,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> MappingIterator<V> fetchIterator(String path, Class<V> clazz) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(clazz).readValues(readResponse(response));
@@ -105,7 +109,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> MappingIterator<V> fetchIterator(String path, TypeReference<V> typeReference) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(typeReference).readValues(readResponse(response));
@@ -115,7 +119,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> MappingIterator<V> fetchIterator(String path, String jsonPath, Class<V> clazz) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(clazz).at(jsonPath).readValues(readResponse(response));
@@ -125,7 +129,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
     }
     
     protected <V> MappingIterator<V> fetchIterator(String path, String jsonPath, TypeReference<V> typeReference) throws OperationFailedException {
-        CloseableHttpResponse response = httpClientPool.execute(format("%s/%s", baseUrl, path));
+        HttpResponse response = execute(format("%s/%s", baseUrl, path));
 
         try {
             return objectMapper.readerFor(typeReference).at(jsonPath).readValues(readResponse(response));
@@ -134,7 +138,7 @@ public abstract class HttpClientNode<T, S> extends PollingBlockNode {
         }
     }
     
-    private String readResponse(CloseableHttpResponse response) throws OperationFailedException {
+    protected String readResponse(HttpResponse response) throws OperationFailedException {
         try {
             HttpEntity responseHttpEntity = response.getEntity();
             String responseString = IoUtilities.streamToString(responseHttpEntity.getContent());

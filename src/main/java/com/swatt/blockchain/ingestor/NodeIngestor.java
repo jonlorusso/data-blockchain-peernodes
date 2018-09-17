@@ -6,6 +6,7 @@ import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
 import com.swatt.blockchain.node.PlatformNode;
 import com.swatt.blockchain.repository.BlockDataRepository;
+import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.sql.ConnectionPool;
 import org.slf4j.Logger;
@@ -13,8 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+<<<<<<< HEAD
+=======
 import java.util.ArrayList;
 import java.util.List;
+>>>>>>> develop
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -105,8 +109,8 @@ public class NodeIngestor implements NodeListener {
         
         return false;
     }
-    
-    public void start() {
+
+	public void start() {
         if (running)
             return;
 
