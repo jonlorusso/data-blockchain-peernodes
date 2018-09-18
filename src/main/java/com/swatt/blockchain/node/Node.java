@@ -78,7 +78,11 @@ public abstract class Node {
 
     public abstract long fetchBlockCount() throws OperationFailedException;
 
-    public abstract BlockData fetchBlockData(long blockNumber) throws OperationFailedException;
+    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+        return fetchBlockData(blockNumber, true);
+    }
+
+    public abstract BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException;
 
     public final void setUpdateProgress(Connection conn, String blockchainCode, String blockHash, int limitBlockCount) throws SQLException {
         UpdateProgress.call(conn, blockchainCode, blockHash, limitBlockCount);

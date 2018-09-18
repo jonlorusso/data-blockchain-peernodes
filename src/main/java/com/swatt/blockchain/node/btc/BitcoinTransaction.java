@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.node.NodeTransaction;
+import com.swatt.blockchain.util.LogUtils;
 import com.swatt.util.general.OperationFailedException;
 
 public class BitcoinTransaction extends NodeTransaction {
@@ -46,13 +47,11 @@ public class BitcoinTransaction extends NodeTransaction {
             calculateFee(jsonrpcClient, rpcResultTransaction);
     }
 
-    public static RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash)throws OperationFailedException {
+    public static RpcResultTransaction fetchFromBlockchain(JsonRpcHttpClient jsonrpcClient, String transactionHash) throws OperationFailedException {
         try {
             return jsonrpcClient.invoke(RpcMethodsBitcoin.GET_RAW_TRANSACTION, new Object[] { transactionHash, 1 }, RpcResultTransaction.class);
         } catch (Throwable t) {
-            OperationFailedException e = new OperationFailedException("Error fetching transaction from Blockchain: " + transactionHash, t);
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
+            throw new OperationFailedException(t);
         }
     }
 

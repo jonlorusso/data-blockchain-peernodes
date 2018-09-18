@@ -4,7 +4,7 @@ import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.PlatformNode;
 import com.swatt.blockchain.repository.BlockchainNodeInfoRepository;
-import com.swatt.util.general.OperationFailedException;
+import com.swatt.util.general.StringUtilities;
 import com.swatt.util.general.SystemUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +12,16 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import static com.swatt.blockchain.util.LogUtils.error;
+
 public class NodeManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NodeManager.class);
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeManager.class.getName());
+
+    private HashMap<String, Node> nodes = new HashMap<>();
+
+    private static final String LOCALHOST = "127.0.0.1";
     private static final String USE_FORWARDED_PORTS = "USE_FORWARDED_PORTS";
-
-    private HashMap<BlockchainNodeInfo, Node> nodes = new HashMap<>();
 
     private BlockchainNodeInfoRepository blockchainNodeInfoRepository;
 
@@ -31,9 +35,11 @@ public class NodeManager {
     }
 
     private Node createNode(BlockchainNodeInfo blockchainNodeInfo) {
+        Node node = null;
+
         try {
             Class<?> clazz = Class.forName(blockchainNodeInfo.getClassName());
-            Node node = (Node) clazz.newInstance();
+            node = (Node) clazz.newInstance();
             node.setBlockchainNodeInfo(blockchainNodeInfo);
 
             if (node instanceof PlatformNode) {
@@ -42,27 +48,37 @@ public class NodeManager {
             }
 
             node.init();
-            return node;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException e) {
-            LOGGER.error(String.format("Exception caught creating %s node: %s", blockchainNodeInfo.getCode(), e.getMessage()), e);
+            error(LOGGER, blockchainNodeInfo, "Unable to createNode.", e);
         }
 
-        return null;
+        if (node == null) {
+            error(LOGGER, blockchainNodeInfo, "Node is null after instantiation attempt.");
+        }
+
+        return node;
     }
 
-    public Node getNode(BlockchainNodeInfo blockchainNodeInfo) {
-        if (blockchainNodeInfo == null)
+    public Node getNode(String code) {
+        if (StringUtilities.isNullOrAllWhiteSpace(code))
             return null;
 
-        Node node = nodes.get(blockchainNodeInfo);
+        Node node = nodes.get(code);
         if (node == null) {
-            if (useForwardedPorts)
-                blockchainNodeInfo.setPort(blockchainNodeInfo.getForwardedPort());
+            try {
+                BlockchainNodeInfo blockchainNodeInfo = blockchainNodeInfoRepository.findByCode(code);
 
-            node = createNode(blockchainNodeInfo);
+                if (useForwardedPorts) {
+                    blockchainNodeInfo.setIp(LOCALHOST);
+                    blockchainNodeInfo.setPort(blockchainNodeInfo.getForwardedPort());
+                }
+                node = createNode(blockchainNodeInfo);
 
-            if (node != null)
-                nodes.put(blockchainNodeInfo, node);
+                if (node != null)
+                    nodes.put(code, node);
+            } catch (SQLException e ) {
+                error(LOGGER, code, "Unable to getNode.", e);
+            }
         }
 
         return node;

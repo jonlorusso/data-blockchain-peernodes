@@ -19,7 +19,6 @@ import rx.Subscriber;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,7 @@ public class EthereumNode extends PlatformNode {
 
     private Web3j web3j;
     private Observable<EthBlock> blockObservable;
+    private boolean running = false;
 
     private Map<String, BlockchainNodeInfo> tokensByAddress = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class EthereumNode extends PlatformNode {
             throw new IllegalStateException("Could not connect to Ethereum node.", e);
         }
 
-        tokens.stream().forEach(t -> tokensByAddress.put(t.getSmartContractAddress(), t));
+        tokens.stream().forEach(t -> tokensByAddress.put(t.getSmartContractAddress().toLowerCase(), t));
     }
 
     @Override
@@ -72,6 +72,8 @@ public class EthereumNode extends PlatformNode {
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
 
+            nodeListeners.stream().forEach(n -> n.newBlockAvailable(this, blockData));
+
             return blockData;
         } catch (Throwable t) {
             throw new OperationFailedException(t);
@@ -79,7 +81,7 @@ public class EthereumNode extends PlatformNode {
     }
 
     @Override
-    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+    public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
 
@@ -91,6 +93,9 @@ public class EthereumNode extends PlatformNode {
 
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
+
+            if (notifyListeners)
+                nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
 
             return blockData;
         } catch (Throwable t) {
@@ -119,7 +124,7 @@ public class EthereumNode extends PlatformNode {
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
             Transaction transaction = transactionResult.get();
 
-            BlockchainNodeInfo tokenBlockchainNodeInfo = tokensByAddress.get(transaction.getTo());
+            BlockchainNodeInfo tokenBlockchainNodeInfo = tokensByAddress.get(transaction.getTo().toLowerCase());
             if (tokenBlockchainNodeInfo != null) {
                 String tokenCode = tokenBlockchainNodeInfo.getCode();
                 BlockData blockData = tokenBlockDatas.get(tokenCode);
@@ -146,12 +151,14 @@ public class EthereumNode extends PlatformNode {
 
     @Override
     public void fetchNewBlocks() {
-        if (blockObservable != null)
+        if (running)
             return;
 
         LOGGER.info("Starting fetchNewBlocks thread.");
 
-        blockObservable = web3j.blockObservable(true);
+        running = true;
+        Observable<EthBlock> blockObservable = web3j.blockObservable(true);
+
         blockObservable.subscribe(new Subscriber<EthBlock>() {
             @Override
             public void onCompleted() {
@@ -160,7 +167,7 @@ public class EthereumNode extends PlatformNode {
             @Override
             public void onError(Throwable e) {
                 LOGGER.error("newBlock ingestion failed: " + e.getMessage());
-                blockObservable = null;
+                running = false;
             }
 
             @Override
@@ -246,6 +253,8 @@ public class EthereumNode extends PlatformNode {
             for (BlockData blockData : blockDatas) {
                 blockData.setIndexed(now);
                 blockData.setIndexingDuration(indexingDuration);
+
+                nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
             }
 
             return blockDatas;

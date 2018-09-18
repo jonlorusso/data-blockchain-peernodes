@@ -46,6 +46,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         blockData.setBlockchainCode(blockchainNodeInfo.getCode());
         blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
 
+        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
         return blockData;
     }
     
@@ -109,17 +110,21 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     }
 
     @Override
-    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+    public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         long start = Instant.now().getEpochSecond();
 
         BlockData blockData = toBlockData(blockNumber, fetchBlock(blockNumber));
 
+        // FIXME this needs to happen before any fields are set.
+        //blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
+        
+        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
         blockData.setIndexed(Instant.now().toEpochMilli());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
-        
-        blockData.setScalingPowers(super.getDifficultyScaling(), super.getRewardScaling(), super.getFeeScaling(), super.getAmountScaling());
-        blockData.setBlockchainCode(blockchainNodeInfo.getCode());
-        
+
+        if (notifyListeners)
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
         return blockData;
     }
 
