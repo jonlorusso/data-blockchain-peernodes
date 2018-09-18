@@ -11,8 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.swatt.blockchain.util.LogUtils.error;
+import static java.util.stream.Collectors.toList;
 
 public class NodeManager {
 
@@ -44,7 +47,13 @@ public class NodeManager {
 
             if (node instanceof PlatformNode) {
                 PlatformNode platformNode = (PlatformNode)node;
-                platformNode.setTokens(blockchainNodeInfoRepository.findAllByPlatformCode(blockchainNodeInfo.getCode()));
+
+                List<BlockchainNodeInfo> tokens = blockchainNodeInfoRepository.findAllByPlatformCode(blockchainNodeInfo.getCode())
+                        .stream()
+                        .filter(BlockchainNodeInfo::isEnabled)
+                        .collect(toList());
+
+                platformNode.setTokens(tokens);
             }
 
             node.init();
