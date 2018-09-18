@@ -1,6 +1,9 @@
 package com.swatt.blockchain.ingestor;
 
 import com.swatt.blockchain.ApplicationContext;
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.PlatformNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +67,10 @@ public class HistoricalBlockSync {
                     executor.execute(() -> {
                         try {
                             node.fetchBlockData(height);
+                            if (node instanceof PlatformNode) {
+                                PlatformNode platformNode = (PlatformNode)node;
+                                platformNode.fetchTokenBlockDatas(height);
+                            }
                         } catch (Throwable e) {
                             error(LOGGER, node, format("Error ingesting block %d: %s", height), e);
                         }
@@ -73,6 +80,11 @@ public class HistoricalBlockSync {
                 running = false;
                 error(LOGGER, node, format("Historical ingestion failed: %s", e));
             }
+        }
+
+        @Override
+        public void blockFetched(Node node, BlockData blockData) {
+            enqueueBlock(blockData);
         }
     }
 

@@ -65,7 +65,7 @@ public class MoneroNode extends PollingBlockNode {
         return invokeMethod(RpcMethodsMonero.GET_BLOCK_COUNT, null, RpcResultBlockCount.class).count - 1;
     }
     
-    private BlockData fetchBlockData(Supplier<RpcResultBlock> supplier) {
+    private BlockData fetchBlockData(Supplier<RpcResultBlock> supplier, boolean notifyListeners) {
         try {
             long start = Instant.now().getEpochSecond();
 
@@ -78,7 +78,8 @@ public class MoneroNode extends PollingBlockNode {
             blockData.setIndexed(now);
             blockData.setIndexingDuration(indexingDuration);
 
-            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+            if (notifyListeners)
+                nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
 
             return blockData;
         } catch (Exception e) {
@@ -87,13 +88,13 @@ public class MoneroNode extends PollingBlockNode {
     }
     
     @Override
-    public BlockData fetchBlockData(long height) throws OperationFailedException {
-        return fetchBlockData(() -> fetchRpcResultBlock("height", height));
+    public BlockData fetchBlockData(long height, boolean notifyListeners) throws OperationFailedException {
+        return fetchBlockData(() -> fetchRpcResultBlock("height", height), notifyListeners);
     }
 
     @Override
     public BlockData fetchBlockDataByHash(String hash) throws OperationFailedException {
-        return fetchBlockData(() -> fetchRpcResultBlock("hash", hash));
+        return fetchBlockData(() -> fetchRpcResultBlock("hash", hash), true);
     }
     
     private RpcResultBlock fetchRpcResultBlock(String key, Object value) {

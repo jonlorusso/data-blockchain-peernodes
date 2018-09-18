@@ -38,10 +38,10 @@ public class NodeIngestor {
 
             if (existingBlockData != null && nodeIngestorConfig.isOverwriteExisting()) {
                 applicationContext.getBlockDataRepository().replace(blockData);
-                info(LOGGER, nodeIngestorConfig, format("Re-ingested block: %d", height));
+                info(LOGGER, blockData, format("Re-ingested block: %d", height));
             } else if (existingBlockData == null) {
                 applicationContext.getBlockDataRepository().insert(blockData);
-                info(LOGGER, nodeIngestorConfig, format("Ingested block: %d", height));
+                info(LOGGER, blockData, format("Ingested block: %d", height));
             }
         } catch (SQLException e) {
             error(LOGGER, nodeIngestorConfig, format("Exception caught while storing fetched block: %s", e.getMessage()));

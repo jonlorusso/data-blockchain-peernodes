@@ -2,7 +2,6 @@ package com.swatt.blockchain.node.btc;
 
 import java.time.Instant;
 
-import com.swatt.blockchain.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
@@ -55,7 +54,7 @@ public class BitcoinNode extends Node {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return blockHash == null ? fetchLatestBlock(jsonRpcHttpClient) : fetchBlockByHash(blockHash);
+            return blockHash == null ? fetchLatestBlock(jsonRpcHttpClient, true) : fetchBlockByHash(blockHash);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         }
@@ -76,7 +75,7 @@ public class BitcoinNode extends Node {
         }
     }
 
-    private BlockData fetchLatestBlock(JsonRpcHttpClient jsonRpcHttpClient) throws OperationFailedException {
+    private BlockData fetchLatestBlock(JsonRpcHttpClient jsonRpcHttpClient, boolean notifyListeners) throws OperationFailedException {
         long blockNumber = 0;
 
         try {
@@ -87,11 +86,11 @@ public class BitcoinNode extends Node {
             throw new OperationFailedException(format("Error fetching latest %s Block: %s", getBlockchainCode(), t.getMessage()));
         }
 
-        return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber); // We keep this out of the above try/catch so we
+        return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber, notifyListeners); // We keep this out of the above try/catch so we
                                                                         // don't double catch exceptions on this call
     }
 
-    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber) throws OperationFailedException {
+    private BlockData fetchBlockByBlockNumber(JsonRpcHttpClient jsonrpcClient, long blockNumber, boolean notifyListeners) throws OperationFailedException {
         String blockHash = null;
 
         try {
@@ -104,7 +103,10 @@ public class BitcoinNode extends Node {
         // We keep this out of the above try/catch so we don't double catch exceptions
         // on this call
         BlockData blockData = fetchBlockByHash(blockHash);
-        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
+        if (notifyListeners)
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
         return blockData;
     }
     
@@ -227,11 +229,11 @@ public class BitcoinNode extends Node {
     }
 
     @Override
-    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+    public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
-            return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber);
+            return fetchBlockByBlockNumber(jsonRpcHttpClient, blockNumber, notifyListeners);
         } catch (Throwable t) {
             throw new OperationFailedException("Error fetching block: ", t);
         } finally {

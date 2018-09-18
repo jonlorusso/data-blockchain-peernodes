@@ -1,5 +1,6 @@
 package com.swatt.blockchain.util;
 
+import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.ingestor.NodeIngestor;
 import com.swatt.blockchain.ingestor.NodeIngestorConfig;
@@ -10,6 +11,10 @@ import org.slf4j.LoggerFactory;
 public class LogUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogUtils.class.getName());
+
+    public static void info(Logger logger, BlockData blockData, String infoMessage) {
+        logger.info(String.format("[%s] %s", blockData.getBlockchainCode(), infoMessage));
+    }
 
     public static void info(Logger logger, String blockchainCode, String infoMessage) {
         logger.info(String.format("[%s] %s", blockchainCode, infoMessage));

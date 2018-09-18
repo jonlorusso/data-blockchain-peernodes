@@ -113,13 +113,15 @@ public class StratisNode extends Node {
     }
     
     @Override
-    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+    public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         long start = Instant.now().getEpochSecond();
         BlockData blockData = toBlockData(blockNumber, fetchBlock(blockNumber));
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
 
-        nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+        if (notifyListeners)
+            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
         return blockData;
     }
 

@@ -1,6 +1,9 @@
 package com.swatt.blockchain.ingestor;
 
 import com.swatt.blockchain.ApplicationContext;
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +15,13 @@ public class NewBlockSync {
 
     public static class NewBlockProducer extends BlockProducer {
         @Override
-        public void start() {
+        public void start(){
             node.fetchNewBlocks();
+        }
+
+        @Override
+        public void newBlockAvailable(Node node, BlockData blockData) {
+            enqueueBlock(blockData);
         }
     }
 

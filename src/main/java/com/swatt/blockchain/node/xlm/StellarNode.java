@@ -1,14 +1,10 @@
 package com.swatt.blockchain.node.xlm;
 
-import static java.lang.String.format;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.node.Node;
+import com.swatt.blockchain.node.NodeTransaction;
+import com.swatt.util.general.ConcurrencyUtilities;
+import com.swatt.util.general.OperationFailedException;
 import org.glassfish.jersey.media.sse.EventSource;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -19,13 +15,14 @@ import org.stellar.sdk.responses.TransactionResponse;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
-import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.entity.BlockchainNodeInfo;
-import com.swatt.blockchain.node.Node;
-import com.swatt.blockchain.node.NodeListener;
-import com.swatt.blockchain.node.NodeTransaction;
-import com.swatt.util.general.ConcurrencyUtilities;
-import com.swatt.util.general.OperationFailedException;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
 
 public class StellarNode extends Node {
 
@@ -178,13 +175,16 @@ public class StellarNode extends Node {
     }
 
     @Override
-    public BlockData fetchBlockData(long blockNumber) throws OperationFailedException {
+    public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         try {
             long start = Instant.now().getEpochSecond();
             BlockData blockData = toBlockData(server.ledgers().ledger(blockNumber)); 
             blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
             blockData.setIndexed(Instant.now().toEpochMilli());
-            nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
+            if (notifyListeners)
+                nodeListeners.stream().forEach(n -> n.blockFetched(this, blockData));
+
             return blockData;
         } catch (IOException e) {
             throw new OperationFailedException(e);

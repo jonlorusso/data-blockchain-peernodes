@@ -4,7 +4,6 @@ import com.swatt.blockchain.ApplicationContext;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.NodeListener;
-import com.swatt.util.general.ConcurrencyUtilities;
 
 import java.util.Iterator;
 import java.util.Spliterator;
@@ -41,16 +40,12 @@ public abstract class BlockProducer implements Iterator<BlockData>, NodeListener
     public abstract void start();
 
     @Override
-    public void newBlockAvailable(Node node, BlockData blockData) {
-        try {
-            blockingQueue.put(blockData);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException("Unable to enqueue new blockData.");
-        }
-    }
+    public void newBlockAvailable(Node node, BlockData blockData) {}
 
     @Override
-    public void blockFetched(Node node, BlockData blockData) {
+    public void blockFetched(Node node, BlockData blockData) {}
+
+    protected void enqueueBlock(BlockData blockData) {
         try {
             blockingQueue.put(blockData);
         } catch (InterruptedException e) {

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 
 import com.swatt.blockchain.ApplicationContext;
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.sql.ConnectionPool;
 
 public class BlockDataRepository extends Repository {
