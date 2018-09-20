@@ -1,56 +1,34 @@
 package com.swatt.blockchain.node.neo;
 
+import com.swatt.blockchain.entity.BlockData;
+import com.swatt.blockchain.node.btc.BitcoinNode;
+import com.swatt.blockchain.node.btc.RpcResultTransaction;
+import com.swatt.util.general.ConcurrencyUtilities;
+import com.swatt.util.general.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.swatt.blockchain.entity.BlockData;
-import com.swatt.blockchain.node.btc.BitcoinNode;
-import com.swatt.util.general.ConcurrencyUtilities;
-import com.swatt.util.general.OperationFailedException;
+import static com.swatt.util.general.ConcurrencyUtilities.startThread;
 
-public class NeoNode extends BitcoinNode {
+public class NeoNode extends BitcoinNode<RpcResultBlock, RpcResultTransaction>  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NeoNode.class.getName());
     private static final int NEW_BLOCK_POLLING_FREQ_MS = 10 * 1000;
 
-    @Override
-    public long fetchBlockCount() throws OperationFailedException {
-        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
-
-        try {
-            long blockCount = jsonRpcHttpClient.invoke("getblockcount", new Object[] { null }, Long.class); 
-
-            // block cannot be retrieved by blockNumber until it is no longer the latest.
-            // we decrement here to avoid this error.
-            return blockCount - 1; 
-        } catch (Throwable t) {
-            throw new OperationFailedException("Error fetching latest Block: ", t);
-        } finally {
-            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
-        }
-    }
+    private boolean running = false;
 
     @Override
-    protected RpcResultBlock getBlock(String hash) throws OperationFailedException {
-        JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
-
-        try {
-            return jsonRpcHttpClient.invoke("getblock", new Object[] { hash, true }, RpcResultBlock.class);
-        } catch (Throwable t) {
-            throw new OperationFailedException(t);
-        } finally {
-            jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
-        }
+    protected Object[] getBlockCountRpcMethodParameters() {
+        return new Object[] { null };
     }
 
     @Override
     public void fetchNewBlocks() {
-        if (blockListener != null)
+        if (running)
             return;
 
-        blockListener = new Thread(() -> {
-            LOGGER.info("Starting fetchNewBlocks thread.");
+        startThread(() -> {
+            LOGGER.info("[NEO] Starting fetchNewBlocks thread.");
 
             try {
                 long height = fetchBlockCount();
@@ -59,19 +37,18 @@ public class NeoNode extends BitcoinNode {
                     long newHeight = fetchBlockCount();
 
                     if (newHeight > height) {
-                        BlockData blockData = fetchBlockData(newHeight, false);
+                        BlockData blockData = fetchBlockData(newHeight - 1);
                         nodeListeners.stream().forEach(n -> n.newBlockAvailable(this, blockData));
                         height = blockData.getHeight();
                     }
 
                     ConcurrencyUtilities.sleep(NEW_BLOCK_POLLING_FREQ_MS);
                 }
-
-            } catch (Throwable t) {
-                blockListener = null;
+            } catch (OperationFailedException e) {
+                LOGGER.error("[NEO] Exception caught while fetching new blocks.", e);
+            } finally {
+                running = false;
             }
         }, "BlockListener-" + getBlockchainCode());
-
-        blockListener.start();
     }
 }

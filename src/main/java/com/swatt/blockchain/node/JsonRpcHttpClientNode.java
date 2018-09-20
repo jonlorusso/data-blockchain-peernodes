@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.entity.BlockData;
+import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
@@ -14,7 +15,9 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     
     private Class<T> rpcResultBlockClass;
     private Class<S> rpcResultTransasctionClass;
-    
+
+    private KeepNewestHash keepNewestHash = new KeepNewestHash(5000);
+
     @SuppressWarnings("unchecked")
     public JsonRpcHttpClientNode() {
         super();
@@ -32,6 +35,10 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     }
 
     protected abstract String getBlockByHashRpcMethodName() throws OperationFailedException;
+
+    protected Object[] getBlockByHashRpcMethodParameters(String hash) throws OperationFailedException {
+        return new Object[] { hash };
+    }
     
     @Override
     public BlockData fetchBlockDataByHash(String blockHash) throws OperationFailedException {
@@ -58,7 +65,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
         try {
-            return jsonRpcHttpClient.invoke(getBlockByHashRpcMethodName(), getBlockByHashRpcParameters(hash), this.rpcResultBlockClass);
+            return jsonRpcHttpClient.invoke(getBlockByHashRpcMethodName(), getBlockByHashRpcMethodParameters(hash), this.rpcResultBlockClass);
         } catch (Throwable e) {
             throw new OperationFailedException("Error fetching block", e);
         } finally {
@@ -68,17 +75,23 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     
     protected abstract String getRpcTransactionMethodName() throws OperationFailedException;
 
-    protected Object[] getTransactionRpcParameters(String hash) {
+    protected Object[] getTransactionRpcMethodParameters(String hash) throws OperationFailedException {
         return new Object[] { hash };
     }
-    
-    protected S fetchTransaction(String hash) throws OperationFailedException {
+
+    protected S fetchTransaction(String hash) {
+        if (keepNewestHash.get(hash) != null) {
+            return (S)keepNewestHash.get(hash);
+        }
+
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
         try {
-            return jsonRpcHttpClient.invoke(getRpcTransactionMethodName(), getTransactionRpcParameters(hash), this.rpcResultTransasctionClass);
+            S s = jsonRpcHttpClient.invoke(getTransactionRpcMethodName(), getTransactionRpcMethodParameters(hash), this.rpcResultTransasctionClass);
+            keepNewestHash.put(hash, s);
+            return s;
         } catch (Throwable e) {
-            throw new OperationFailedException(e);
+            throw new RuntimeException(e);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
         } 
@@ -92,6 +105,10 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     protected abstract NodeTransaction toNodeTransaction(S rpcResultTransaction) throws OperationFailedException;
 
     protected abstract String getBlockByHeightRpcMethodName() throws OperationFailedException;
+
+    protected Object[] getBlockByHeightRpcMethodParameters(long blockNumber) throws OperationFailedException {
+        return new Object[] { blockNumber };
+    }
     
     protected Object[] getBlockByHeightRpcParamaters(long blockNumber) {
         return new Object[] { blockNumber };
@@ -101,7 +118,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
         try {
-            return jsonRpcHttpClient.invoke(getBlockByHeightRpcMethodName(), getBlockByHeightRpcParamaters(blockNumber), this.rpcResultBlockClass);
+            return jsonRpcHttpClient.invoke(getBlockByHeightRpcMethodName(), getBlockByHeightRpcMethodParameters(blockNumber), this.rpcResultBlockClass);
         } catch (Throwable e) {
             throw new OperationFailedException("Error fetching block", e);
         } finally {

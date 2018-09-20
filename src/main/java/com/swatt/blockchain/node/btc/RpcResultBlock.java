@@ -1,7 +1,17 @@
 package com.swatt.blockchain.node.btc;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swatt.util.general.CollectionsUtilities;
+
+import static com.swatt.util.general.CollectionsUtilities.*;
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
@@ -14,8 +24,11 @@ public class RpcResultBlock {
     private String merkleroot;
     
     @JsonProperty("tx")
-    private List<String> transactions;
-    
+    private List<JsonNode> transactionsInternal;
+
+    private List<String> transactionStrings;
+    public List<RpcResultTransaction> transactions;
+
     private Long time;
     private String nonce;
     private String bits;
@@ -43,8 +56,20 @@ public class RpcResultBlock {
         return merkleroot;
     }
 
-    public List<?> getTransactions() {
-        return transactions;
+    public List<String> getTransactionStrings() {
+        if (!isNullOrEmpty(transactionsInternal)) {
+            return transactionsInternal.stream().map(t -> t.asText()).collect(toList());
+        }
+
+        return null;
+    }
+
+    public List<RpcResultTransaction> getTransactions() {
+        if (!isNullOrEmpty(transactionsInternal)) {
+            return transactionsInternal.stream().map(t -> t.isObject() ? new RpcResultTransaction(t) : null).collect(toList());
+        }
+
+        return null;
     }
 
     public Long getTime() {
