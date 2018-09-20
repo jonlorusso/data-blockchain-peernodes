@@ -5,6 +5,7 @@ import com.swatt.blockchain.entity.BlockchainNodeInfo;
 import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.blockchain.node.PlatformNode;
 import com.swatt.util.general.OperationFailedException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.protocol.Web3j;
@@ -124,12 +125,14 @@ public class EthereumNode extends PlatformNode {
         for (TransactionResult<Transaction> transactionResult : block.getTransactions()) {
             Transaction transaction = transactionResult.get();
 
-            BlockchainNodeInfo tokenBlockchainNodeInfo = tokensByAddress.get(transaction.getTo().toLowerCase());
-            if (tokenBlockchainNodeInfo != null) {
-                String tokenCode = tokenBlockchainNodeInfo.getCode();
-                BlockData blockData = tokenBlockDatas.get(tokenCode);
-                blockData = blockData != null ? blockData : initializeBlockData(block, tokenBlockchainNodeInfo);
-                tokenBlockDatas.put(tokenCode, processTransaction(transaction, blockData, tokenBlockchainNodeInfo));
+            if (StringUtils.isNotEmpty(transaction.getTo())) {
+                BlockchainNodeInfo tokenBlockchainNodeInfo = tokensByAddress.get(transaction.getTo().toLowerCase());
+                if (tokenBlockchainNodeInfo != null) {
+                    String tokenCode = tokenBlockchainNodeInfo.getCode();
+                    BlockData blockData = tokenBlockDatas.get(tokenCode);
+                    blockData = blockData != null ? blockData : initializeBlockData(block, tokenBlockchainNodeInfo);
+                    tokenBlockDatas.put(tokenCode, processTransaction(transaction, blockData, tokenBlockchainNodeInfo));
+                }
             }
         }
 
