@@ -70,7 +70,7 @@ public class HistoricalBlockSync {
                                     platformNode.fetchTokenBlockDatas(height);
                                 }
                             } catch (Throwable e) {
-                                error(LOGGER, node, format("Error ingesting block %d: %s", height), e);
+                              error(LOGGER, node, format("Error ingesting block %d.", height), e);
                             }
                         });
                     });
