@@ -48,10 +48,12 @@ public class StellarNode extends Node {
         blockData.setTransactionCount(ledgerResponse.getTransactionCount());
         blockData.setHeight(ledgerResponse.getSequence());
 
-        try {
-            blockData.setTimestamp(simpleDateFormat.parse(ledgerResponse.getClosedAt()).getTime() / 1000);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+        synchronized (simpleDateFormat) {
+            try {
+                blockData.setTimestamp(simpleDateFormat.parse(ledgerResponse.getClosedAt()).getTime() / 1000);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         blockData.setPrevHash(ledgerResponse.getPrevHash());
