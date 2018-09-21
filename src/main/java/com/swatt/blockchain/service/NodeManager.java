@@ -57,15 +57,12 @@ public class NodeManager {
             }
 
             node.init();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException e) {
-            error(LOGGER, blockchainNodeInfo, "Unable to createNode.", e);
+            return node;
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
+            // FIXME
+            throw new RuntimeException(e);
         }
-
-        if (node == null) {
-            error(LOGGER, blockchainNodeInfo, "Node is null after instantiation attempt.");
-        }
-
-        return node;
     }
 
     public Node getNode(String code) {

@@ -110,10 +110,6 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         return new Object[] { blockNumber };
     }
     
-    protected Object[] getBlockByHeightRpcParamaters(long blockNumber) {
-        return new Object[] { blockNumber };
-    }
-    
     protected T fetchBlock(long blockNumber) throws OperationFailedException {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
         
