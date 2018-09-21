@@ -97,7 +97,7 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
 
     @Override
     public long fetchBlockCount() throws OperationFailedException {
-        Map<String, String> nodeStatus = fetch("api/loader/status/sync", new TypeReference<Map<String, String>>() {});
+        Map<String, String> nodeStatus = fetch("api/node/status", "/data", new TypeReference<Map<String, String>>() {});
         return Long.valueOf(nodeStatus.get("height"));
     }
 
@@ -109,7 +109,7 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
     @Override
     public BlockData fetchBlockData(long blockNumber, boolean notifyListeners) throws OperationFailedException {
         long start = Instant.now().getEpochSecond();
-        MappingIterator<HttpResultBlock> httpResultBlocks = fetchIterator(getBlockByHeightUrl(blockNumber), "/blocks", HttpResultBlock.class);
+        MappingIterator<HttpResultBlock> httpResultBlocks = fetchIterator(getBlockByHeightUrl(blockNumber), "/data", HttpResultBlock.class);
         BlockData blockData = toBlockData(httpResultBlocks.next());
         blockData.setIndexingDuration(Instant.now().getEpochSecond() - start);
         blockData.setIndexed(Instant.now().toEpochMilli());
