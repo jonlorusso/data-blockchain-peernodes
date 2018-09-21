@@ -17,7 +17,7 @@ public class SteemNode extends JsonRpcHttpClientNode<RpcResultBlock, RpcResultTr
     }
 
     @Override
-    protected String getRpcTransactionMethodName() throws OperationFailedException {
+    protected String getTransactionRpcMethodName() throws OperationFailedException {
         return "get_transaction";
     }
 

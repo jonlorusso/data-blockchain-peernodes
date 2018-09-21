@@ -10,7 +10,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class RpcResultTransaction {
+public class RpcResultTransaction {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

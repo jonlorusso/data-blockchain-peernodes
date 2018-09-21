@@ -1,13 +1,12 @@
 package com.swatt.blockchain.node;
 
 public class NodeTransaction {
+
     private String hash;
     private long timestamp;
-
     private double fee;
     private double feeRate;
     private double amount;
-
     private String blockHash;
 
     public NodeTransaction(String hash) {

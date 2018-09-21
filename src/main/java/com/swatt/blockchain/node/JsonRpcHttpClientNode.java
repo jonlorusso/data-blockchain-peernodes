@@ -73,7 +73,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         }
     }
     
-    protected abstract String getRpcTransactionMethodName() throws OperationFailedException;
+    protected abstract String getTransactionRpcMethodName() throws OperationFailedException;
 
     protected Object[] getTransactionRpcMethodParameters(String hash) throws OperationFailedException {
         return new Object[] { hash };
