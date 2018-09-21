@@ -64,10 +64,15 @@ public class HistoricalBlockSync {
                     LongStream.range(start, end).forEach(height -> {
                         executor.execute(() -> {
                             try {
-                                node.fetchBlockData(height);
-                                if (node instanceof PlatformNode) {
-                                    PlatformNode platformNode = (PlatformNode) node;
-                                    platformNode.fetchTokenBlockDatas(height);
+                                BlockData existingBlockData = applicationContext.getBlockDataRepository().findByBlockchainCodeAndHeight(nodeIngestorConfig.getBlockchainCode(), height);
+
+                                if ((existingBlockData != null && nodeIngestorConfig.isOverwriteExisting()) || existingBlockData == null) {
+                                    node.fetchBlockData(height);
+
+                                    if (node instanceof PlatformNode) {
+                                        PlatformNode platformNode = (PlatformNode) node;
+                                        platformNode.fetchTokenBlockDatas(height);
+                                    }
                                 }
                             } catch (Throwable e) {
                               error(LOGGER, node, format("Error ingesting block %d.", height), e);
