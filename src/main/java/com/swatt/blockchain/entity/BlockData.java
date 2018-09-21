@@ -59,6 +59,17 @@ public class BlockData implements DataStreamSerializable {
     public BlockData() {
     }
 
+    public BlockData(BlockchainNodeInfo blockchainNodeInfo) {
+        this.blockchainCode = blockchainNodeInfo.getCode();
+        this.difficultyScale = blockchainNodeInfo.getDifficultyScaling();
+        this.rewardScale = blockchainNodeInfo.getRewardScaling();
+        this.avgFeeScale = blockchainNodeInfo.getFeeScaling();
+        this.avgFeeRateScale = blockchainNodeInfo.getFeeScaling();
+        this.largestTxAmountScale = blockchainNodeInfo.getAmountScaling();
+        this.largestFeeScale = blockchainNodeInfo.getFeeScaling();
+        this.smallestFeeScale = blockchainNodeInfo.getFeeScaling();
+    }
+
     public BlockData(int id, String blockchainCode, String hash, int transactionCount, int height, long difficulty, int difficultyScale, long reward, int rewardScale, String merkleRoot, long timestamp, String bits, int size, String versionHex, String nonce, String prevHash, String nextHash, long avgFee, int avgFeeScale, long avgFeeRate, int avgFeeRateScale, int indexed, String largestTxHash, long largestTxAmount, int largestTxAmountScale, long largestFee, int largestFeeScale, long smallestFee, int smallestFeeScale, int indexingDuration) {
         this.id = id;
         this.blockchainCode = blockchainCode;
@@ -100,7 +111,6 @@ public class BlockData implements DataStreamSerializable {
         this.largestTxAmountScale = amountScale;
         this.largestFeeScale = feeScale;
         this.smallestFeeScale = feeScale;
-
     }
 
     public final int getId() {

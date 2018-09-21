@@ -17,8 +17,7 @@ public class RpcResultBlock extends com.swatt.blockchain.node.btc.RpcResultBlock
         return this.height;
     }
     
-    @Override
-    public List<?> getTransactions() {
+    public List<RpcResultTransaction> getTransactions() {
         return transactions;
     }
 }
