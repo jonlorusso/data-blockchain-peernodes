@@ -1,11 +1,9 @@
 package com.swatt.blockchain.node.btc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.JsonRpcHttpClientNode;
 import com.swatt.blockchain.node.NodeTransaction;
-import com.swatt.util.general.CollectionsUtilities;
 import com.swatt.util.general.ConcurrencyUtilities;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
@@ -16,8 +14,6 @@ import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMsg;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static com.swatt.util.general.CollectionsUtilities.isNullOrEmpty;
