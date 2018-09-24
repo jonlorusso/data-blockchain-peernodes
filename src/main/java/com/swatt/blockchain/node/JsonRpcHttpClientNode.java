@@ -1,13 +1,13 @@
 package com.swatt.blockchain.node;
 
-import java.lang.reflect.ParameterizedType;
-import java.time.Instant;
-
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.entity.BlockData;
 import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
+
+import java.lang.reflect.ParameterizedType;
+import java.time.Instant;
 
 public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     
@@ -15,8 +15,6 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     
     private Class<T> rpcResultBlockClass;
     private Class<S> rpcResultTransasctionClass;
-
-    private KeepNewestHash keepNewestHash = new KeepNewestHash(5000);
 
     @SuppressWarnings("unchecked")
     public JsonRpcHttpClientNode() {
@@ -80,16 +78,10 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
     }
 
     protected S fetchTransaction(String hash) {
-        if (keepNewestHash.get(hash) != null) {
-            return (S)keepNewestHash.get(hash);
-        }
-
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
-        
+
         try {
-            S s = jsonRpcHttpClient.invoke(getTransactionRpcMethodName(), getTransactionRpcMethodParameters(hash), this.rpcResultTransasctionClass);
-            keepNewestHash.put(hash, s);
-            return s;
+            return jsonRpcHttpClient.invoke(getTransactionRpcMethodName(), getTransactionRpcMethodParameters(hash), this.rpcResultTransasctionClass);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         } finally {
