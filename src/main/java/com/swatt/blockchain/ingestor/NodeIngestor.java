@@ -2,14 +2,12 @@ package com.swatt.blockchain.ingestor;
 
 import com.swatt.blockchain.ApplicationContext;
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.util.general.ConcurrencyUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-
 import static com.swatt.blockchain.util.LogUtils.error;
 import static com.swatt.blockchain.util.LogUtils.info;
+import static com.swatt.util.general.ConcurrencyUtilities.startThread;
 import static java.lang.String.format;
 
 public class NodeIngestor {
@@ -26,7 +24,7 @@ public class NodeIngestor {
     }
 
     public void start() {
-        ConcurrencyUtilities.startThread(() -> {
+        startThread(() -> {
             blockProducer.stream().forEach(this::ingestBlock);
         }, String.format("BlockConsumer-%s", nodeIngestorConfig.getBlockchainCode()));
     }
@@ -43,7 +41,7 @@ public class NodeIngestor {
                 applicationContext.getBlockDataRepository().insert(blockData);
                 info(LOGGER, blockData, format("Ingested block: %d", height));
             }
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             error(LOGGER, nodeIngestorConfig, format("Exception caught while storing fetched block: %s", e.getMessage()));
         }
     }
