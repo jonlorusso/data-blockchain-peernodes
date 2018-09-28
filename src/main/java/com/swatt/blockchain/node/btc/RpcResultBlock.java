@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swatt.util.general.CollectionsUtilities;
+import com.swatt.util.general.StringUtilities;
 
 import static com.swatt.util.general.CollectionsUtilities.*;
 import static java.util.stream.Collectors.toList;
@@ -58,6 +59,12 @@ public class RpcResultBlock {
 
     public List<String> getTransactionStrings() {
         if (!isNullOrEmpty(transactionsInternal)) {
+            JsonNode first = transactionsInternal.stream().findFirst().get();
+
+            if (StringUtilities.isNullOrAllWhiteSpace(first.asText())) {
+                return null;
+            }
+
             return transactionsInternal.stream().map(t -> t.asText()).collect(toList());
         }
 

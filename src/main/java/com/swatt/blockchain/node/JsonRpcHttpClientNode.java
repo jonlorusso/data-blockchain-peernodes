@@ -1,20 +1,31 @@
 package com.swatt.blockchain.node;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.swatt.blockchain.entity.BlockData;
-import com.swatt.util.general.KeepNewestHash;
 import com.swatt.util.general.OperationFailedException;
 import com.swatt.util.json.JsonRpcHttpClientPool;
 
 import java.lang.reflect.ParameterizedType;
 import java.time.Instant;
+import java.util.concurrent.ExecutionException;
 
 public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
-    
+
     protected JsonRpcHttpClientPool jsonRpcHttpClientPool;
     
     private Class<T> rpcResultBlockClass;
     private Class<S> rpcResultTransasctionClass;
+
+    LoadingCache<String, S> transactionCache = CacheBuilder.newBuilder()
+            .maximumSize(5000)
+            .build(new CacheLoader<String, S>() {
+                public S load(String hash) {
+                    return _fetchTransaction(hash);
+                }
+            });
 
     @SuppressWarnings("unchecked")
     public JsonRpcHttpClientNode() {
@@ -77,7 +88,7 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
         return new Object[] { hash };
     }
 
-    protected S fetchTransaction(String hash) {
+    protected S _fetchTransaction(String hash) {
         JsonRpcHttpClient jsonRpcHttpClient = jsonRpcHttpClientPool.getJsonRpcHttpClient();
 
         try {
@@ -86,7 +97,15 @@ public abstract class JsonRpcHttpClientNode<T, S> extends PollingBlockNode {
             throw new RuntimeException(e);
         } finally {
             jsonRpcHttpClientPool.returnConnection(jsonRpcHttpClient);
-        } 
+        }
+    }
+
+    protected S fetchTransaction(String hash) {
+        try {
+            return transactionCache.get(hash);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
     
     @Override
