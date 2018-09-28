@@ -97,8 +97,8 @@ public class LiskNode extends HttpClientNode<HttpResultBlock, HttpResultTransact
 
     @Override
     public long fetchBlockCount() throws OperationFailedException {
-        Map<String, String> nodeStatus = fetch("api/node/status", "/data", new TypeReference<Map<String, String>>() {});
-        return Long.valueOf(nodeStatus.get("height"));
+        Map<String, Object> nodeStatus = fetch("api/node/status", "/data", new TypeReference<Map<String, Object>>() {});
+        return ((Integer)nodeStatus.get("height")).longValue();
     }
 
     @Override
