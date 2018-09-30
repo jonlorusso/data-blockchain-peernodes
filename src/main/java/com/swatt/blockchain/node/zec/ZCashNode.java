@@ -4,11 +4,15 @@ package com.swatt.blockchain.node.zec;
 import com.swatt.blockchain.node.NodeTransaction;
 import com.swatt.blockchain.node.btc.BitcoinNode;
 import com.swatt.blockchain.node.btc.BitcoinTransaction;
-import com.swatt.blockchain.node.btc.RpcResultBlock;
 import com.swatt.blockchain.node.btc.RpcResultVin;
 import com.swatt.util.general.OperationFailedException;
 
 public class ZCashNode extends BitcoinNode<RpcResultBlock, RpcResultTransaction> {
+
+    @Override
+    protected Object[] getBlockByHashRpcMethodParameters(String hash) throws OperationFailedException {
+        return new Object[] { hash, 2 };
+    }
 
     @Override
     protected Object[] getTransactionRpcMethodParameters(String hash) throws OperationFailedException {
@@ -34,8 +38,13 @@ public class ZCashNode extends BitcoinNode<RpcResultBlock, RpcResultTransaction>
             }
         }
 
-        double publicInput = rpcResultTransaction.vJoinSplits.stream().mapToDouble(v -> v.vPubOld).sum();
-        double publicOutput = rpcResultTransaction.vJoinSplits.stream().mapToDouble(v -> v.vPubNew).sum();
+        double publicInput = 0.0;
+        double publicOutput = 0.0;
+
+        if (rpcResultTransaction.vJoinSplits != null) {
+            publicInput = rpcResultTransaction.vJoinSplits.stream().mapToDouble(v -> v.vPubOld).sum();
+            publicOutput = rpcResultTransaction.vJoinSplits.stream().mapToDouble(v -> v.vPubNew).sum();
+        }
 
         double fee;
         if (amount == 0.0) {
