@@ -5,12 +5,10 @@ import com.swatt.blockchain.entity.BlockData;
 import com.swatt.blockchain.node.Node;
 import com.swatt.blockchain.node.PlatformNode;
 import com.swatt.blockchain.repository.BlockDataRepository;
-import com.swatt.util.general.ConcurrencyUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
