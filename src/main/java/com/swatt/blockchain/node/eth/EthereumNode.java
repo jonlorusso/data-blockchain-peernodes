@@ -189,6 +189,10 @@ public class EthereumNode extends PlatformNode {
             EthGetTransactionReceipt ethTransactionReceipt = web3j.ethGetTransactionReceipt(transactionHash).send();
             TransactionReceipt transactionReceipt = ethTransactionReceipt.getTransactionReceipt().get();
 
+            // 0x0 stauts means the transaction was REVERTed
+            if (transactionReceipt.getStatus().equals("0x0"))
+                return blockData;
+
             double transactionFee = transactionReceipt.getGasUsed().doubleValue();
             blockData.setSmallestFeeBase(Math.min(blockData.getSmallestFee(), transactionFee));
             blockData.setLargestFeeBase(Math.max(blockData.getLargestFee(), transactionFee));
